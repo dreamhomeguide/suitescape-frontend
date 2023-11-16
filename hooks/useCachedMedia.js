@@ -25,7 +25,7 @@ const useCachedMedia = (subDir, fileName, downloadUrl) => {
             console.log("Finished downloading cache to", uri);
             setCachedUri(uri);
           })
-          .catch((error) => {
+          .catch(() => {
             console.log("Cache download aborted");
           });
 
