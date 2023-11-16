@@ -1,0 +1,23 @@
+export default [
+  { label: "NCR", long: "National Capital Region", value: "NCR" },
+  { label: "CAR", long: "Cordillera Admininstrative Region", value: "CAR" },
+  { label: "Region I", long: "Ilocos Region", value: "I" },
+  { label: "Region II", long: "Cagayan Valley", value: "II" },
+  { label: "Region III", long: "Central Luzon", value: "III" },
+  { label: "Region IV-A", long: "CALABARZON", value: "IV-A" },
+  { label: "Region IV-B", long: "MIMAROPA", value: "IV-B" },
+  { label: "Region V", long: "Bicol Region", value: "V" },
+  { label: "Region VI", long: "Western Visayas", value: "VI" },
+  { label: "Region VII", long: "Central Visayas", value: "VII" },
+  { label: "Region VIII", long: "Eastern Visayas", value: "VIII" },
+  { label: "Region IX", long: "Zamboange Peninsula", value: "IX" },
+  { label: "Region X", long: "Northen Mindanao", value: "X" },
+  { label: "Region XI", long: "Davao Region", value: "XI" },
+  { label: "Region XII", long: "SOCCSKARGEN", value: "XII" },
+  { label: "Region XIII", long: "Caraga", value: "XIII" },
+  {
+    label: "ARMM",
+    long: "Autonomous Region in Muslim Mindanao",
+    value: "ARMM",
+  },
+];

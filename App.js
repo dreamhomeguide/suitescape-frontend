@@ -1,20 +1,25 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as SplashScreen from "expo-splash-screen";
+import React from "react";
 
-export default function App() {
+import Root from "./Root";
+import { AuthProvider } from "./contexts/AuthContext";
+import { SettingsProvider } from "./contexts/SettingsContext";
+
+SplashScreen.preventAutoHideAsync().catch((err) => console.log(err));
+
+const queryClient = new QueryClient();
+
+const App = () => {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <QueryClientProvider client={queryClient}>
+      <SettingsProvider>
+        <AuthProvider>
+          <Root />
+        </AuthProvider>
+      </SettingsProvider>
+    </QueryClientProvider>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default App;

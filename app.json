@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "SuitescapeFrontend",
-    "slug": "SuitescapeFrontend",
+    "name": "Suitescape",
+    "slug": "Suitescape",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,13 +15,15 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dreamhome.Suitescape"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.dreamhome.Suitescape"
     },
     "web": {
       "favicon": "./assets/favicon.png"
