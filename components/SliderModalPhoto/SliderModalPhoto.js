@@ -29,7 +29,7 @@ const SliderModalPhoto = ({ imageData }) => {
           color="white"
           style={{
             ...globalStyles.closeModalButton,
-            top: insets.top + 15,
+            top: insets.top + 10,
           }}
           onPress={() => closePhotoGallery()}
         />
