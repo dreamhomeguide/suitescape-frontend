@@ -5,7 +5,7 @@ const style = StyleSheet.create({
     position: "absolute",
     zIndex: 2,
     left: 15,
-    bottom: 30,
+    bottom: 25,
     maxWidth: 200,
   },
   text: {

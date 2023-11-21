@@ -6,7 +6,7 @@ const style = StyleSheet.create({
     zIndex: 2,
     width: 50,
     right: 6,
-    bottom: 45,
+    bottom: 40,
     alignItems: "center",
   },
   text: {
