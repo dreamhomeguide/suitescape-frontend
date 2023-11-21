@@ -1,7 +1,9 @@
+import { useMutation } from "@tanstack/react-query";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
+import globalStyles from "../assets/styles/globalStyles";
 import SuitescapeAPI from "../services/SuitescapeAPI";
 import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
 
@@ -22,47 +24,51 @@ export const SocialActionsProvider = ({ children, listingData }) => {
     setLikesCount(likes_count);
   }, [listingData]);
 
+  const likeMutation = useMutation({
+    mutationFn: () => SuitescapeAPI.post(`/listings/${listingId}/like`),
+    onSuccess: (response) =>
+      handleApiResponse({
+        response,
+        onSuccess: ({ liked }) => {
+          setIsLiked(liked);
+          setLikesCount((prevLikes) => (liked ? prevLikes + 1 : prevLikes - 1));
+        },
+      }),
+    onError: (err) =>
+      handleApiError({
+        error: err,
+        defaultAlert: true,
+      }),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () => SuitescapeAPI.post(`/listings/${listingId}/save`),
+    onSuccess: (response) =>
+      handleApiResponse({
+        response,
+        onSuccess: ({ saved }) => {
+          setIsSaved(saved);
+          if (saved) {
+            toast.show("Added to saved videos", {
+              placement: "top",
+              style: globalStyles.toast,
+            });
+          }
+        },
+      }),
+    onError: (err) =>
+      handleApiError({
+        error: err,
+        handleErrors: (errors) => Alert.alert(errors.message),
+      }),
+  });
+
   const handleLike = () => {
-    SuitescapeAPI.post(`/listings/${listingId}/like`)
-      .then((response) =>
-        handleApiResponse({
-          response,
-          onSuccess: ({ liked }) => {
-            setIsLiked(liked);
-            setLikesCount((prevLikes) =>
-              liked ? prevLikes + 1 : prevLikes - 1,
-            );
-          },
-        }),
-      )
-      .catch((err) => handleApiError({ error: err, defaultAlert: true }));
+    likeMutation.mutate();
   };
 
   const handleSave = () => {
-    SuitescapeAPI.post(`/listings/${listingId}/save`)
-      .then((res) =>
-        handleApiResponse({
-          response: res,
-          onSuccess: ({ saved }) => {
-            setIsSaved(saved);
-            if (saved) {
-              toast.show("Added to saved videos", {
-                placement: "top",
-                style: {
-                  top: 20,
-                  borderRadius: 20,
-                },
-              });
-            }
-          },
-        }),
-      )
-      .catch((err) =>
-        handleApiError({
-          error: err,
-          handleErrors: (errors) => Alert.alert(errors.message),
-        }),
-      );
+    saveMutation.mutate();
   };
 
   return (
