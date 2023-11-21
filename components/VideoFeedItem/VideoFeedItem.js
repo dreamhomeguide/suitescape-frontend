@@ -33,6 +33,8 @@ const VideoFeedItem = ({
     if (feedFocused && !videoInFocus && isVideoLoaded) {
       videoRef.current.video.setPositionAsync(0);
       videoRef.current.setIsClickPaused(false);
+
+      setIsSectionShown(false);
     }
   }, [feedFocused, isVideoLoaded, videoInFocus]);
 
