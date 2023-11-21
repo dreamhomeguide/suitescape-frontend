@@ -40,7 +40,7 @@ const SliderGallery = ({ data, mediaType, height }) => {
       initialNumToRender={3}
       bounces
       renderItem={renderItem}
-      scrollEnabled={data?.length > 1}
+      // scrollEnabled={data?.length > 1}
       ListEmptyComponent={
         <View
           style={{
