@@ -1,6 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { useEffect } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { useToast } from "react-native-toast-notifications";
 
 import { Colors } from "../../assets/Colors";
 import style from "../../assets/styles/detailsStyles";
@@ -30,6 +31,7 @@ const RoomDetails = ({ navigation, route }) => {
   const { startDate, endDate } = bookingState;
   const { data: roomData } = useFetchAPI(`/rooms/${roomId}`);
   const { setRoom } = useRoomContext();
+  const toast = useToast();
 
   // Set room to global context
   useEffect(() => {
@@ -48,11 +50,18 @@ const RoomDetails = ({ navigation, route }) => {
     if (startDate && endDate) {
       navigation.navigate(Routes.GUEST_INFO);
     } else {
+      toast.show("No date selected", {
+        placement: "top",
+        style: {
+          ...globalStyles.toast,
+          ...globalStyles.toastTopHeader,
+        },
+      });
       navigation.navigate({
         name: Routes.SELECT_DATES,
         merge: true,
       });
-      Alert.alert("No date selected", "Please select a date");
+      // Alert.alert("No date selected", "Please select a date");
     }
   };
 
