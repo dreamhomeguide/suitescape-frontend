@@ -17,7 +17,7 @@ const DotsView = ({
       dots.push(
         <Pressable
           key={i}
-          hitSlop={15}
+          hitSlop={20}
           onPress={() => onDotClicked && onDotClicked(i)}
           style={style.dot(dotSize, i === index)}
         />,
