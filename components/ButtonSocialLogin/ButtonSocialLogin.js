@@ -46,7 +46,12 @@ const ButtonSocialLogin = ({ type }) => {
           <View style={style.iconContainer}>
             {SocialTypes[type]?.iconComponent}
           </View>
-          <Text style={{ ...style.text, ...pressedColor(pressed, "black") }}>
+          <Text
+            style={{
+              ...style.text,
+              ...pressedColor(pressed, "rgba(0,0,0,0.7)"),
+            }}
+          >
             {SocialTypes[type]?.label}
           </Text>
         </View>
