@@ -50,6 +50,9 @@ const style = StyleSheet.create({
     fontSize: 15,
     textAlign: "right",
   },
+  message: {
+    textAlign: "left",
+  },
 });
 
 export default style;
