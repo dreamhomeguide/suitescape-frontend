@@ -38,7 +38,7 @@ const VideoItemProgressBar = ({
   }, [isSeeking, visible]);
 
   useEffect(() => {
-    return () => clearTimeout(timeoutRef.current);
+    return () => timeoutRef.current && clearTimeout(timeoutRef.current);
   }, []);
 
   const onValueChange = (val) => {

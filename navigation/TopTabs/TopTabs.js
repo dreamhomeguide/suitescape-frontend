@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   MaterialTabBar,
   MaterialTabItem,
@@ -35,6 +35,10 @@ export const TabBar = (tabProps) => {
   const [pressedTab, setPressedTab] = useState(null);
 
   const timeoutRef = useRef(null);
+
+  useEffect(() => {
+    return () => timeoutRef.current && clearTimeout(timeoutRef.current);
+  }, []);
 
   return (
     <MaterialTabBar
