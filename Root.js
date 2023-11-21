@@ -27,13 +27,15 @@ import { RoomProvider } from "./contexts/RoomContext";
 import { useSettings } from "./contexts/SettingsContext";
 import MainNavigation from "./navigation/MainNavigation";
 
-const theme = {
+const navigationTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
     background: "white",
   },
 };
+
+const paperTheme = MaterialTheme;
 
 const Root = () => {
   const [fontsLoaded] = useFonts({
@@ -62,12 +64,12 @@ const Root = () => {
             normalColor={Colors.blue}
             style={globalStyles.toast}
           >
-            <PaperProvider theme={MaterialTheme}>
+            <PaperProvider theme={paperTheme}>
               <NavigationContainer
                 onReady={() => {
                   SplashScreen.hideAsync().catch((err) => console.log(err));
                 }}
-                theme={theme}
+                theme={navigationTheme}
                 // theme={colorScheme === 'dark' ? DarkTheme : theme}
               >
                 <MainNavigation />
