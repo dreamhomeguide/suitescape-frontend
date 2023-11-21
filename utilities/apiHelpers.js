@@ -3,6 +3,11 @@ import { Alert } from "react-native";
 import capitalizedText from "./textCapitalizer";
 
 export const handleApiResponse = ({ response, onError, onSuccess }) => {
+  if (!response) {
+    console.log("No response");
+    return;
+  }
+
   const result = response.data;
 
   if (result.errors) {
@@ -21,6 +26,11 @@ export const handleApiError = ({
   handleErrors,
   defaultAlert = false,
 }) => {
+  if (!error) {
+    console.log("No error");
+    return;
+  }
+
   const errorResponse = error.response;
 
   if (!errorResponse) {
