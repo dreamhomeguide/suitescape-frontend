@@ -1,4 +1,4 @@
-import Icon from "@expo/vector-icons/Entypo";
+import Entypo from "@expo/vector-icons/Entypo";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { View } from "react-native";
@@ -6,10 +6,10 @@ import { View } from "react-native";
 import style from "./BottomTabsStyles";
 import AvatarSample from "../../components/AvatarSample/AvatarSample";
 import Bookings from "../../screens/Bookings/Bookings";
+import Cart from "../../screens/Cart/Cart";
 import Home from "../../screens/Home/Home";
 import Messages from "../../screens/Messages/Messages";
 import Profile from "../../screens/Profile/Profile";
-import Search from "../../screens/Search/Search";
 import { Routes } from "../Routes";
 
 const Tabs = createBottomTabNavigator();
@@ -38,26 +38,30 @@ const darkThemeTabOptions = {
   },
 };
 
-const renderTabIcons = ({ focused, color, size }, route) => {
-  let iconName = "";
-  switch (route.name) {
-    case Routes.PROFILE:
-      break;
-    case Routes.HOME:
-      iconName = "home";
-      break;
-    case Routes.MESSAGES:
-      iconName = "message";
-      break;
-    case Routes.SEARCH:
-      iconName = "magnifying-glass";
-      break;
-    case Routes.BOOKINGS:
-      iconName = "calendar";
-      break;
-    default:
-      iconName = "home";
-  }
+const tabIcons = {
+  [Routes.HOME]: {
+    iconName: "home",
+  },
+  [Routes.MESSAGES]: {
+    iconName: "message",
+  },
+  [Routes.CART]: {
+    iconName: "shopping-cart",
+  },
+  [Routes.BOOKINGS]: {
+    iconName: "calendar",
+  },
+  [Routes.PROFILE]: {
+    render: ({ size }) => <AvatarSample fill="white" size={size} />,
+  },
+};
+
+const renderTabIcons = (props, route) => {
+  const { focused, color, size } = props;
+
+  const tabIcon = tabIcons[route.name];
+  const { iconName, render } = tabIcon ?? {};
+
   return (
     <>
       <View
@@ -67,12 +71,10 @@ const renderTabIcons = ({ focused, color, size }, route) => {
           ...{ opacity: focused ? 1 : 0.4 },
         }}
       >
-        {/* Show avatar on Profile tab icon */}
-        {route.name === Routes.PROFILE ? (
-          <AvatarSample fill="white" size={size} />
+        {iconName ? (
+          <Entypo name={iconName} size={size} color={color} />
         ) : (
-          // This is where the icon names are used
-          <Icon name={iconName} color={color} size={size} />
+          render(props)
         )}
       </View>
 
@@ -113,7 +115,7 @@ const BottomTabs = () => {
         }}
       >
         <Tabs.Screen name={Routes.MESSAGES} component={Messages} />
-        <Tabs.Screen name={Routes.SEARCH} component={Search} />
+        <Tabs.Screen name={Routes.CART} component={Cart} />
         <Tabs.Screen name={Routes.BOOKINGS} component={Bookings} />
         <Tabs.Screen name={Routes.PROFILE} component={Profile} />
       </Tabs.Group>
