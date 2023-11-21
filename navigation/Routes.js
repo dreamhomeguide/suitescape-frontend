@@ -5,6 +5,7 @@ export const Routes = {
   LOGIN: "Login",
   SIGNUP: "Sign Up",
   MESSAGES: "Messages",
+  CART: "Cart",
   SEARCH: "Search",
   BOOKINGS: "Bookings",
   PROFILE: "Profile",
