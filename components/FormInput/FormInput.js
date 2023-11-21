@@ -31,11 +31,12 @@ const FormInput = forwardRef(
     const [showPassword, setShowPassword] = useState(false);
     const [showDatepicker, setShowDatepicker] = useState(false);
 
-    const { colors } = useTheme();
+    const theme = useTheme();
 
     const inputTheme = {
+      ...theme,
       colors: {
-        ...colors,
+        ...theme.colors,
         primary: Colors.blue,
         placeholder: Colors.blue,
         onSurfaceVariant: "gray",
@@ -74,6 +75,11 @@ const FormInput = forwardRef(
         return null;
       }
 
+      if (!Array.isArray(errorMessage)) {
+        console.log("Error message is not an array", errorMessage);
+        return null;
+      }
+
       // Note: Each error message is an array
       return errorMessage.map((message, index) => (
         <HelperText key={index} type="error" visible={message}>
@@ -94,6 +100,7 @@ const FormInput = forwardRef(
             label={label}
             visible={visible}
             inputProps={{
+              outlineColor: errorMessage ? "red" : null,
               outlineStyle: value && style.border,
               right: (
                 <TextInput.Icon
@@ -103,6 +110,7 @@ const FormInput = forwardRef(
             }}
             {...props}
           />
+          {renderErrorMessages()}
         </View>
       );
     }
@@ -126,7 +134,7 @@ const FormInput = forwardRef(
             secureTextEntry={type === "password" && !showPassword}
             outlineColor={errorMessage ? "red" : null}
             outlineStyle={value && style.border}
-            textColor={colors.text}
+            textColor={theme.colors.text}
             multiline={type === "textarea"}
             contentStyle={type === "textarea" && style.textArea}
             onBlur={() => {
