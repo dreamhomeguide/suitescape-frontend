@@ -84,10 +84,11 @@ const SelectDates = ({ navigation }) => {
             .map((d) => format(d, DATE_FORMAT))
             .includes(format(day, DATE_FORMAT))
         ) {
-          // markedDays[format(day, DATE_FORMAT)] = {
-          //   selected: true,
-          //   color: "white",
-          // };
+          // Style disabled days
+          markedDays[format(day, DATE_FORMAT)] = {
+            selected: true,
+            color: Colors.lightgray,
+          };
           continue;
         }
 
@@ -162,8 +163,8 @@ const SelectDates = ({ navigation }) => {
     toast.show("Select an end date", {
       placement: "top",
       style: {
-        top: 65,
         ...globalStyles.toast,
+        ...globalStyles.toastTopHeader,
       },
       // textStyle: { padding: 5, fontSize: 16 },
     });
