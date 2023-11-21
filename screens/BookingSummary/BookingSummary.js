@@ -29,6 +29,10 @@ const BookingSummary = ({ navigation }) => {
   const endDate = new Date(bookingState.endDate);
   const roomPrice = room.category.price * (bookingState.nights || 1);
 
+  const handleConfirmButton = () => {
+    navigation.navigate(Routes.PAYMENT_METHOD);
+  };
+
   const getTotal = () => {
     return roomPrice + ADDITIONAL_SERVICE_FEE + SUITESCAPE_FEE;
   };
@@ -207,11 +211,13 @@ const BookingSummary = ({ navigation }) => {
           </View>
         </View>
 
-        {bookingState.message.trim() && (
+        {bookingState.message?.trim() && (
           <View style={style.container}>
             <View style={globalStyles.largeContainerGap}>
               <Text style={style.detailsLabel}>Message (Optional)</Text>
-              <Text style={style.detailsValue}>{bookingState.message}</Text>
+              <Text style={{ ...style.detailsValue, ...style.message }}>
+                {bookingState.message}
+              </Text>
             </View>
           </View>
         )}
@@ -239,9 +245,7 @@ const BookingSummary = ({ navigation }) => {
         </View>
       </ScrollView>
       <AppFooter>
-        <ButtonLarge onPress={() => navigation.navigate(Routes.PAYMENT_METHOD)}>
-          Confirm
-        </ButtonLarge>
+        <ButtonLarge onPress={handleConfirmButton}>Confirm</ButtonLarge>
       </AppFooter>
     </View>
   );
