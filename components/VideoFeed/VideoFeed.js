@@ -9,7 +9,7 @@ import { VideoScrollContext } from "../../contexts/VideoScrollContext";
 import VideoFeedItem from "../VideoFeedItem/VideoFeedItem";
 
 const VIEWABILITY_CONFIG = {
-  minimumViewTime: 250,
+  // minimumViewTime: 250,
 
   // Adjust this if onViewableItemsChanged is not working properly
   itemVisiblePercentThreshold: 80,
