@@ -1,7 +1,15 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTheme } from "@react-navigation/native";
 import React from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  Text,
+  useColorScheme,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./ProfileStyles";
@@ -93,6 +101,11 @@ const Profile = () => {
     ]);
   };
 
+  const colorScheme = useColorScheme();
+  const { colors } = useTheme();
+
+  const borderColor = colorScheme === "dark" ? colors.border : Colors.lightgray;
+
   return (
     <ScrollView contentInset={{ bottom: insets.bottom }}>
       <View style={style.headerContainer}>
@@ -107,11 +120,15 @@ const Profile = () => {
         </Chip>
       </View>
 
-      <View style={style.headerDivider} />
+      <View
+        style={style.headerDivider({
+          color: borderColor,
+        })}
+      />
 
       {Object.entries(settings).map(([key, value]) => (
         <View style={style.settingsKeyContainer} key={key}>
-          <Text style={style.settingsKey}>
+          <Text style={style.settingsKey({ textColor: colors.text })}>
             {capitalizedText(splitTextSpaced(key), true)}
           </Text>
 
@@ -119,13 +136,13 @@ const Profile = () => {
             <Pressable
               key={title}
               style={({ pressed }) => ({
-                ...pressedBgColor(pressed),
+                ...pressedBgColor(pressed, colors.border),
                 ...(pressed && style.settingsValuePressed),
               })}
               onPress={onPress}
             >
-              <View style={style.settingsValueContainer}>
-                <Text>{title}</Text>
+              <View style={style.settingsValueContainer({ borderColor })}>
+                <Text style={{ color: colors.text }}>{title}</Text>
                 <Ionicons
                   name="chevron-forward"
                   size={21}

@@ -1,7 +1,7 @@
 import Entypo from "@expo/vector-icons/Entypo";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
-import { View } from "react-native";
+import { useColorScheme, View } from "react-native";
 
 import style from "./BottomTabsStyles";
 import AvatarSample from "../../components/AvatarSample/AvatarSample";
@@ -92,12 +92,12 @@ const renderTabIcons = (props, route) => {
 };
 
 const BottomTabs = () => {
-  // const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme();
+
   return (
     <Tabs.Navigator
       screenOptions={({ route }) => ({
-        // ...(colorScheme === "dark" ? darkThemeTabOptions : bottomTabOptions),
-        ...bottomTabOptions,
+        ...(colorScheme === "dark" ? darkThemeTabOptions : bottomTabOptions),
         tabBarIcon: (props) => renderTabIcons(props, route),
       })}
     >

@@ -1,3 +1,4 @@
+import { useTheme } from "@react-navigation/native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   MaterialTabBar,
@@ -36,6 +37,8 @@ export const TabBar = (tabProps) => {
 
   const timeoutRef = useRef(null);
 
+  const { colors } = useTheme();
+
   useEffect(() => {
     return () => timeoutRef.current && clearTimeout(timeoutRef.current);
   }, []);
@@ -44,6 +47,7 @@ export const TabBar = (tabProps) => {
     <MaterialTabBar
       {...tabProps}
       {...topTabOptions}
+      contentContainerStyle={{ backgroundColor: colors.background }}
       TabItemComponent={(props) => (
         <MaterialTabItem
           {...props}

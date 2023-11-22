@@ -2,7 +2,13 @@ import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
 import { StatusBar } from "expo-status-bar";
 import React, { memo, useCallback, useRef, useState } from "react";
-import { Dimensions, FlatList, Platform, View } from "react-native";
+import {
+  Dimensions,
+  FlatList,
+  Platform,
+  useColorScheme,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { VideoScrollContext } from "../../contexts/VideoScrollContext";
@@ -29,6 +35,7 @@ const VideoFeed = ({
   const [lastPlayedIndex, setLastPlayedIndex] = useState(null);
   const [isScrollEnabled, setIsScrollEnabled] = useState(true);
 
+  const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const isFeedFocused = useIsFocused();
 
@@ -116,8 +123,8 @@ const VideoFeed = ({
     [index],
   );
 
-  // const statusBarStyle = colorScheme === 'dark' || isFeedFocused ? "light" : "dark";
-  const statusBarStyle = isFeedFocused ? "light" : "dark";
+  const statusBarStyle =
+    colorScheme === "dark" || isFeedFocused ? "light" : "dark";
 
   return (
     <VideoScrollContext.Provider

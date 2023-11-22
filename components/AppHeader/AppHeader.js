@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useTheme } from "@react-navigation/native";
 import React, { memo } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,7 +9,6 @@ import { pressedOpacity } from "../../assets/styles/globalStyles";
 import ButtonBack from "../ButtonBack/ButtonBack";
 
 const ICON_SIZE = 25;
-const ICON_COLOR = "black";
 
 const AppHeader = ({
   title,
@@ -20,25 +19,33 @@ const AppHeader = ({
 }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   return (
     <View
       style={{
-        ...style.headerContainer,
-        ...style.rowContainer,
         paddingTop: insets.top + 5,
+        ...style.headerContainer({
+          bgColor: colors.background,
+          borderColor: colors.border,
+        }),
+        ...style.rowContainer,
       }}
     >
       <View style={style.rowContainer}>
-        <ButtonBack onPress={() => navigation.goBack()} color={ICON_COLOR} />
-        <Text style={{ ...style.text, ...textStyle }}>{title}</Text>
+        <ButtonBack onPress={() => navigation.goBack()} color={colors.text} />
+        <Text
+          style={{ ...style.text({ textColor: colors.text }), ...textStyle }}
+        >
+          {title}
+        </Text>
       </View>
       <View style={{ ...style.rowContainer, ...style.actionsContainer }}>
         {/* Use like this:
          ({size, color}) => (<Icon size={size} color={color} />)
          */}
         {typeof children === "function"
-          ? children({ size: ICON_SIZE, color: ICON_COLOR })
+          ? children({ size: ICON_SIZE, color: colors.text })
           : children}
 
         {menuEnabled && (
@@ -46,7 +53,7 @@ const AppHeader = ({
             onPress={menuOnPress}
             style={({ pressed }) => pressedOpacity(pressed, 0.3)}
           >
-            <Ionicons name="menu" color={ICON_COLOR} size={ICON_SIZE} />
+            <Ionicons name="menu" color={colors.text} size={ICON_SIZE} />
           </Pressable>
         )}
       </View>

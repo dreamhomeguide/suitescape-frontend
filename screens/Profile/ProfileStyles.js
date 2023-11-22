@@ -8,28 +8,29 @@ const style = StyleSheet.create({
     paddingVertical: 10,
     rowGap: 25,
   },
-  headerDivider: {
+  headerDivider: ({ color }) => ({
     height: 2,
-    backgroundColor: Colors.lightgray,
+    backgroundColor: color,
     marginTop: 15,
     marginBottom: 5,
-  },
+  }),
   settingsKeyContainer: {
     paddingVertical: 5,
     paddingHorizontal: 15,
   },
-  settingsKey: {
+  settingsKey: ({ textColor }) => ({
+    color: textColor,
     fontWeight: "bold",
     fontSize: 20,
     paddingTop: 10,
     paddingBottom: 8,
-  },
+  }),
   settingsValuePressed: {
     // paddingRight: 10,
     // paddingLeft: 5,
     borderRadius: 5,
   },
-  settingsValueContainer: {
+  settingsValueContainer: ({ borderColor }) => ({
     flexDirection: "row",
     // alignItems: "center",
     justifyContent: "space-between",
@@ -41,8 +42,8 @@ const style = StyleSheet.create({
     // borderBottomLeftRadius: 5,
     borderBottomRightRadius: 10,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.lightgray,
-  },
+    borderBottomColor: borderColor,
+  }),
   logoutButtonContainer: {
     marginHorizontal: 15,
     marginTop: 15,

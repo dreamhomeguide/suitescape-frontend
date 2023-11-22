@@ -1,9 +1,11 @@
-import { DefaultTheme } from "@react-navigation/native";
+import { useTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
+import { useColorScheme } from "react-native";
 
 import BottomTabs from "./BottomTabs/BottomTabs";
 import { Routes } from "./Routes";
+import { Colors } from "../assets/Colors";
 import { useAuth } from "../contexts/AuthContext";
 import { useSettings } from "../contexts/SettingsContext";
 import BookingSummary from "../screens/BookingSummary/BookingSummary";
@@ -24,6 +26,9 @@ const Stack = createNativeStackNavigator();
 const MainNavigation = () => {
   const { settings } = useSettings();
   const { authState } = useAuth();
+
+  const colorScheme = useColorScheme();
+  const theme = useTheme();
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -47,7 +52,12 @@ const MainNavigation = () => {
       >
         <Stack.Group
           screenOptions={{
-            contentStyle: { backgroundColor: DefaultTheme.colors.background },
+            contentStyle: {
+              backgroundColor:
+                colorScheme === "dark"
+                  ? theme.colors.background
+                  : Colors.backgroundGray,
+            },
           }}
         >
           <Stack.Screen
@@ -66,16 +76,8 @@ const MainNavigation = () => {
           <Stack.Screen name={Routes.PROFILE_HOST} component={ProfileHost} />
         </Stack.Group>
 
-        <Stack.Screen
-          name={Routes.GUEST_INFO}
-          component={GuestInfo}
-          options={{ contentStyle: { backgroundColor: "white" } }}
-        />
-        <Stack.Screen
-          name={Routes.PAYMENT_METHOD}
-          component={PaymentMethod}
-          options={{ contentStyle: { backgroundColor: "white" } }}
-        />
+        <Stack.Screen name={Routes.GUEST_INFO} component={GuestInfo} />
+        <Stack.Screen name={Routes.PAYMENT_METHOD} component={PaymentMethod} />
       </Stack.Group>
 
       <Stack.Screen
