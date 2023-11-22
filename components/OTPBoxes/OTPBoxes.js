@@ -7,12 +7,27 @@ const OTPBoxes = ({ size = 6, onOTPChange }) => {
   const [OTP, setOTP] = useState(Array(size).fill(""));
   const inputRefs = useRef(Array(size).fill(null));
 
-  const updateOTP = (index, value) => {
+  const updateOTP = (value, index) => {
     const newOTP = [...OTP];
     newOTP[index] = value;
     setOTP(newOTP);
+
     if (onOTPChange) {
       onOTPChange(newOTP.join(""));
+    }
+  };
+
+  const onChangeText = (value, index) => {
+    updateOTP(value, index);
+
+    if (value && index < size - 1) {
+      inputRefs.current[index + 1].focus();
+    }
+  };
+
+  const onKeyPress = (key, index) => {
+    if (key === "Backspace" && !OTP[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
     }
   };
 
@@ -27,21 +42,9 @@ const OTPBoxes = ({ size = 6, onOTPChange }) => {
           maxLength={1}
           keyboardType="numeric"
           value={OTP[i]}
-          onChangeText={(value) => {
-            updateOTP(i, value);
-            if (value && i < size - 1) {
-              inputRefs.current[i + 1].focus();
-            }
-          }}
-          onKeyPress={({ nativeEvent: { key } }) => {
-            if (key === "Backspace" && !OTP[i] && i > 0) {
-              inputRefs.current[i - 1].focus();
-            }
-          }}
-          style={{
-            ...style.input,
-            ...(OTP[i] && { borderColor: "black" }),
-          }}
+          onChangeText={(value) => onChangeText(value, i)}
+          onKeyPress={({ nativeEvent: { key } }) => onKeyPress(key, i)}
+          style={style.input({ hasValue: OTP[i] })}
         />,
       );
     }
