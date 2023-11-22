@@ -7,11 +7,15 @@ import {
   Poppins_400Regular,
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
-import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
+import {
+  DarkTheme,
+  DefaultTheme,
+  NavigationContainer,
+} from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import React from "react";
-import { StatusBar } from "react-native";
+import { StatusBar, useColorScheme } from "react-native";
 import {
   DefaultTheme as MaterialTheme,
   PaperProvider,
@@ -32,6 +36,7 @@ const navigationTheme = {
   colors: {
     ...DefaultTheme.colors,
     background: "white",
+    border: "lightgray",
   },
 };
 
@@ -47,6 +52,8 @@ const Root = () => {
     ...Foundation.font,
     ...MaterialCommunityIcons.font,
   });
+  const colorScheme = useColorScheme();
+
   const { settings } = useSettings();
   const { authState } = useAuth();
 
@@ -66,11 +73,10 @@ const Root = () => {
           >
             <PaperProvider theme={paperTheme}>
               <NavigationContainer
+                theme={colorScheme === "dark" ? DarkTheme : navigationTheme}
                 onReady={() => {
                   SplashScreen.hideAsync().catch((err) => console.log(err));
                 }}
-                theme={navigationTheme}
-                // theme={colorScheme === 'dark' ? DarkTheme : theme}
               >
                 <MainNavigation />
               </NavigationContainer>
