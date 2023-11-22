@@ -1,5 +1,5 @@
 import React, { forwardRef, memo } from "react";
-import { FlatList, GestureHandlerRootView } from "react-native-gesture-handler";
+import { FlatList } from "react-native";
 
 const Slider = forwardRef(
   ({ data, index, onIndexChange, width, ...props }, ref) => {
@@ -30,25 +30,22 @@ const Slider = forwardRef(
 
     return (
       data?.length > 0 && (
-        // TODO: Setup gestures for image gallery
-        <GestureHandlerRootView>
-          <FlatList
-            ref={ref}
-            data={data}
-            initialScrollIndex={index}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={width}
-            snapToAlignment="center"
-            decelerationRate="fast"
-            disableIntervalMomentum
-            bounces={false}
-            onScroll={onScroll}
-            getItemLayout={getItemLayout}
-            {...props}
-          />
-        </GestureHandlerRootView>
+        <FlatList
+          ref={ref}
+          data={data}
+          initialScrollIndex={index}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={width}
+          snapToAlignment="center"
+          decelerationRate="fast"
+          disableIntervalMomentum
+          bounces={false}
+          onScroll={onScroll}
+          getItemLayout={getItemLayout}
+          {...props}
+        />
       )
     );
   },
