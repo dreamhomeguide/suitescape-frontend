@@ -19,7 +19,7 @@ const HeaderProfileHost = () => {
       />
       <View style={style.mainContentContainer}>
         <Image
-          source={require("../../assets/images/onboarding/page1.png")}
+          source={require("../../assets/images/onboarding/page2.png")}
           style={style.profileImageContainer}
         />
         <View style={style.contentContainer}>

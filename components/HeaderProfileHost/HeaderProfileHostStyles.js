@@ -4,7 +4,7 @@ import { Colors } from "../../assets/Colors";
 
 const style = StyleSheet.create({
   mainContainer: {
-    height: 460,
+    height: 445,
   },
   coverImageContainer: {
     backgroundColor: Colors.lightgray,
@@ -21,7 +21,7 @@ const style = StyleSheet.create({
     alignSelf: "center",
   },
   mainContentContainer: {
-    transform: [{ translateY: -100 }],
+    transform: [{ translateY: -115 }],
   },
   contentContainer: {
     borderTopStartRadius: 25,
