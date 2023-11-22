@@ -9,7 +9,11 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
+import style from "./SliderGalleryItemStyles";
+import globalStyles, {
+  pressedBgColor,
+  pressedOpacity,
+} from "../../assets/styles/globalStyles";
 import { useAuth } from "../../contexts/AuthContext";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import { baseURLWithoutApi } from "../../services/SuitescapeAPI";
@@ -98,13 +102,8 @@ const SliderGalleryItem = ({
         <Pressable
           onPress={() => showVideoGallery()}
           style={({ pressed }) => ({
-            position: "absolute",
-            bottom: 15,
-            left: 20,
-            borderRadius: 20,
-            padding: 5,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            ...(pressed && { backgroundColor: "rgba(0,0,0,0.8)" }),
+            ...style.fullScreenButton,
+            ...pressedBgColor(pressed, "rgba(0,0,0,0.8)"),
           })}
         >
           <MaterialCommunityIcons name="fullscreen" size={20} color="white" />
