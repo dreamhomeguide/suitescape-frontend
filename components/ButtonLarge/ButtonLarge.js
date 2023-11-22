@@ -23,20 +23,12 @@ const ButtonLarge = ({
     disabled={disabled}
     {...props}
     style={({ pressed }) => ({
-      ...style.button,
-      ...(half && style.halfButton),
+      ...style.button({ half }),
       ...pressedOpacity(pressed, 0.7),
       ...disabledOpacity(disabled),
     })}
   >
-    <Text
-      style={{
-        ...style.text,
-        ...(half && style.halfButtonText),
-      }}
-    >
-      {children}
-    </Text>
+    <Text style={style.text}>{children}</Text>
   </Pressable>
 );
 

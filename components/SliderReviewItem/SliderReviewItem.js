@@ -11,9 +11,7 @@ const SliderReviewItem = ({ item, onPress, itemWidth, itemMargin }) => {
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({
-        width: itemWidth,
-        marginRight: itemMargin,
-        ...style.mainContainer,
+        ...style.mainContainer({ itemWidth, itemMargin }),
         ...pressedBgColor(pressed),
       })}
     >

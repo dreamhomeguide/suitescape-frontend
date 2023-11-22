@@ -6,7 +6,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./SliderModalPhotoStyles";
-import globalStyles from "../../assets/styles/globalStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import SliderGalleryItem from "../SliderGalleryItem/SliderGalleryItem";
 
@@ -22,15 +21,12 @@ const SliderModalPhoto = ({ imageData }) => {
       onRequestClose={() => closePhotoGallery()}
       statusBarTranslucent
     >
-      <View style={{ flex: 1, backgroundColor: "black" }}>
+      <View style={style.mainContainer}>
         <Ionicons
           name="close"
           size={30}
           color="white"
-          style={{
-            ...globalStyles.closeModalButton,
-            top: insets.top + 10,
-          }}
+          style={style.closeButton({ topInsets: insets.top })}
           onPress={() => closePhotoGallery()}
         />
 
@@ -65,12 +61,7 @@ const SliderModalPhoto = ({ imageData }) => {
 
       {/* Index */}
       {imageData ? (
-        <View
-          style={{
-            ...style.indexContainer,
-            bottom: insets.bottom + 15,
-          }}
-        >
+        <View style={style.indexContainer({ bottomInsets: insets.bottom })}>
           <Text style={style.text}>
             {index + 1}/{imageData.length}
           </Text>

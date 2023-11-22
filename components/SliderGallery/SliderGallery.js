@@ -42,12 +42,7 @@ const SliderGallery = ({ data, mediaType, height }) => {
       renderItem={renderItem}
       // scrollEnabled={data?.length > 1}
       ListEmptyComponent={
-        <View
-          style={{
-            width: WINDOW_WIDTH,
-            ...style.emptyContainer,
-          }}
-        >
+        <View style={style.emptyContainer({ width: WINDOW_WIDTH })}>
           <Ionicons name="image" size={50} color="white" />
         </View>
       }

@@ -1,9 +1,15 @@
 import { StyleSheet } from "react-native";
 
+import { Colors } from "../../assets/Colors";
+
 const style = StyleSheet.create({
   text: {
     color: "white",
   },
+  mainContainer: ({ height }) => ({
+    height,
+    backgroundColor: Colors.lightgray,
+  }),
   indexContainer: {
     position: "absolute",
     alignSelf: "center",

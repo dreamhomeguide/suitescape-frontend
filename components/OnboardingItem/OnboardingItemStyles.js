@@ -5,15 +5,18 @@ const style = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  image: {
+  image: ({ width, height }) => ({
     justifyContent: "center",
-  },
-  title: {
+    width: width - 50,
+    height: height / 2 - 85,
+  }),
+  title: ({ textColor }) => ({
+    color: textColor,
     textAlign: "center",
     fontSize: 20,
     margin: 30,
     marginBottom: 35,
-  },
+  }),
 });
 
 export default style;

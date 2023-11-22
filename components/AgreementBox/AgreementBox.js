@@ -17,12 +17,7 @@ const AgreementBox = ({ checked, setChecked }) => {
         onPress={() => setChecked(!checked)}
         color={Colors.blue}
       />
-      <Text
-        style={{
-          color: colors.text,
-          ...style.textContainer,
-        }}
-      >
+      <Text style={style.textContainer({ textColor: colors.text })}>
         I have agreed to the{" "}
         <ButtonLink
           type="text"

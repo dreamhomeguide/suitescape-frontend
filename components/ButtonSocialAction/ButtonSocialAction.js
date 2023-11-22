@@ -15,7 +15,9 @@ const ButtonSocialAction = ({ name, label, color, IconComponent, onPress }) => {
         onPress={onPress}
       >
         <IconComponent name={name} size={20} color={color} style={style.icon} />
-        <Text style={{ color, ...style.socialButtonText }}>{label}</Text>
+        <Text style={style.socialButtonText({ textColor: color })}>
+          {label}
+        </Text>
       </Pressable>
     </View>
   );

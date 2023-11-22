@@ -16,12 +16,7 @@ const ButtonIconRow = ({
     <Pressable
       onPress={onPress}
       style={({ pressed }) => ({
-        ...style.button,
-        ...(gap && { columnGap: gap }),
-        ...(reverse && {
-          flexDirection: "row-reverse",
-          justifyContent: "flex-end",
-        }),
+        ...style.button({ gap, reverse }),
         ...pressedOpacity(pressed),
       })}
     >

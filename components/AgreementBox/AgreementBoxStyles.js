@@ -6,9 +6,10 @@ const style = StyleSheet.create({
     marginHorizontal: 20,
     marginVertical: 10,
   },
-  textContainer: {
+  textContainer: ({ textColor }) => ({
     flex: 1,
-  },
+    color: textColor,
+  }),
   text: {
     fontSize: 14,
     textDecorationLine: "underline",

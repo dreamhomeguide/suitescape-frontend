@@ -9,23 +9,10 @@ const LogoText = () => {
 
   return (
     <View style={style.container}>
-      <Text
-        style={{
-          color: colors.text,
-          ...style.logoText,
-          ...style.bold,
-        }}
-      >
+      <Text style={style.logoText({ textColor: colors.text, bold: true })}>
         Suitescape
       </Text>
-      <Text
-        style={{
-          color: colors.text,
-          ...style.logoText,
-        }}
-      >
-        PH
-      </Text>
+      <Text style={style.logoText({ textColor: colors.text })}>PH</Text>
     </View>
   );
 };

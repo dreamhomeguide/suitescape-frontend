@@ -25,9 +25,7 @@ const Button = ({
         onPress && onPress();
       }}
       style={({ pressed }) => ({
-        ...style.button(color),
-        ...(outlined && style.outlinedButton(color)),
-        ...(inverted && style.invertedButton),
+        ...style.button({ outlined, inverted, color }),
         ...containerStyle,
         ...(outlined || inverted
           ? pressedBgColor(pressed, color)
@@ -37,9 +35,7 @@ const Button = ({
       {({ pressed }) => (
         <Text
           style={{
-            ...style.text,
-            ...(outlined && { color }),
-            ...(inverted && { color }),
+            ...style.text({ outlined, inverted, color }),
             ...textStyle,
             ...(pressed && { color: "white" }),
           }}

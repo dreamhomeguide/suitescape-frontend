@@ -6,9 +6,7 @@ import style from "./AvatarSampleStyles";
 const AvatarSample = ({ size = 50, fill = "lightgray" }) => (
   <View
     style={{
-      ...style.avatarContainer,
-      ...(fill && { backgroundColor: fill }),
-      ...(size && { width: size, height: size }),
+      ...style.avatarContainer({ fill, size }),
     }}
   />
 );

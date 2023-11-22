@@ -2,7 +2,6 @@ import React, { memo, useState } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
 
 import style from "./SliderGalleryModeStyles";
-import { Colors } from "../../assets/Colors";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import ButtonGalleryMode from "../ButtonGalleryMode/ButtonGalleryMode";
 import SliderGallery from "../SliderGallery/SliderGallery";
@@ -24,7 +23,7 @@ const SliderGalleryMode = ({ imageData, videoData }) => {
   };
 
   return (
-    <View style={{ height: sliderHeight, backgroundColor: Colors.lightgray }}>
+    <View style={style.mainContainer({ height: sliderHeight })}>
       {!isPhotoGalleryShown && !isVideoGalleryShown && (
         <SliderGallery
           data={galleryData}

@@ -12,23 +12,12 @@ const OnboardingItem = ({ title, img }) => {
   return (
     <View style={{ width, ...style.container }}>
       <Image
-        style={{
-          ...style.image,
-          height: height / 2 - 85,
-          width: width - 50,
-        }}
+        style={style.image({ width, height })}
         resizeMode="contain"
         // source={assets ? assets[0] : null}
         source={img}
       />
-      <Text
-        style={{
-          color: colors.text,
-          ...style.title,
-        }}
-      >
-        {title}
-      </Text>
+      <Text style={style.title({ textColor: colors.text })}>{title}</Text>
     </View>
   );
 };

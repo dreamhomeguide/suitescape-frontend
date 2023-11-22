@@ -6,16 +6,14 @@ const style = StyleSheet.create({
     flexDirection: "row",
     paddingVertical: 25,
   },
-  logoText: {
-    fontFamily: "Poppins_400Regular",
+  logoText: ({ textColor, bold }) => ({
+    color: textColor,
+    fontFamily: bold ? "Poppins_700Bold" : "Poppins_400Regular",
     letterSpacing: 0.15,
     fontSize: 45,
     textTransform: "uppercase",
     includeFontPadding: false,
-  },
-  bold: {
-    fontFamily: "Poppins_700Bold",
-  },
+  }),
 });
 
 export default style;

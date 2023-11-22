@@ -7,21 +7,10 @@ const style = StyleSheet.create({
     flex: 1,
     backgroundColor: "black",
   },
-  indexContainer: ({ bottomInsets }) => ({
-    position: "absolute",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-    zIndex: 2,
-    bottom: bottomInsets + 15,
-  }),
   closeButton: ({ topInsets }) => ({
     ...globalStyles.closeModalButton,
-    top: topInsets + 10,
+    top: topInsets + 15,
   }),
-  text: {
-    color: "white",
-  },
 });
 
 export default style;

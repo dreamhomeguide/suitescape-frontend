@@ -13,11 +13,12 @@ const style = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  socialButtonText: {
+  socialButtonText: ({ textColor }) => ({
+    color: textColor,
     fontWeight: "bold",
     textTransform: "uppercase",
     paddingLeft: 10,
-  },
+  }),
   icon: {
     paddingBottom: 4,
   },

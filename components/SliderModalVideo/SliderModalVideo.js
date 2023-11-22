@@ -3,7 +3,7 @@ import React, { memo } from "react";
 import { Modal, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import globalStyles from "../../assets/styles/globalStyles";
+import style from "./SliderModalVideoStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import VideoFeed from "../VideoFeed/VideoFeed";
 
@@ -18,15 +18,12 @@ const SliderModalVideo = ({ videoData, listing }) => {
       onRequestClose={() => closeVideoGallery()}
       statusBarTranslucent
     >
-      <View style={{ flex: 1, backgroundColor: "black" }}>
+      <View style={style.mainContainer}>
         <Ionicons
           name="close"
           size={30}
           color="white"
-          style={{
-            ...globalStyles.closeModalButton,
-            top: insets.top + 15,
-          }}
+          style={style.closeButton({ topInsets: insets.top })}
           onPress={() => closeVideoGallery()}
         />
 

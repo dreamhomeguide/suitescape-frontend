@@ -8,13 +8,7 @@ const HeaderIconView = ({ children, right = false }) => {
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      style={{
-        top: insets.top + 10,
-        ...(right && { right: 0 }),
-        ...style.headerIconContainer,
-      }}
-    >
+    <View style={style.headerIconContainer({ topInsets: insets.top, right })}>
       {children}
     </View>
   );

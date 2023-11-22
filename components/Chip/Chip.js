@@ -12,22 +12,11 @@ const Chip = ({
   renderIcon,
 }) => {
   return (
-    <View
-      style={{
-        backgroundColor: color,
-        ...style.container,
-        ...(inverted && {
-          backgroundColor: "transparent",
-          borderColor: color,
-          borderWidth: 1,
-        }),
-      }}
-    >
+    <View style={style.container({ inverted, color })}>
       {renderIcon && renderIcon({ size: 12, color })}
       <Text
         style={{
-          ...style.text,
-          ...(inverted && { color }),
+          ...style.text({ inverted, color }),
           ...textStyle,
         }}
       >

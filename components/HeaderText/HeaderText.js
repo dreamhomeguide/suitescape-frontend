@@ -8,13 +8,7 @@ const HeaderText = ({ children, textAlign = "center" }) => {
   const { colors } = useTheme();
 
   return (
-    <Text
-      style={{
-        textAlign,
-        color: colors.text,
-        ...style.text,
-      }}
-    >
+    <Text style={style.text({ color: colors.text, textAlign })}>
       {children}
     </Text>
   );

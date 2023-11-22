@@ -3,14 +3,16 @@ import { StyleSheet } from "react-native";
 import { Colors } from "../../assets/Colors";
 
 const style = StyleSheet.create({
-  mainContainer: {
+  mainContainer: ({ itemWidth, itemMargin }) => ({
+    width: itemWidth,
+    marginRight: itemMargin,
     height: 250,
     backgroundColor: Colors.lightgray,
     borderRadius: 10,
     paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 15,
-  },
+  }),
   userContainer: {
     paddingTop: 3,
     flexDirection: "row",
