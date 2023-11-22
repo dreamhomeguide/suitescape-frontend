@@ -91,11 +91,11 @@ const VideoItemProgressBar = ({
         onSlidingStart={onSlidingStart}
         onSlidingComplete={onSlidingComplete}
         maximumValue={duration}
-        maximumTrackStyle={style.track}
         trackStyle={{ height: trackHeight }}
-        minimumTrackTintColor={undefined}
+        maximumTrackStyle={style.track}
         maximumTrackTintColor="white"
-        thumbStyle={isSeeking ? style.thumb : { height: 0, width: 0 }}
+        minimumTrackTintColor={undefined}
+        thumbStyle={isSeeking ? style.thumb : style.noThumb}
         containerStyle={style.sliderContainer}
         // Date time marks like 00:00, 00:30, 01:30, etc. should be done in backend (Laravel)
         // Thumbnails for these marks should be done in frontend (React native)

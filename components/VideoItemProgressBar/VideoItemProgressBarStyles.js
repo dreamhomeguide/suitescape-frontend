@@ -23,6 +23,10 @@ const style = StyleSheet.create({
     },
     elevation: 2,
   },
+  noThumb: {
+    height: 0,
+    width: 0,
+  },
   trackMark: {
     width: 3,
     height: 6,
