@@ -1,12 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import detailsStyles from "../../assets/styles/detailsStyles";
-
 const style = StyleSheet.create({
-  mainContainer: {
-    ...detailsStyles.plainContainer,
-    ...detailsStyles.titleContainer,
-  },
   contentContainer: {
     paddingTop: 4,
   },
