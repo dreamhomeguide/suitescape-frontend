@@ -104,8 +104,6 @@ const Profile = () => {
   const colorScheme = useColorScheme();
   const { colors } = useTheme();
 
-  const borderColor = colorScheme === "dark" ? colors.border : Colors.lightgray;
-
   return (
     <ScrollView contentInset={{ bottom: insets.bottom }}>
       <View style={style.headerContainer}>
@@ -122,7 +120,7 @@ const Profile = () => {
 
       <View
         style={style.headerDivider({
-          color: borderColor,
+          color: colors.border,
         })}
       />
 
@@ -136,12 +134,19 @@ const Profile = () => {
             <Pressable
               key={title}
               style={({ pressed }) => ({
-                ...pressedBgColor(pressed, colors.border),
+                ...pressedBgColor(
+                  pressed,
+                  colorScheme === "dark" ? colors.border : "lightgray",
+                ),
                 ...(pressed && style.settingsValuePressed),
               })}
               onPress={onPress}
             >
-              <View style={style.settingsValueContainer({ borderColor })}>
+              <View
+                style={style.settingsValueContainer({
+                  borderColor: colors.border,
+                })}
+              >
                 <Text style={{ color: colors.text }}>{title}</Text>
                 <Ionicons
                   name="chevron-forward"

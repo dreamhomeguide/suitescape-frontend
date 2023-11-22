@@ -36,7 +36,7 @@ const navigationTheme = {
   colors: {
     ...DefaultTheme.colors,
     background: "white",
-    border: "lightgray",
+    border: Colors.lightgray,
   },
 };
 
@@ -52,6 +52,7 @@ const Root = () => {
     ...Foundation.font,
     ...MaterialCommunityIcons.font,
   });
+
   const colorScheme = useColorScheme();
 
   const { settings } = useSettings();

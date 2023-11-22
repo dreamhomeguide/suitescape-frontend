@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, useTheme } from "@react-navigation/native";
 import React, { memo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./AppHeaderStyles";
@@ -19,6 +19,7 @@ const AppHeader = ({
 }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const colorScheme = useColorScheme();
   const { colors } = useTheme();
 
   return (
@@ -27,7 +28,7 @@ const AppHeader = ({
         paddingTop: insets.top + 5,
         ...style.headerContainer({
           bgColor: colors.background,
-          borderColor: colors.border,
+          borderColor: colorScheme === "dark" ? colors.border : "lightgray",
         }),
         ...style.rowContainer,
       }}
