@@ -130,7 +130,7 @@ const GuestInfo = ({ navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : null}
         style={globalStyles.flexFull}
       >
-        <AppHeader title="Guest Info" />
+        <AppHeader />
         <ScrollView
           ref={scrollViewRef}
           contentInset={{ top: 10, bottom: 15 }}
@@ -201,7 +201,6 @@ const GuestInfo = ({ navigation }) => {
               setBookingData({ address: value });
               clearErrorWhenNotEmpty(value, mappings.address);
             }}
-            maxLength={40}
             placeholder="Address"
             textContentType="fullStreetAddress"
             autoCapitalize="words"

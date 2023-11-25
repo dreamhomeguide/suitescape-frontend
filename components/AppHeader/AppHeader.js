@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useNavigation, useTheme } from "@react-navigation/native";
+import { useNavigation, useRoute, useTheme } from "@react-navigation/native";
 import React, { memo } from "react";
 import { Pressable, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,6 +19,7 @@ const AppHeader = ({
 }) => {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
+  const route = useRoute();
   const colorScheme = useColorScheme();
   const { colors } = useTheme();
 
@@ -38,7 +39,7 @@ const AppHeader = ({
         <Text
           style={{ ...style.text({ textColor: colors.text }), ...textStyle }}
         >
-          {title}
+          {title ?? route.name}
         </Text>
       </View>
       <View style={{ ...style.rowContainer, ...style.actionsContainer }}>

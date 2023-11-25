@@ -17,7 +17,7 @@ const CheckAvailability = ({ route }) => {
 
   return (
     <View style={globalStyles.flexFull}>
-      <AppHeader title="Check Availability">
+      <AppHeader>
         <Pressable style={({ pressed }) => pressedOpacity(pressed, 0.3)}>
           <IconBadge count={0}>
             <FontAwesome5 name="shopping-cart" size={20} color={Colors.blue} />

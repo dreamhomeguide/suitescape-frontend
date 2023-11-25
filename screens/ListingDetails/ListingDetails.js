@@ -108,7 +108,7 @@ const ListingDetails = ({ route, navigation }) => {
       <SliderModalVideo videoData={videos} listing={listing} />
 
       <View style={globalStyles.flexFull}>
-        <AppHeader title="Listing Details" menuEnabled />
+        <AppHeader menuEnabled />
 
         <ScrollView>
           <SliderGalleryMode

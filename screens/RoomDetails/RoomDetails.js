@@ -67,7 +67,7 @@ const RoomDetails = ({ navigation, route }) => {
 
   return (
     <View style={globalStyles.flexFull}>
-      <AppHeader title="Room Details" menuEnabled />
+      <AppHeader menuEnabled />
       <ScrollView>
         {!roomData && <ActivityIndicator style={globalStyles.loadingCircle} />}
 

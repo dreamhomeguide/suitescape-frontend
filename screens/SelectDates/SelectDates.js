@@ -172,7 +172,7 @@ const SelectDates = ({ navigation }) => {
 
   return (
     <View style={globalStyles.flexFull}>
-      <AppHeader title="Select Dates" />
+      <AppHeader />
       <View style={globalStyles.flexFull}>
         <CalendarList
           current={current}

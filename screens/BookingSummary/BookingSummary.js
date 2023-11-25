@@ -140,7 +140,7 @@ const BookingSummary = ({ navigation }) => {
 
   return (
     <View style={globalStyles.flexFull}>
-      <AppHeader title="Booking Summary" />
+      <AppHeader />
       <ScrollView>
         <View style={style.container}>
           <View style={style.titleContainer}>
