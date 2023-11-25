@@ -24,6 +24,9 @@ const FormInput = forwardRef(
       errorMessage = null,
       visible = false,
       onBlur,
+      containerStyle,
+      useDefaultStyles = true,
+      disableAnimations = false,
       ...props
     },
     ref,
@@ -45,6 +48,9 @@ const FormInput = forwardRef(
         },
       },
       roundness: 10,
+      animation: {
+        scale: disableAnimations ? 0.3 : 1,
+      },
     };
 
     const handlePasswordPress = () => {
@@ -90,7 +96,12 @@ const FormInput = forwardRef(
 
     if (type === "dropdown") {
       return (
-        <View style={style.inputContainer}>
+        <View
+          style={{
+            ...(useDefaultStyles && style.inputContainer),
+            ...containerStyle,
+          }}
+        >
           <DropDown
             ref={ref}
             theme={inputTheme}
@@ -119,7 +130,8 @@ const FormInput = forwardRef(
       <>
         <View
           style={{
-            ...style.inputContainer,
+            ...(useDefaultStyles && style.inputContainer),
+            ...containerStyle,
             ...(errorMessage && { marginBottom: 4 }),
           }}
         >
@@ -136,10 +148,11 @@ const FormInput = forwardRef(
             outlineStyle={value && style.border}
             textColor={theme.colors.text}
             multiline={type === "textarea"}
+            style={{ textAlign: "auto" }}
             contentStyle={type === "textarea" && style.textArea}
             onBlur={() => {
-              // Following code only applies to date type
-              if (type !== "date") {
+              // The code after this only applies to date type
+              if (type !== "date" || !value) {
                 onBlur && onBlur();
                 return;
               }
@@ -177,6 +190,7 @@ const FormInput = forwardRef(
                         : "eye-off"
                       : type === "date" && "calendar"
                   }
+                  color={inputTheme.colors.primary}
                   onPress={
                     type === "password" ? handlePasswordPress : handleDatePress
                   }
