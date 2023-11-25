@@ -18,6 +18,7 @@ import Onboarding from "../screens/Onboarding/Onboarding";
 import PaymentMethod from "../screens/PaymentMethod/PaymentMethod";
 import ProfileHost from "../screens/ProfileHost/ProfileHost";
 import RoomDetails from "../screens/RoomDetails/RoomDetails";
+import Search from "../screens/Search/Search";
 import SelectDates from "../screens/SelectDates/SelectDates";
 import SignUp from "../screens/SignUp/SignUp";
 
@@ -76,6 +77,7 @@ const MainNavigation = () => {
           <Stack.Screen name={Routes.PROFILE_HOST} component={ProfileHost} />
         </Stack.Group>
 
+        <Stack.Screen name={Routes.SEARCH} component={Search} />
         <Stack.Screen name={Routes.GUEST_INFO} component={GuestInfo} />
         <Stack.Screen name={Routes.PAYMENT_METHOD} component={PaymentMethod} />
       </Stack.Group>

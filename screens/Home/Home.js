@@ -9,8 +9,9 @@ import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import HeaderIconView from "../../components/HeaderIconView/HeaderIconView";
 import VideoFeed from "../../components/VideoFeed/VideoFeed";
 import useFetchVideos from "../../hooks/useFetchVideos";
+import { Routes } from "../../navigation/Routes";
 
-const Home = () => {
+const Home = ({ navigation }) => {
   const { videos, fetchNextPage, isRefreshing, refresh } = useFetchVideos();
 
   const bottomTabHeight = useBottomTabBarHeight();
@@ -20,7 +21,7 @@ const Home = () => {
     <View style={style.mainContainer}>
       <HeaderIconView right>
         <Pressable
-          onPress={() => console.log("Search")}
+          onPress={() => navigation.navigate(Routes.SEARCH)}
           style={({ pressed }) => pressedOpacity(pressed)}
         >
           <Entypo
