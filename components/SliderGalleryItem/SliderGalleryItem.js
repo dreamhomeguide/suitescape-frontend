@@ -16,7 +16,7 @@ import globalStyles, {
 } from "../../assets/styles/globalStyles";
 import { useAuth } from "../../contexts/AuthContext";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
-import { baseURLWithoutApi } from "../../services/SuitescapeAPI";
+import { baseURL } from "../../services/SuitescapeAPI";
 import VideoItem from "../VideoItem/VideoItem";
 
 const { height: WINDOW_HEIGHT } = Dimensions.get("window");
@@ -68,7 +68,7 @@ const SliderGalleryItem = ({
         {isLoading && <ActivityIndicator style={globalStyles.absoluteCenter} />}
         <Image
           source={{
-            uri: baseURLWithoutApi + mediaUrl,
+            uri: baseURL + mediaUrl,
             headers: {
               Authorization: "Bearer " + userToken,
             },

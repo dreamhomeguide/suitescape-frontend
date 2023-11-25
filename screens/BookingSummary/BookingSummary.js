@@ -14,7 +14,7 @@ import { useBookingContext } from "../../contexts/BookingContext";
 import { useListingContext } from "../../contexts/ListingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
 import { Routes } from "../../navigation/Routes";
-import { baseURLWithoutApi } from "../../services/SuitescapeAPI";
+import { baseURL } from "../../services/SuitescapeAPI";
 import capitalizedText from "../../utilities/textCapitalizer";
 
 const ADDITIONAL_SERVICE_FEE = 600;
@@ -145,7 +145,7 @@ const BookingSummary = ({ navigation }) => {
         <View style={style.container}>
           <View style={style.titleContainer}>
             <Image
-              source={{ uri: baseURLWithoutApi + listing.images[0].url }}
+              source={{ uri: baseURL + listing.images[0].url }}
               style={style.image}
             />
             <View style={style.titleContentContainer}>

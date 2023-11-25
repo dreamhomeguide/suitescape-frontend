@@ -13,7 +13,7 @@ import style from "./VideoItemStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import { useAuth } from "../../contexts/AuthContext";
 import useCachedMedia from "../../hooks/useCachedMedia";
-import { baseURLWithoutApi } from "../../services/SuitescapeAPI";
+import { baseURL } from "../../services/SuitescapeAPI";
 
 const { width: WINDOW_WIDTH } = Dimensions.get("window");
 
@@ -44,7 +44,7 @@ const VideoItem = forwardRef(
     const { cachedUri } = useCachedMedia(
       "videos/",
       videoId + "." + fileExtension,
-      baseURLWithoutApi + videoUrl,
+      baseURL + videoUrl,
     );
 
     useImperativeHandle(ref, () => ({
