@@ -4,6 +4,7 @@ import { Alert } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
 import globalStyles from "../assets/styles/globalStyles";
+import toastStyles from "../assets/styles/toastStyles";
 import SuitescapeAPI from "../services/SuitescapeAPI";
 import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
 
@@ -51,7 +52,7 @@ export const SocialActionsProvider = ({ children, listingData }) => {
           if (saved) {
             toast.show("Added to saved videos", {
               placement: "top",
-              style: globalStyles.toast,
+              style: toastStyles.toastInsetTop,
             });
           }
         },

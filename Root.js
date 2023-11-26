@@ -23,7 +23,7 @@ import {
 import { ToastProvider } from "react-native-toast-notifications";
 
 import { Colors } from "./assets/Colors";
-import globalStyles from "./assets/styles/globalStyles";
+import toastStyles from "./assets/styles/toastStyles";
 import { useAuth } from "./contexts/AuthContext";
 import { BookingProvider } from "./contexts/BookingContext";
 import { ListingProvider } from "./contexts/ListingContext";
@@ -70,7 +70,7 @@ const Root = () => {
             offsetTop={StatusBar.currentHeight}
             duration={1400}
             normalColor={Colors.blue}
-            style={globalStyles.toast}
+            style={toastStyles.toast}
           >
             <PaperProvider theme={paperTheme}>
               <NavigationContainer
