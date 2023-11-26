@@ -17,11 +17,11 @@ const RESET_VALUE = -1;
 const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
   const [minimumPrice, setMinimumPrice] = useState(RESET_VALUE);
   const [maximumPrice, setMaximumPrice] = useState(RESET_VALUE);
-  const [previousPriceRange, setPreviousPriceRange] = useState([
-    MINIMUM_PRICE,
-    MAXIMUM_PRICE,
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
+  // const [previousPriceRange, setPreviousPriceRange] = useState([
+  //   MINIMUM_PRICE,
+  //   MAXIMUM_PRICE,
+  // ]);
+  // const [isTyping, setIsTyping] = useState(false);
 
   const priceRange = useMemo(() => {
     const minPrice =
@@ -29,12 +29,12 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
     const maxPrice =
       maximumPrice === RESET_VALUE ? MAXIMUM_PRICE : maximumPrice;
 
-    if (!isTyping) {
-      setPreviousPriceRange([minPrice, maxPrice]);
-    }
+    // if (!isTyping) {
+    //   setPreviousPriceRange([minPrice, maxPrice]);
+    // }
 
     return [minPrice, maxPrice];
-  }, [isTyping, minimumPrice, maximumPrice]);
+  }, [minimumPrice, maximumPrice]);
 
   return (
     <>
@@ -54,7 +54,8 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
         minimumValue={MINIMUM_PRICE}
         maximumValue={MAXIMUM_PRICE}
         step={STEP}
-        value={isTyping ? previousPriceRange : priceRange}
+        // value={isTyping ? previousPriceRange : priceRange}
+        value={priceRange}
         onValueChange={([minimum, maximum]) => {
           const gap = maximum - minimum;
           const minimumGap = STEP * 5;
@@ -81,9 +82,9 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
           }}
           disableAnimations
           useDefaultStyles={false}
-          onFocus={() => setIsTyping(true)}
+          // onFocus={() => setIsTyping(true)}
           onBlur={() => {
-            setIsTyping(false);
+            // setIsTyping(false);
 
             // if (minimumPrice === 0) {
             //   setMinimumPrice(RESET_VALUE);
@@ -129,9 +130,9 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
           }}
           disableAnimations
           useDefaultStyles={false}
-          onFocus={() => setIsTyping(true)}
+          // onFocus={() => setIsTyping(true)}
           onBlur={() => {
-            setIsTyping(false);
+            // setIsTyping(false);
 
             // if (maximumPrice === 0) {
             //   setMaximumPrice(RESET_VALUE);
