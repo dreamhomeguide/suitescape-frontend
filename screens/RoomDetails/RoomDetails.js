@@ -1,4 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { format } from "date-fns";
 import React, { useEffect } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { useToast } from "react-native-toast-notifications";
@@ -6,6 +7,7 @@ import { useToast } from "react-native-toast-notifications";
 import { Colors } from "../../assets/Colors";
 import style from "../../assets/styles/detailsStyles";
 import globalStyles from "../../assets/styles/globalStyles";
+import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import AppFooterDetails from "../../components/AppFooterDetails/AppFooterDetails";
 import AppHeader from "../../components/AppHeader/AppHeader";
@@ -28,10 +30,40 @@ const RoomDetails = ({ navigation, route }) => {
   const roomId = route.params.roomId;
 
   const { bookingState, clearDates } = useBookingContext();
-  const { startDate, endDate } = bookingState;
+  const startDate = new Date(bookingState.startDate);
+  const endDate = new Date(bookingState.endDate);
+
   const { data: roomData } = useFetchAPI(`/rooms/${roomId}`);
   const { setRoom } = useRoomContext();
   const toast = useToast();
+
+  const footerTitle = roomData?.category.price
+    ? `₱${roomData.category.price}/night`
+    : "";
+
+  const footerLinkLabel = () => {
+    if (!bookingState.startDate && !bookingState.endDate) {
+      return "Date";
+    }
+
+    let year = ", yyyy";
+    if (new Date().getFullYear() === endDate.getFullYear()) {
+      year = "";
+    }
+
+    if (bookingState.startDate === bookingState.endDate) {
+      return format(startDate, "MMM d" + year);
+    }
+
+    if (startDate.getMonth() === endDate.getMonth()) {
+      return format(startDate, "MMM d") + " - " + format(endDate, "d" + year);
+    }
+
+    return format(startDate, "MMM d") + " - " + format(endDate, "MMM d" + year);
+  };
+
+  const footerLinkOnPress = () =>
+    navigation.navigate({ name: Routes.SELECT_DATES, merge: true });
 
   // Set room to global context
   useEffect(() => {
@@ -47,20 +79,19 @@ const RoomDetails = ({ navigation, route }) => {
   }, []);
 
   const handleReserveButton = () => {
-    if (startDate && endDate) {
+    if (bookingState.startDate && bookingState.endDate) {
       navigation.navigate(Routes.GUEST_INFO);
     } else {
       toast.show("No date selected", {
         placement: "top",
-        style: {
-          ...globalStyles.toast,
-          ...globalStyles.toastTopHeader,
-        },
+        style: toastStyles.toastInsetHeader,
       });
+
       navigation.navigate({
         name: Routes.SELECT_DATES,
         merge: true,
       });
+
       // Alert.alert("No date selected", "Please select a date");
     }
   };
@@ -181,13 +212,9 @@ const RoomDetails = ({ navigation, route }) => {
       </ScrollView>
       <AppFooter>
         <AppFooterDetails
-          title={
-            roomData?.category.price ? `₱${roomData.category.price}/night` : ""
-          }
-          buttonLinkLabel="Date"
-          buttonLinkOnPress={() =>
-            navigation.navigate({ name: Routes.SELECT_DATES, merge: true })
-          }
+          title={footerTitle}
+          buttonLinkLabel={footerLinkLabel()}
+          buttonLinkOnPress={footerLinkOnPress}
           buttonLabel="Reserve"
           buttonOnPress={handleReserveButton}
         />
