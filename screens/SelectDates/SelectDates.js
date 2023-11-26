@@ -15,6 +15,7 @@ import { useToast } from "react-native-toast-notifications";
 
 import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
+import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import AppFooterDetails from "../../components/AppFooterDetails/AppFooterDetails";
 import AppHeader from "../../components/AppHeader/AppHeader";
@@ -47,6 +48,18 @@ const SelectDates = ({ navigation }) => {
   useEffect(() => {
     return () => toast.hideAll();
   }, []);
+
+  useEffect(() => {
+    if (startDate && !endDate) {
+      toast.show("Select an end date", {
+        placement: "top",
+        style: toastStyles.toastInsetHeader,
+        // textStyle: { padding: 5, fontSize: 16 },
+      });
+    } else if (startDate && endDate) {
+      toast.hideAll();
+    }
+  }, [startDate, endDate]);
 
   const diffInDays = useMemo(() => {
     if (startDate && endDate) {
@@ -159,15 +172,6 @@ const SelectDates = ({ navigation }) => {
     // Reset dates and set new start date
     clearDates();
     setStartDate(date.dateString);
-
-    toast.show("Select an end date", {
-      placement: "top",
-      style: {
-        ...globalStyles.toast,
-        ...globalStyles.toastTopHeader,
-      },
-      // textStyle: { padding: 5, fontSize: 16 },
-    });
   };
 
   return (
