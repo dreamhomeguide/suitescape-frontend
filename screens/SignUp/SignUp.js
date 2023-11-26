@@ -166,6 +166,7 @@ const SignUp = ({ navigation }) => {
             clearErrorWhenNotEmpty(value, "date_of_birth");
           }}
           onDateConfirm={handleBirthdayConfirm}
+          dateProps={{ maximumDate: new Date() }}
           placeholder="Birthday"
           textContentType="none"
           autoCorrect={false}
