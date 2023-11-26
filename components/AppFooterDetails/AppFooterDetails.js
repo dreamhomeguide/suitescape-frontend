@@ -21,10 +21,7 @@ const AppFooterDetails = ({
       <View style={style.footerContent}>
         <Text style={{ ...style.text, ...titleStyle }}>{title}</Text>
         {buttonLinkVisible && (
-          <ButtonLink
-            textStyle={globalStyles.boldText}
-            onPress={buttonLinkOnPress}
-          >
+          <ButtonLink textStyle={style.footerLink} onPress={buttonLinkOnPress}>
             {buttonLinkLabel}
           </ButtonLink>
         )}

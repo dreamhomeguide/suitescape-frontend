@@ -21,6 +21,10 @@ const style = StyleSheet.create({
   footerButton: {
     flex: 3,
   },
+  footerLink: {
+    fontWeight: "bold",
+    textAlign: "center",
+  },
 });
 
 export default style;
