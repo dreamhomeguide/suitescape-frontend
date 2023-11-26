@@ -95,6 +95,7 @@ const Search = () => {
               value={state.checkIn}
               onChangeText={(checkIn) => setData({ checkIn })}
               useDefaultStyles={false}
+              dateProps={{ minimumDate: new Date() }}
               containerStyle={style.inputContainer}
             />
             <DashView />
@@ -104,6 +105,7 @@ const Search = () => {
               value={state.checkOut}
               onChangeText={(checkOut) => setData({ checkOut })}
               useDefaultStyles={false}
+              dateProps={{ minimumDate: new Date() }}
               containerStyle={style.inputContainer}
             />
           </View>
