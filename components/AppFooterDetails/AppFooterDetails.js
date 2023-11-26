@@ -2,7 +2,6 @@ import React, { memo } from "react";
 import { Text, View } from "react-native";
 
 import style from "./AppFooterDetailsStyles";
-import globalStyles from "../../assets/styles/globalStyles";
 import Button from "../Button/Button";
 import ButtonLink from "../ButtonLink/ButtonLink";
 
