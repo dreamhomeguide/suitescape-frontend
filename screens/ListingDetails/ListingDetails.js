@@ -44,7 +44,7 @@ const ListingDetails = ({ route, navigation }) => {
 
   const { data: listing } = useFetchAPI(`/listings/${listingId}`);
   const { setListing } = useListingContext();
-  const { clearGuestInfo } = useBookingContext();
+  const { clearBookingInfo } = useBookingContext();
 
   // Set listing to global context
   useEffect(() => {
@@ -54,7 +54,7 @@ const ListingDetails = ({ route, navigation }) => {
   // Clear global listing and guest info on unmount
   useEffect(() => {
     return () => {
-      clearGuestInfo();
+      clearBookingInfo();
       setListing(null);
     };
   }, []);
