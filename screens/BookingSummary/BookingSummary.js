@@ -23,18 +23,17 @@ const SUITESCAPE_FEE = 100;
 const BookingSummary = ({ navigation }) => {
   const { listing } = useListingContext();
   const { room } = useRoomContext();
-  const { bookingState } = useBookingContext();
+  const { bookingState, setBookingData } = useBookingContext();
 
   const startDate = new Date(bookingState.startDate);
   const endDate = new Date(bookingState.endDate);
   const roomPrice = room.category.price * (bookingState.nights || 1);
+  const total = roomPrice + ADDITIONAL_SERVICE_FEE + SUITESCAPE_FEE;
 
   const handleConfirmButton = () => {
-    navigation.navigate(Routes.PAYMENT_METHOD);
-  };
+    setBookingData({ amount: total });
 
-  const getTotal = () => {
-    return roomPrice + ADDITIONAL_SERVICE_FEE + SUITESCAPE_FEE;
+    navigation.navigate(Routes.PAYMENT_METHOD);
   };
 
   const bookingDetails = {
@@ -239,7 +238,7 @@ const BookingSummary = ({ navigation }) => {
           <View style={style.detailsRow}>
             <Text style={style.largeHeaderText}>Total</Text>
             <Text style={style.largeHeaderText}>
-              {"₱" + getTotal().toLocaleString()}
+              {"₱" + total.toLocaleString()}
             </Text>
           </View>
         </View>
