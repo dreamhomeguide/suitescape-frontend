@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import * as SecureStore from "expo-secure-store";
 import {
   createContext,
@@ -62,6 +63,7 @@ export const AuthProvider = ({ children }) => {
   const abortControllerRef = useRef(null);
 
   const { enableOnboarding, disableOnboarding } = useSettings();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Fetch the token from storage then navigate to our appropriate place
@@ -225,6 +227,7 @@ export const AuthProvider = ({ children }) => {
       await clearCacheDir("videos/").then(() => {
         console.log("Cache cleared");
       });
+      await queryClient.resetQueries();
 
       dispatch({ type: "FINISH_LOADING" });
 
