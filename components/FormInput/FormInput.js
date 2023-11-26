@@ -27,6 +27,7 @@ const FormInput = forwardRef(
       containerStyle,
       useDefaultStyles = true,
       disableAnimations = false,
+      dateProps,
       ...props
     },
     ref,
@@ -205,7 +206,7 @@ const FormInput = forwardRef(
           <DateTimePickerModal
             mode="date"
             themeVariant="light"
-            maximumDate={new Date()}
+            // maximumDate={new Date()}
             isVisible={showDatepicker}
             onCancel={() => setShowDatepicker(false)}
             onConfirm={handleDateConfirm}
@@ -213,6 +214,7 @@ const FormInput = forwardRef(
               value && !isNaN(Date.parse(value)) ? new Date(value) : new Date()
             }
             display={Platform.OS === "ios" ? "inline" : "default"}
+            {...dateProps}
           />
         )}
       </>
