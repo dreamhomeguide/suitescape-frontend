@@ -16,13 +16,6 @@ const globalStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  toast: {
-    top: 10,
-    borderRadius: 20,
-  },
-  toastTopHeader: {
-    top: 65,
-  },
   emptyText: {
     marginTop: 0,
     margin: 15,
