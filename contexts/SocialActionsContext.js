@@ -3,7 +3,6 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
-import globalStyles from "../assets/styles/globalStyles";
 import toastStyles from "../assets/styles/toastStyles";
 import SuitescapeAPI from "../services/SuitescapeAPI";
 import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
