@@ -1,11 +1,11 @@
 import axios from "axios";
 
 // Replace this with your local/private IP Address
-const serverIpAddress = "192.168.100.151";
+// const serverIpAddress = "192.168.100.151";
+//
+// export const baseURL = `http://${serverIpAddress}/suitescape-api.test/api`;
 
-export const baseURL = `http://${serverIpAddress}/suitescape-api.test/api`;
-
-// export const baseURL = `https://suitescape.dream-homeseller.com/api`;
+export const baseURL = `https://suitescape.dream-homeseller.com/api`;
 
 const SuitescapeAPI = axios.create({
   baseURL,
