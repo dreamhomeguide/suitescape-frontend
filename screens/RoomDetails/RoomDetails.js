@@ -100,8 +100,6 @@ const RoomDetails = ({ navigation, route }) => {
     <View style={globalStyles.flexFull}>
       <AppHeader menuEnabled />
       <ScrollView>
-        {!roomData && <ActivityIndicator style={globalStyles.loadingCircle} />}
-
         <DetailsTitleView
           title={roomData?.category.name}
           price={roomData?.category.price}
