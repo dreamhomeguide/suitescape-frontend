@@ -1,7 +1,7 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { format } from "date-fns";
 import React, { useEffect } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
 import { Colors } from "../../assets/Colors";
