@@ -1,3 +1,4 @@
+import { useMutation } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 
@@ -13,6 +14,8 @@ import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import CheckboxCircle from "../../components/CheckboxCircle/CheckboxCircle";
 import { useBookingContext } from "../../contexts/BookingContext";
 import { Routes } from "../../navigation/Routes";
+import SuitescapeAPI from "../../services/SuitescapeAPI";
+import { handleApiError, handleApiResponse } from "../../utilities/apiHelpers";
 
 const paymentMethods = [
   {
@@ -32,7 +35,30 @@ const paymentMethods = [
 const PaymentMethod = ({ navigation }) => {
   const [selectedMethod, setSelectedMethod] = useState(null);
 
-  const { setBookingData } = useBookingContext();
+  const { bookingState } = useBookingContext();
+
+  const createBookingMutation = useMutation({
+    mutationFn: (bookingData) => SuitescapeAPI.post("/bookings", bookingData),
+    onSuccess: (response) =>
+      handleApiResponse({
+        response,
+        onSuccess: (res) => {
+          console.log(res.message, res.booking);
+
+          navigation.navigate(Routes.FEEDBACK, {
+            type: "success",
+            title: "Congratulations",
+            subtitle: "You Have Booked Successfully",
+            screenToNavigate: Routes.BOOKINGS,
+          });
+        },
+      }),
+    onError: (err) =>
+      handleApiError({
+        error: err,
+        defaultAlert: true,
+      }),
+  });
 
   return (
     <View style={globalStyles.flexFull}>
@@ -78,12 +104,12 @@ const PaymentMethod = ({ navigation }) => {
         <ButtonLarge
           onPress={() => {
             if (selectedMethod) {
-              setBookingData({ paymentMethod: selectedMethod.label });
-              navigation.navigate(Routes.FEEDBACK, {
-                type: "success",
-                title: "Congratulations",
-                subtitle: "You Have Booked Successfully",
-                screenToNavigate: Routes.BOOKINGS,
+              createBookingMutation.mutate({
+                coupon_id: null,
+                amount: bookingState.amount,
+                start_date: bookingState.startDate,
+                end_date: bookingState.endDate,
+                message: bookingState.message,
               });
             } else {
               Alert.alert(
