@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -7,9 +7,11 @@ import {
   Text,
   View,
 } from "react-native";
+import { useToast } from "react-native-toast-notifications";
 
 import style from "./GuestInfoStyles";
 import globalStyles from "../../assets/styles/globalStyles";
+import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import AppHeader from "../../components/AppHeader/AppHeader";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
@@ -40,8 +42,8 @@ const genderList = [
 const mappings = {
   firstName: "firstname",
   lastName: "lastname",
-  email: "email",
   gender: "gender",
+  email: "email",
   address: "address",
   zipCode: "zipcode",
   city: "city",
@@ -52,6 +54,8 @@ const mappings = {
 
 const GuestInfo = ({ navigation }) => {
   const { bookingState, setBookingData } = useBookingContext();
+
+  // Destructure bookingState
   const {
     firstName,
     lastName,
@@ -69,30 +73,44 @@ const GuestInfo = ({ navigation }) => {
   const [showRegionDropDown, setShowRegionDropDown] = useState(false);
   const [errors, setErrors] = useState(null);
 
-  const { data: userData, isLoading, abort } = useFetchAPI("/user");
-
   const scrollViewRef = useRef(null);
+
+  const { data: userData, isLoading, abort } = useFetchAPI("/user");
+  const queryClient = useQueryClient();
+  const toast = useToast();
 
   useEffect(() => {
     if (userData) {
       Object.entries(mappings).forEach(([state, userDataKey]) => {
-        if (userData[userDataKey] && !bookingState[state]) {
+        if (userData[userDataKey]) {
           setBookingData({ [state]: userData[userDataKey] });
         }
       });
     }
   }, [userData]);
 
-  const validateMutation = useMutation({
-    mutationFn: ({ guestData }) =>
-      SuitescapeAPI.post("/bookings/validate-info", guestData),
+  const updateProfileMutation = useMutation({
+    mutationFn: ({ profileData }) =>
+      SuitescapeAPI.post("/profile", profileData),
     onSuccess: (response) =>
       handleApiResponse({
         response,
         onError: (e) => {
           setErrors(e.errors);
         },
-        onSuccess: () => {
+        onSuccess: (res) => {
+          console.log(res.message);
+          if (res.updated) {
+            toast.show(res.message, {
+              type: "success",
+              placement: "bottom",
+              style: toastStyles.toastInsetFooter,
+            });
+            queryClient
+              .invalidateQueries({ queryKey: ["user"] })
+              .then(() => console.log("User info invalidated"));
+          }
+
           navigation.navigate(Routes.BOOKING_SUMMARY);
         },
       }),
@@ -105,9 +123,9 @@ const GuestInfo = ({ navigation }) => {
       }),
   });
 
-  const validateInfo = async () => {
+  const updateProfile = () => {
     // Convert bookingState to backend format
-    const guestData = Object.entries(mappings).reduce(
+    const profileData = Object.entries(mappings).reduce(
       (acc, [state, userDataKey]) => {
         acc[userDataKey] = bookingState[state];
         return acc;
@@ -115,7 +133,7 @@ const GuestInfo = ({ navigation }) => {
       {}, // acc - initial value
     );
 
-    validateMutation.mutate({ guestData });
+    updateProfileMutation.mutate({ profileData });
   };
 
   const clearErrorWhenNotEmpty = (value, key) => {
@@ -279,7 +297,7 @@ const GuestInfo = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
       <AppFooter>
-        <ButtonLarge onPress={() => validateInfo()}>Confirm</ButtonLarge>
+        <ButtonLarge onPress={() => updateProfile()}>Confirm</ButtonLarge>
       </AppFooter>
       <LoadingDialog visible={isLoading} onCancel={() => abort()} />
     </>
