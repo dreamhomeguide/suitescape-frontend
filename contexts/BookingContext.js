@@ -16,7 +16,7 @@ const initialState = {
   startDate: "",
   endDate: "",
   nights: 0,
-  paymentMethod: "",
+  amount: 0,
 };
 
 const reducer = (state, action) => {
@@ -32,20 +32,8 @@ const reducer = (state, action) => {
         startDate: "",
         endDate: "",
       };
-    case "CLEAR_GUEST_INFO":
-      return {
-        ...state,
-        firstName: "",
-        lastName: "",
-        gender: "",
-        email: "",
-        address: "",
-        zipCode: "",
-        city: "",
-        region: "",
-        mobileNumber: "",
-        message: "",
-      };
+    case "CLEAR_BOOKING_INFO":
+      return initialState;
     default:
       return state;
   }
@@ -58,8 +46,8 @@ export const BookingProvider = ({ children }) => {
     dispatch({ type: "SET_DATA", payload });
   };
 
-  const clearGuestInfo = () => {
-    dispatch({ type: "CLEAR_GUEST_INFO" });
+  const clearBookingInfo = () => {
+    dispatch({ type: "CLEAR_BOOKING_INFO" });
   };
 
   const clearDates = () => {
@@ -69,8 +57,8 @@ export const BookingProvider = ({ children }) => {
   const bookingContext = {
     bookingState: state,
     setBookingData,
+    clearBookingInfo,
     clearDates,
-    clearGuestInfo,
   };
 
   return (
