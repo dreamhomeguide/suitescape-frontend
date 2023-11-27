@@ -9,8 +9,8 @@ const useFetchAPI = (endpoint, config, initialData) => {
 
   const queryClient = useQueryClient();
 
-  // Ex: ["listings", "1"], ["listings", "1", "reviews"]
   const fetchKey = endpoint.split("/").filter((e) => e);
+  // Ex: ["listings", "1"], ["listings", "1", "reviews"]
 
   const fetchAPI = async ({ signal }) => {
     return await SuitescapeAPI.get(endpoint, { ...config, signal });
