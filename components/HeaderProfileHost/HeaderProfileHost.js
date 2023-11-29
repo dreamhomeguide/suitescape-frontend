@@ -5,6 +5,7 @@ import { Text, useWindowDimensions, View } from "react-native";
 import style from "./HeaderProfileHostStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import Button from "../Button/Button";
+import ProfileImage from "../ProfileImage/ProfileImage";
 
 const HeaderProfileHost = () => {
   const { height } = useWindowDimensions();
@@ -18,9 +19,12 @@ const HeaderProfileHost = () => {
         style={{ height: coverHeight, ...style.coverImageContainer }}
       />
       <View style={style.mainContentContainer}>
-        <Image
-          source={require("../../assets/images/onboarding/page2.png")}
-          style={style.profileImageContainer}
+        <ProfileImage
+          size={160}
+          fillColor="white"
+          borderColor="white"
+          borderWidth={5}
+          containerStyle={style.profileImageContainer}
         />
         <View style={style.contentContainer}>
           <View style={style.nameContainer}>

@@ -11,14 +11,8 @@ const style = StyleSheet.create({
   },
   profileImageContainer: {
     position: "absolute",
-    zIndex: 1,
-    width: 160,
-    height: 160,
-    borderRadius: 100,
-    borderWidth: 5,
-    borderColor: "white",
-    backgroundColor: "white",
     alignSelf: "center",
+    zIndex: 1,
   },
   mainContentContainer: {
     transform: [{ translateY: -115 }],
