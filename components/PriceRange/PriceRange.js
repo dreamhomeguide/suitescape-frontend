@@ -1,10 +1,12 @@
 import { Slider } from "@miblanchard/react-native-slider";
 import React, { memo, useMemo, useState } from "react";
 import { View } from "react-native";
+import { useToast } from "react-native-toast-notifications";
 
 import style from "./PriceRangeStyles";
 import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
+import toastStyles from "../../assets/styles/toastStyles";
 import extractNumber from "../../utilities/numberExtractor";
 import DashView from "../DashView/DashView";
 import FormInput from "../FormInput/FormInput";
@@ -22,6 +24,8 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
   //   MAXIMUM_PRICE,
   // ]);
   // const [isTyping, setIsTyping] = useState(false);
+
+  const toast = useToast();
 
   const priceRange = useMemo(() => {
     const minPrice =
@@ -72,12 +76,18 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
       />
       <View style={style.inputContainer}>
         <FormInput
-          value={minimumPrice === RESET_VALUE ? "" : minimumPrice?.toString()}
+          value={
+            minimumPrice === RESET_VALUE ? "" : "₱" + minimumPrice?.toString()
+          }
           placeholder="Min Price"
           keyboardType="number-pad"
           onChangeText={(value) => {
-            extractNumber(value, (numberValue) => {
-              setMinimumPrice(numberValue);
+            extractNumber(value.replace("₱", ""), (numberValue) => {
+              if (!numberValue && numberValue !== 0) {
+                setMinimumPrice(RESET_VALUE);
+              } else {
+                setMinimumPrice(numberValue);
+              }
             });
           }}
           disableAnimations
@@ -103,11 +113,19 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
               // setMinimumPrice(maximumPrice);
               // setMaximumPrice(temp);
 
+              toast.show("Min price cannot be greater than max price", {
+                placement: "top",
+                style: toastStyles.toastInsetHeader,
+              });
               setMaximumPrice(RESET_VALUE);
             }
 
             // Normalize the minimum price
             if (minimumPrice > MAXIMUM_PRICE) {
+              toast.show(`Min price cannot be greater than ₱${MAXIMUM_PRICE}`, {
+                placement: "top",
+                style: toastStyles.toastInsetHeader,
+              });
               setMinimumPrice(MAXIMUM_PRICE);
             }
           }}
@@ -116,11 +134,13 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
         <DashView />
 
         <FormInput
-          value={maximumPrice === RESET_VALUE ? "" : maximumPrice?.toString()}
+          value={
+            maximumPrice === RESET_VALUE ? "" : "₱" + maximumPrice?.toString()
+          }
           placeholder="Max Price"
           keyboardType="number-pad"
           onChangeText={(value) => {
-            extractNumber(value, (numberValue) => {
+            extractNumber(value.replace("₱", ""), (numberValue) => {
               if (!numberValue) {
                 setMaximumPrice(RESET_VALUE);
               } else {
@@ -148,11 +168,19 @@ const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
               // setMaximumPrice(minimumPrice);
               // setMinimumPrice(temp);
 
+              toast.show("Max price cannot be less than min price", {
+                placement: "top",
+                style: toastStyles.toastInsetHeader,
+              });
               setMinimumPrice(RESET_VALUE);
             }
 
             // Set maximum price to maximum if it is greater than maximum
             if (maximumPrice > MAXIMUM_PRICE) {
+              toast.show(`Max price cannot be greater than ₱${MAXIMUM_PRICE}`, {
+                placement: "top",
+                style: toastStyles.toastInsetHeader,
+              });
               setMaximumPrice(MAXIMUM_PRICE);
             }
           }}
