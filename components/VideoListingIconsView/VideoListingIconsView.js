@@ -10,7 +10,7 @@ import style from "./VideoListingIconsViewStyles";
 import { pressedOpacity } from "../../assets/styles/globalStyles";
 import { useSocialActions } from "../../contexts/SocialActionsContext";
 import { Routes } from "../../navigation/Routes";
-import AvatarSample from "../AvatarSample/AvatarSample";
+import ProfileImage from "../ProfileImage/ProfileImage";
 import VideoListingIcon from "../VideoListingIcon/VideoListingIcon";
 
 const VideoListingIconsView = ({ listingId, previewMode, onShowModal }) => {
@@ -58,9 +58,9 @@ const VideoListingIconsView = ({ listingId, previewMode, onShowModal }) => {
           }
           style={({ pressed }) => pressedOpacity(pressed, 0.8)}
         >
-          <AvatarSample fill="rgba(0,0,0,0.5)" size={35}>
+          <ProfileImage fill="rgba(0,0,0,0.5)" size={35}>
             Profile
-          </AvatarSample>
+          </ProfileImage>
           <Text style={style.text}>Profile</Text>
         </Pressable>
       )}

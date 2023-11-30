@@ -3,15 +3,15 @@ import { Text, View } from "react-native";
 
 import style from "./DetailsHostViewStyles";
 import detailsStyles from "../../assets/styles/detailsStyles";
-import AvatarSample from "../AvatarSample/AvatarSample";
 import ButtonLink from "../ButtonLink/ButtonLink";
 import ButtonSocialActionsView from "../ButtonSocialActionsView/ButtonSocialActionsView";
+import ProfileImage from "../ProfileImage/ProfileImage";
 
 const DetailsHostView = ({ hostName }) => {
   return (
     <View style={detailsStyles.plainContainer}>
       <View style={style.hostContentContainer}>
-        <AvatarSample />
+        <ProfileImage />
 
         <View style={style.hostDetailsContainer}>
           {/* Host Name */}

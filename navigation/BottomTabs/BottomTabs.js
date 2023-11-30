@@ -4,7 +4,7 @@ import React from "react";
 import { useColorScheme, View } from "react-native";
 
 import style from "./BottomTabsStyles";
-import AvatarSample from "../../components/AvatarSample/AvatarSample";
+import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import Bookings from "../../screens/Bookings/Bookings";
 import Cart from "../../screens/Cart/Cart";
 import Home from "../../screens/Home/Home";
@@ -52,7 +52,7 @@ const tabIcons = {
     iconName: "calendar",
   },
   [Routes.PROFILE]: {
-    render: ({ size }) => <AvatarSample fill="white" size={size} />,
+    render: ({ size }) => <ProfileImage fill="white" size={size} />,
   },
 };
 

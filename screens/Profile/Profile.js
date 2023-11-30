@@ -15,10 +15,10 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import style from "./ProfileStyles";
 import { Colors } from "../../assets/Colors";
 import { pressedBgColor } from "../../assets/styles/globalStyles";
-import AvatarSample from "../../components/AvatarSample/AvatarSample";
 import Button from "../../components/Button/Button";
 import Chip from "../../components/Chip/Chip";
 import LoadingDialog from "../../components/LoadingDialog/LoadingDialog";
+import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import { useAuth } from "../../contexts/AuthContext";
 import capitalizedText from "../../utilities/textCapitalizer";
 import splitTextSpaced from "../../utilities/textSplitSpacer";
@@ -107,7 +107,7 @@ const Profile = () => {
   return (
     <ScrollView contentInset={{ bottom: insets.bottom }}>
       <View style={style.headerContainer}>
-        <AvatarSample size={100} />
+        <ProfileImage size={100} />
         <Chip
           inverted
           renderIcon={({ size, color }) => (
