@@ -26,12 +26,12 @@ const DetailsTitleView = ({ title, price, rating, reviewsCount, discount }) => {
 
           {/* Ratings */}
           <View style={style.ratingsContainer}>
-            <StarRatingView rating={rating} textStyle={style.text} />
+            <StarRatingView rating={rating} textStyle={style.ratingText} />
 
             {/* Reviews */}
             <View>
               {reviewsCount ? (
-                <ButtonLink textStyle={style.text}>
+                <ButtonLink textStyle={style.linkText}>
                   {reviewsCount} {reviewsCount > 1 ? "Reviews" : "Review"}
                 </ButtonLink>
               ) : null}
