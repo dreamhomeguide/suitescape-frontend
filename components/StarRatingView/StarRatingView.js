@@ -7,6 +7,7 @@ import style from "./StarRatingViewStyles";
 const StarRatingView = ({
   rating,
   starSize = 20,
+  labelEnabled = true,
   textStyle,
   containerStyle,
 }) => {
@@ -23,7 +24,9 @@ const StarRatingView = ({
           starStyle={style.starRating}
         />
       </View>
-      <Text style={{ ...style.ratingText, ...textStyle }}>{rating}</Text>
+      {labelEnabled && (
+        <Text style={{ ...style.ratingText, ...textStyle }}>{rating}</Text>
+      )}
     </View>
   );
 };

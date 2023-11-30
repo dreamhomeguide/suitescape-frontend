@@ -6,6 +6,7 @@ const style = StyleSheet.create({
     alignItems: "center",
   },
   starRatingContainer: {
+    left: -3,
     marginBottom: 5,
   },
   ratingText: {
