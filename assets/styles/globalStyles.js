@@ -6,6 +6,11 @@ const globalStyles = StyleSheet.create({
   flexFull: {
     flex: 1,
   },
+  flexCenter: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   absoluteCenter: {
     position: "absolute",
     zIndex: 1,
@@ -59,8 +64,7 @@ const globalStyles = StyleSheet.create({
   },
   loadingCircle: {
     alignSelf: "center",
-    marginTop: 12,
-    marginBottom: 15,
+    marginVertical: 15,
   },
   horizontalDivider: {
     height: 1,
