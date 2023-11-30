@@ -21,7 +21,7 @@ const Home = ({ navigation }) => {
     <View style={style.mainContainer}>
       <HeaderIconView right>
         <Pressable
-          onPress={() => navigation.navigate(Routes.SEARCH)}
+          onPress={() => navigation.navigate(Routes.FILTER)}
           style={({ pressed }) => pressedOpacity(pressed)}
         >
           <Entypo
