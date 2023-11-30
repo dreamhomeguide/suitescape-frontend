@@ -1,14 +1,15 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import React, { useEffect } from "react";
+import { useTheme } from "@react-navigation/native";
+import React, { useEffect, useLayoutEffect } from "react";
 import { Alert, Linking, Platform, ScrollView, Text, View } from "react-native";
 import MapView from "react-native-maps";
+import { HiddenItem, OverflowMenu } from "react-navigation-header-buttons";
 
 import { Colors } from "../../assets/Colors";
 import style from "../../assets/styles/detailsStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
-import AppHeader from "../../components/AppHeader/AppHeader";
 import ButtonIconRow from "../../components/ButtonIconRow/ButtonIconRow";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import ButtonLink from "../../components/ButtonLink/ButtonLink";
@@ -45,6 +46,21 @@ const ListingDetails = ({ route, navigation }) => {
   const { data: listing } = useFetchAPI(`/listings/${listingId}`);
   const { setListing } = useListingContext();
   const { clearBookingInfo } = useBookingContext();
+  const { colors } = useTheme();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <OverflowMenu
+          OverflowIcon={() => (
+            <Ionicons name="menu" color={colors.text} size={25} />
+          )}
+        >
+          <HiddenItem title="Example" onPress={() => console.log("Example")} />
+        </OverflowMenu>
+      ),
+    });
+  }, [navigation]);
 
   // Set listing to global context
   useEffect(() => {
@@ -108,8 +124,6 @@ const ListingDetails = ({ route, navigation }) => {
       <SliderModalVideo videoData={videos} listing={listing} />
 
       <View style={globalStyles.flexFull}>
-        <AppHeader menuEnabled />
-
         <ScrollView>
           <SliderGalleryMode
             imageData={images ?? null}

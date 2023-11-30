@@ -7,7 +7,6 @@ import style from "./BookingSummaryStyles";
 import detailsStyles from "../../assets/styles/detailsStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
-import AppHeader from "../../components/AppHeader/AppHeader";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import StarRatingView from "../../components/StarRatingView/StarRatingView";
 import { useBookingContext } from "../../contexts/BookingContext";
@@ -139,7 +138,6 @@ const BookingSummary = ({ navigation }) => {
 
   return (
     <View style={globalStyles.flexFull}>
-      <AppHeader />
       <ScrollView>
         <View style={style.container}>
           <View style={style.titleContainer}>

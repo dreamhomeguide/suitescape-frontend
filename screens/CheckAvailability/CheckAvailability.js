@@ -1,42 +1,43 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Colors } from "../../assets/Colors";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
-import AppHeader from "../../components/AppHeader/AppHeader";
 import IconBadge from "../../components/IconBadge/IconBadge";
 import ListingAvailableRoomItem from "../../components/ListingAvailableRoomItem/ListingAvailableRoomItem";
 import useFetchAPI from "../../hooks/useFetchAPI";
 
-const CheckAvailability = ({ route }) => {
+const CheckAvailability = ({ navigation, route }) => {
   const listingId = route.params.listingId;
   const { data: rooms } = useFetchAPI(`/listings/${listingId}/rooms`);
   const insets = useSafeAreaInsets();
 
-  return (
-    <View style={globalStyles.flexFull}>
-      <AppHeader>
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
         <Pressable style={({ pressed }) => pressedOpacity(pressed, 0.3)}>
           <IconBadge count={0}>
             <FontAwesome5 name="shopping-cart" size={20} color={Colors.blue} />
           </IconBadge>
         </Pressable>
-      </AppHeader>
+      ),
+    });
+  }, [navigation]);
 
-      <FlatList
-        data={rooms}
-        contentInset={{ bottom: insets.bottom }}
-        // contentContainerStyle={{
-        //   paddingBottom: insets.bottom,
-        // }}
-        renderItem={({ item }) => <ListingAvailableRoomItem item={item} />}
-        ListEmptyComponent={
-          <ActivityIndicator style={globalStyles.loadingCircle} />
-        }
-      />
-    </View>
+  return (
+    <FlatList
+      data={rooms}
+      contentInset={{ bottom: insets.bottom }}
+      // contentContainerStyle={{
+      //   paddingBottom: insets.bottom,
+      // }}
+      renderItem={({ item }) => <ListingAvailableRoomItem item={item} />}
+      ListEmptyComponent={
+        <ActivityIndicator style={globalStyles.loadingCircle} />
+      }
+    />
   );
 };
 

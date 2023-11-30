@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { Alert, FlatList, Pressable, Text, View } from "react-native";
 
@@ -9,10 +9,10 @@ import GCash from "../../assets/images/svgs/GCash.svg";
 import Paypal from "../../assets/images/svgs/PayPal.svg";
 import globalStyles from "../../assets/styles/globalStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
-import AppHeader from "../../components/AppHeader/AppHeader";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import CheckboxCircle from "../../components/CheckboxCircle/CheckboxCircle";
 import { useBookingContext } from "../../contexts/BookingContext";
+import { useRoomContext } from "../../contexts/RoomContext";
 import { Routes } from "../../navigation/Routes";
 import SuitescapeAPI from "../../services/SuitescapeAPI";
 import { handleApiError, handleApiResponse } from "../../utilities/apiHelpers";
@@ -36,6 +36,8 @@ const PaymentMethod = ({ navigation }) => {
   const [selectedMethod, setSelectedMethod] = useState(null);
 
   const { bookingState } = useBookingContext();
+  const { room } = useRoomContext();
+  const queryClient = useQueryClient();
 
   const createBookingMutation = useMutation({
     mutationFn: (bookingData) => SuitescapeAPI.post("/bookings", bookingData),
@@ -45,11 +47,13 @@ const PaymentMethod = ({ navigation }) => {
         onSuccess: (res) => {
           console.log(res.message, res.booking);
 
-          navigation.navigate(Routes.FEEDBACK, {
-            type: "success",
-            title: "Congratulations",
-            subtitle: "You Have Booked Successfully",
-            screenToNavigate: Routes.BOOKINGS,
+          queryClient.invalidateQueries({ queryKey: ["bookings"] }).then(() => {
+            navigation.navigate(Routes.FEEDBACK, {
+              type: "success",
+              title: "Congratulations",
+              subtitle: "You Have Booked Successfully",
+              screenToNavigate: Routes.BOOKINGS,
+            });
           });
         },
       }),
@@ -62,8 +66,6 @@ const PaymentMethod = ({ navigation }) => {
 
   return (
     <View style={globalStyles.flexFull}>
-      <AppHeader title="Payment" />
-
       <Pressable
         style={style.mainContainer}
         onPress={() => setSelectedMethod(null)}
@@ -105,6 +107,7 @@ const PaymentMethod = ({ navigation }) => {
           onPress={() => {
             if (selectedMethod) {
               createBookingMutation.mutate({
+                room_id: room.id,
                 coupon_id: null,
                 amount: bookingState.amount,
                 start_date: bookingState.startDate,
