@@ -13,6 +13,7 @@ const style = StyleSheet.create({
     borderWidth: 1.5,
   },
   textArea: {
+    paddingTop: 15,
     height: 150,
   },
   label: {

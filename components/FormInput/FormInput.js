@@ -1,9 +1,8 @@
-import { useTheme } from "@react-navigation/native";
 import { format, parse } from "date-fns";
 import React, { useState, memo, forwardRef } from "react";
 import { Keyboard, Platform, Text, View } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { HelperText, TextInput } from "react-native-paper";
+import { HelperText, TextInput, useTheme } from "react-native-paper";
 import DropDown from "react-native-paper-dropdown";
 
 import style from "./FormInputStyles";
@@ -42,7 +41,7 @@ const FormInput = forwardRef(
       colors: {
         ...theme.colors,
         primary: Colors.blue,
-        placeholder: Colors.blue,
+        background: "white",
         onSurfaceVariant: "gray",
         elevation: {
           level2: "white",
@@ -149,7 +148,6 @@ const FormInput = forwardRef(
             outlineStyle={value && style.border}
             textColor={theme.colors.text}
             multiline={type === "textarea"}
-            style={{ textAlign: "auto" }}
             contentStyle={type === "textarea" && style.textArea}
             onBlur={() => {
               // The code after this only applies to date type
