@@ -13,7 +13,6 @@ import style from "./GuestInfoStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
-import AppHeader from "../../components/AppHeader/AppHeader";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import FormInput from "../../components/FormInput/FormInput";
 import LoadingDialog from "../../components/LoadingDialog/LoadingDialog";
@@ -148,7 +147,6 @@ const GuestInfo = ({ navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : null}
         style={globalStyles.flexFull}
       >
-        <AppHeader />
         <ScrollView
           ref={scrollViewRef}
           contentInset={{ top: 10, bottom: 15 }}
