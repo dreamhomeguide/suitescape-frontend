@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import React from "react";
 import { Pressable } from "react-native";
 
@@ -13,7 +14,10 @@ const ButtonIcon = ({
 }) => {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        Haptics.selectionAsync();
+        onPress && onPress();
+      }}
       style={({ pressed }) => ({
         ...style.button({ bgColor: color }),
         ...pressedBgColor(pressed, pressedColor),
