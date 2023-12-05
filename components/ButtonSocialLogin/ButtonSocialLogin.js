@@ -49,7 +49,7 @@ const ButtonSocialLogin = ({ type }) => {
           <Text
             style={{
               ...style.text,
-              ...pressedColor(pressed, "rgba(0,0,0,0.7)"),
+              ...pressedColor(pressed, "rgba(0,0,0,0.6)"),
             }}
           >
             {SocialTypes[type]?.label}

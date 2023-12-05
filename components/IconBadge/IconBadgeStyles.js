@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
+  label: {
+    color: "white",
+  },
   badge: {
     position: "absolute",
     zIndex: 1,

@@ -31,7 +31,7 @@ const topTabOptions = {
   inactiveColor: Colors.gray,
 };
 
-export const TabBar = (tabProps) => {
+export const TabBar = ({ defaultProps, ...customProps }) => {
   const [isSwitching, setIsSwitching] = useState(false);
   const [pressedTab, setPressedTab] = useState(null);
 
@@ -45,7 +45,7 @@ export const TabBar = (tabProps) => {
 
   return (
     <MaterialTabBar
-      {...tabProps}
+      {...defaultProps}
       {...topTabOptions}
       contentContainerStyle={{ backgroundColor: colors.background }}
       TabItemComponent={(props) => (
@@ -53,7 +53,7 @@ export const TabBar = (tabProps) => {
           {...props}
           labelStyle={{
             ...topTabOptions.labelStyle,
-            ...(tabProps.fontSize && { fontSize: tabProps.fontSize }),
+            ...(customProps.fontSize && { fontSize: customProps.fontSize }),
           }}
           onPress={(name) => {
             setIsSwitching(true);
@@ -76,6 +76,7 @@ export const TabBar = (tabProps) => {
           }
         />
       )}
+      {...customProps}
     />
   );
 };

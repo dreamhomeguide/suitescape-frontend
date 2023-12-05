@@ -11,7 +11,7 @@ const style = StyleSheet.create({
   item: {
     width: "auto",
     height: 50,
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
   },
   indicator: {
     backgroundColor: Colors.blue,

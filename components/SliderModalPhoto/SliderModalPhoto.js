@@ -2,7 +2,6 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { memo } from "react";
 import { Modal, Text, View } from "react-native";
 import Gallery from "react-native-awesome-gallery";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./SliderModalPhotoStyles";
@@ -31,29 +30,27 @@ const SliderModalPhoto = ({ imageData }) => {
         />
 
         {isPhotoGalleryShown && (
-          <GestureHandlerRootView>
-            <Gallery
-              data={imageData}
-              renderItem={({ item, setImageDimensions }) => {
-                return (
-                  <SliderGalleryItem
-                    mediaId={item.id}
-                    mediaUrl={item.url}
-                    type="image"
-                    modalMode
-                    onLoad={(e) => {
-                      const { width, height } = e.source;
-                      setImageDimensions({ width, height });
-                    }}
-                  />
-                );
-              }}
-              initialIndex={index}
-              onIndexChange={setIndex}
-              onSwipeToClose={() => closePhotoGallery()}
-              disableSwipeUp
-            />
-          </GestureHandlerRootView>
+          <Gallery
+            data={imageData}
+            renderItem={({ item, setImageDimensions }) => {
+              return (
+                <SliderGalleryItem
+                  mediaId={item.id}
+                  mediaUrl={item.url}
+                  type="image"
+                  modalMode
+                  onLoad={(e) => {
+                    const { width, height } = e.source;
+                    setImageDimensions({ width, height });
+                  }}
+                />
+              );
+            }}
+            initialIndex={index}
+            onIndexChange={setIndex}
+            onSwipeToClose={() => closePhotoGallery()}
+            disableSwipeUp
+          />
         )}
 
         {/*<SliderGallery data={imageData} mediaType="image" modalMode />*/}

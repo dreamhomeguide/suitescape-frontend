@@ -4,7 +4,8 @@ const style = StyleSheet.create({
   container: {
     flexDirection: "row",
     marginHorizontal: 20,
-    marginVertical: 10,
+    marginTop: 15,
+    marginBottom: 10,
   },
   textContainer: ({ textColor }) => ({
     flex: 1,
@@ -13,6 +14,11 @@ const style = StyleSheet.create({
   text: {
     fontSize: 14,
     textDecorationLine: "underline",
+  },
+  checkbox: {
+    marginHorizontal: 10,
+    marginVertical: 5,
+    borderColor: "gray",
   },
 });
 

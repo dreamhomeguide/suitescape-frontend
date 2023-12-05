@@ -9,10 +9,10 @@ import AuthSwitchPrompt from "../../components/AuthSwitchPrompt/AuthSwitchPrompt
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import ButtonLink from "../../components/ButtonLink/ButtonLink";
 import ButtonSocialLogin from "../../components/ButtonSocialLogin/ButtonSocialLogin";
+import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import FormInput from "../../components/FormInput/FormInput";
 import HeaderText from "../../components/HeaderText/HeaderText";
 import LineView from "../../components/LineView/LineView";
-import LoadingDialog from "../../components/LoadingDialog/LoadingDialog";
 import LogoView from "../../components/LogoView/LogoView";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -49,42 +49,51 @@ const Login = () => {
   };
 
   return (
-    <ScrollView bounces={false} style={{ paddingTop: insets.top }}>
+    <ScrollView
+      style={{
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+      }}
+      bounces={false}
+    >
       <StatusBar animated />
       <LogoView />
       <HeaderText>Login</HeaderText>
-      <FormInput
-        value={email}
-        onChangeText={(value) => {
-          setEmail(value);
-          clearErrorWhenNotEmpty(value, "email");
-        }}
-        placeholder="Email Address"
-        keyboardType="email-address"
-        textContentType="emailAddress"
-        autoComplete="email"
-        autoCapitalize="none"
-        errorMessage={errors?.email}
-        returnKeyType="next"
-        onSubmitEditing={() => {
-          passwordRef.current.focus();
-        }}
-        blurOnSubmit={false}
-        ref={emailRef}
-      />
-      <FormInput
-        type="password"
-        value={password}
-        onChangeText={(value) => {
-          setPassword(value);
-          clearErrorWhenNotEmpty(value, "password");
-        }}
-        placeholder="Password"
-        textContentType="none"
-        errorMessage={errors?.password}
-        returnKeyType="done"
-        ref={passwordRef}
-      />
+      <View style={style.inputContainer}>
+        <FormInput
+          value={email}
+          onChangeText={(value) => {
+            setEmail(value);
+            clearErrorWhenNotEmpty(value, "email");
+          }}
+          placeholder="Email Address"
+          // Bug: doesn't show cursor when this is on
+          // keyboardType="email-address"
+          textContentType="emailAddress"
+          autoComplete="email"
+          autoCapitalize="none"
+          errorMessage={errors?.email}
+          returnKeyType="next"
+          onSubmitEditing={() => {
+            passwordRef.current.focus();
+          }}
+          blurOnSubmit={false}
+          ref={emailRef}
+        />
+        <FormInput
+          type="password"
+          value={password}
+          onChangeText={(value) => {
+            setPassword(value);
+            clearErrorWhenNotEmpty(value, "password");
+          }}
+          placeholder="Password"
+          textContentType="none"
+          errorMessage={errors?.password}
+          returnKeyType="done"
+          ref={passwordRef}
+        />
+      </View>
       <View style={style.forgotPasswordButtonContainer}>
         <ButtonLink
           onPress={() => console.log("Forgot Password")}
@@ -102,7 +111,7 @@ const Login = () => {
       <ButtonSocialLogin type="google" />
       <AuthSwitchPrompt isRegistration />
 
-      <LoadingDialog
+      <DialogLoading
         visible={authState.isLoading}
         title="Logging in..."
         onCancel={() => abort()}

@@ -1,9 +1,15 @@
 import { BottomSheetBackdrop, BottomSheetModal } from "@gorhom/bottom-sheet";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
-import style from "./ModalBottomSheetStyles";
+import style from "./BottomSheetStyles";
 
-const ModalBottomSheet = ({ visible, onDismiss, children, ...props }) => {
+const BottomSheet = ({
+  visible,
+  onDismiss,
+  children,
+  style: propsStyle,
+  ...props
+}) => {
   const bottomSheetModalRef = useRef(null);
 
   const snapPoints = useMemo(() => ["65%", "90%"], []);
@@ -12,9 +18,15 @@ const ModalBottomSheet = ({ visible, onDismiss, children, ...props }) => {
     bottomSheetModalRef.current?.present();
   }, []);
 
+  const handleDismissModalPress = useCallback(() => {
+    bottomSheetModalRef.current?.dismiss();
+  }, []);
+
   useEffect(() => {
     if (visible) {
       handlePresentModalPress();
+    } else {
+      handleDismissModalPress();
     }
   }, [visible]);
 
@@ -39,7 +51,7 @@ const ModalBottomSheet = ({ visible, onDismiss, children, ...props }) => {
       onDismiss={onDismiss}
       backdropComponent={renderBackdrop}
       handleIndicatorStyle={style.handleIndicator}
-      style={style.container}
+      style={{ ...style.container, ...propsStyle }}
       {...props}
     >
       {children}
@@ -47,4 +59,4 @@ const ModalBottomSheet = ({ visible, onDismiss, children, ...props }) => {
   );
 };
 
-export default memo(ModalBottomSheet);
+export default memo(BottomSheet);

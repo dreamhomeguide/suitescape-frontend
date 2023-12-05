@@ -14,13 +14,17 @@ const style = StyleSheet.create({
     color: "black",
     fontSize: 18,
   },
-  text: {
+  ratingText: {
+    fontSize: 15,
+  },
+  linkText: {
     fontSize: 15,
     paddingTop: 1.5,
   },
   ratingsContainer: {
     flexDirection: "row",
     columnGap: 20,
+    paddingTop: 1,
   },
 });
 

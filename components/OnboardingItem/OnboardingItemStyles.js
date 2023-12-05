@@ -5,11 +5,16 @@ const style = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  image: ({ width, height }) => ({
-    justifyContent: "center",
-    width: width - 50,
-    height: height / 2 - 85,
-  }),
+  image: ({ width }) => {
+    const size = width * 0.85;
+    return {
+      justifyContent: "center",
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      backgroundColor: "lightgray",
+    };
+  },
   title: ({ textColor }) => ({
     color: textColor,
     textAlign: "center",

@@ -1,38 +1,36 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useTheme } from "@react-navigation/native";
-import React from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  Text,
-  useColorScheme,
-  View,
-} from "react-native";
+import { useScrollToTop, useTheme } from "@react-navigation/native";
+import React, { useRef } from "react";
+import { Alert, ScrollView, Text, View } from "react-native";
+import { RectButton } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./ProfileStyles";
 import { Colors } from "../../assets/Colors";
-import { pressedBgColor } from "../../assets/styles/globalStyles";
 import Button from "../../components/Button/Button";
 import Chip from "../../components/Chip/Chip";
-import LoadingDialog from "../../components/LoadingDialog/LoadingDialog";
+import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import { useAuth } from "../../contexts/AuthContext";
+import { Routes } from "../../navigation/Routes";
 import capitalizedText from "../../utilities/textCapitalizer";
 import splitTextSpaced from "../../utilities/textSplitSpacer";
 
-const Profile = () => {
+const Profile = ({ navigation }) => {
   const { authState, signOut } = useAuth();
 
   const insets = useSafeAreaInsets();
+
+  const scrollViewRef = useRef(null);
+
+  useScrollToTop(scrollViewRef);
 
   const settings = {
     profile: [
       {
         title: "Manage my account",
-        onPress: () => {},
+        onPress: () => navigation.navigate(Routes.MANAGE_ACCOUNT),
       },
       {
         title: "Change password",
@@ -101,11 +99,10 @@ const Profile = () => {
     ]);
   };
 
-  const colorScheme = useColorScheme();
   const { colors } = useTheme();
 
   return (
-    <ScrollView contentInset={{ bottom: insets.bottom }}>
+    <ScrollView ref={scrollViewRef} contentInset={{ bottom: insets.bottom }}>
       <View style={style.headerContainer}>
         <ProfileImage size={100} />
         <Chip
@@ -126,26 +123,25 @@ const Profile = () => {
 
       {Object.entries(settings).map(([key, value]) => (
         <View style={style.settingsKeyContainer} key={key}>
-          <Text style={style.settingsKey({ textColor: colors.text })}>
+          <Text style={{ ...style.settingsKey, color: colors.text }}>
             {capitalizedText(splitTextSpaced(key), true)}
           </Text>
 
           {value.map(({ title, onPress }) => (
-            <Pressable
+            <RectButton
               key={title}
-              style={({ pressed }) => ({
-                ...pressedBgColor(
-                  pressed,
-                  colorScheme === "dark" ? colors.border : "lightgray",
-                ),
-                ...(pressed && style.settingsValuePressed),
-              })}
+              // style={{
+              //   ...pressedBgColor(pressed, colors.border),
+              //   ...(pressed && style.settingsValuePressed),
+              // })}
+              style={style.settingsValuePressed}
               onPress={onPress}
             >
               <View
-                style={style.settingsValueContainer({
-                  borderColor: colors.border,
-                })}
+                style={{
+                  ...style.settingsValueContainer,
+                  borderBottomColor: colors.border,
+                }}
               >
                 <Text style={{ color: colors.text }}>{title}</Text>
                 <Ionicons
@@ -154,7 +150,7 @@ const Profile = () => {
                   color={Colors.blue}
                 />
               </View>
-            </Pressable>
+            </RectButton>
           ))}
         </View>
       ))}
@@ -176,7 +172,7 @@ const Profile = () => {
       {/*>*/}
       {/*  Logout*/}
       {/*</ButtonLink>*/}
-      <LoadingDialog visible={authState.isLoading} title="Logging out..." />
+      <DialogLoading visible={authState.isLoading} title="Logging out..." />
     </ScrollView>
   );
 };

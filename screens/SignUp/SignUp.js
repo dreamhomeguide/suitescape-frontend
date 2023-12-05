@@ -11,15 +11,15 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import registrationStyles from "../../assets/styles/registrationStyles";
+import style from "../../assets/styles/registrationStyles";
 import AgreementBox from "../../components/AgreementBox/AgreementBox";
 import AuthSwitchPrompt from "../../components/AuthSwitchPrompt/AuthSwitchPrompt";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import ButtonSocialLogin from "../../components/ButtonSocialLogin/ButtonSocialLogin";
+import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import FormInput from "../../components/FormInput/FormInput";
 import HeaderText from "../../components/HeaderText/HeaderText";
 import LineView from "../../components/LineView/LineView";
-import LoadingDialog from "../../components/LoadingDialog/LoadingDialog";
 import LogoView from "../../components/LogoView/LogoView";
 import PasswordCheckerView from "../../components/PasswordCheckerView/PasswordCheckerView";
 import { useAuth } from "../../contexts/AuthContext";
@@ -110,123 +110,124 @@ const SignUp = ({ navigation }) => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : null}
-      style={{
-        paddingTop: insets.top,
-      }}
+      style={{ paddingTop: insets.top }}
     >
       <StatusBar animated />
       <ScrollView
         ref={scrollViewRef}
         bounces={false}
-        contentInset={{ bottom: 15 }}
+        contentInset={{ bottom: 25 }}
       >
         <LogoView />
         <HeaderText>Create Account</HeaderText>
-        <FormInput
-          value={firstName}
-          onChangeText={(value) => {
-            setFirstName(value);
-            clearErrorWhenNotEmpty(value, "firstname");
-          }}
-          placeholder="First Name"
-          textContentType="givenName"
-          autoCapitalize="words"
-          autoCorrect={false}
-          errorMessage={errors?.firstname}
-          returnKeyType="next"
-          onSubmitEditing={() => {
-            lastNameRef.current.focus();
-          }}
-          blurOnSubmit={false}
-          ref={firstNameRef}
-        />
-        <FormInput
-          value={lastName}
-          onChangeText={(value) => {
-            setLastName(value);
-            clearErrorWhenNotEmpty(value, "lastname");
-          }}
-          placeholder="Last Name"
-          textContentType="familyName"
-          autoCapitalize="words"
-          autoCorrect={false}
-          errorMessage={errors?.lastname}
-          returnKeyType="next"
-          onSubmitEditing={() => {
-            birthdayRef.current.focus();
-          }}
-          blurOnSubmit={false}
-          ref={lastNameRef}
-        />
-        <FormInput
-          type="date"
-          value={birthday}
-          onChangeText={(value) => {
-            setBirthday(value);
-            clearErrorWhenNotEmpty(value, "date_of_birth");
-          }}
-          onDateConfirm={handleBirthdayConfirm}
-          dateProps={{ maximumDate: new Date() }}
-          placeholder="Birthday"
-          textContentType="none"
-          autoCorrect={false}
-          spellCheck={false}
-          errorMessage={errors?.date_of_birth}
-          returnKeyType="next"
-          onBlur={handleBirthdayConfirm}
-          onSubmitEditing={() => {
-            emailRef.current.focus();
-          }}
-          blurOnSubmit={false}
-          ref={birthdayRef}
-        />
-        <FormInput
-          value={email}
-          onChangeText={(value) => {
-            setEmail(value);
-            clearErrorWhenNotEmpty(value, "email");
-          }}
-          placeholder="Email Address"
-          keyboardType="email-address"
-          textContentType="emailAddress"
-          autoCapitalize="none"
-          autoCorrect={false}
-          errorMessage={errors?.email}
-          returnKeyType="next"
-          onSubmitEditing={() => {
-            passwordRef.current.focus();
-          }}
-          blurOnSubmit={false}
-          ref={emailRef}
-        />
-        <FormInput
-          type="password"
-          value={password}
-          onChangeText={(value) => {
-            setPassword(value);
-            clearErrorWhenNotEmpty(value, "password");
-          }}
-          placeholder="Password"
-          textContentType="password"
-          passwordRules="minlength: 20; required: lower; required: upper; required: digit; required: [-];"
-          errorMessage={errors?.password && null}
-          returnKeyType="next"
-          onSubmitEditing={() => {
-            confirmPasswordRef.current.focus();
-          }}
-          blurOnSubmit={false}
-          ref={passwordRef}
-        />
-        <FormInput
-          type="password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          placeholder="Confirm Password"
-          textContentType="password"
-          errorMessage={errors?.password}
-          returnKeyType="done"
-          ref={confirmPasswordRef}
-        />
+        <View style={style.inputContainer}>
+          <FormInput
+            value={firstName}
+            onChangeText={(value) => {
+              setFirstName(value);
+              clearErrorWhenNotEmpty(value, "firstname");
+            }}
+            placeholder="First Name"
+            textContentType="givenName"
+            autoCapitalize="words"
+            autoCorrect={false}
+            errorMessage={errors?.firstname}
+            returnKeyType="next"
+            onSubmitEditing={() => {
+              lastNameRef.current.focus();
+            }}
+            blurOnSubmit={false}
+            ref={firstNameRef}
+          />
+          <FormInput
+            value={lastName}
+            onChangeText={(value) => {
+              setLastName(value);
+              clearErrorWhenNotEmpty(value, "lastname");
+            }}
+            placeholder="Last Name"
+            textContentType="familyName"
+            autoCapitalize="words"
+            autoCorrect={false}
+            errorMessage={errors?.lastname}
+            returnKeyType="next"
+            onSubmitEditing={() => {
+              birthdayRef.current.focus();
+            }}
+            blurOnSubmit={false}
+            ref={lastNameRef}
+          />
+          <FormInput
+            type="date"
+            value={birthday}
+            onChangeText={(value) => {
+              setBirthday(value);
+              clearErrorWhenNotEmpty(value, "date_of_birth");
+            }}
+            onDateConfirm={handleBirthdayConfirm}
+            dateProps={{ maximumDate: new Date() }}
+            placeholder="Birthday"
+            textContentType="none"
+            autoCorrect={false}
+            spellCheck={false}
+            errorMessage={errors?.date_of_birth}
+            returnKeyType="next"
+            onBlur={handleBirthdayConfirm}
+            onSubmitEditing={() => {
+              emailRef.current.focus();
+            }}
+            blurOnSubmit={false}
+            ref={birthdayRef}
+          />
+          <FormInput
+            value={email}
+            onChangeText={(value) => {
+              setEmail(value);
+              clearErrorWhenNotEmpty(value, "email");
+            }}
+            placeholder="Email Address"
+            // Bug: doesn't show cursor when this is on
+            // keyboardType="email-address"
+            textContentType="emailAddress"
+            autoCapitalize="none"
+            autoCorrect={false}
+            errorMessage={errors?.email}
+            returnKeyType="next"
+            onSubmitEditing={() => {
+              passwordRef.current.focus();
+            }}
+            blurOnSubmit={false}
+            ref={emailRef}
+          />
+          <FormInput
+            type="password"
+            value={password}
+            onChangeText={(value) => {
+              setPassword(value);
+              clearErrorWhenNotEmpty(value, "password");
+            }}
+            placeholder="Password"
+            textContentType="password"
+            passwordRules="minlength: 20; required: lower; required: upper; required: digit; required: [-];"
+            errorMessage={errors?.password && null}
+            returnKeyType="next"
+            onSubmitEditing={() => {
+              confirmPasswordRef.current.focus();
+            }}
+            blurOnSubmit={false}
+            ref={passwordRef}
+          />
+          <FormInput
+            type="password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            placeholder="Confirm Password"
+            textContentType="password"
+            errorMessage={errors?.password}
+            returnKeyType="done"
+            ref={confirmPasswordRef}
+          />
+        </View>
         {password.length > 0 && (
           <PasswordCheckerView
             password={password}
@@ -240,7 +241,7 @@ const SignUp = ({ navigation }) => {
           />
         )}
         <AgreementBox checked={checked} setChecked={setChecked} />
-        <View style={registrationStyles.buttonContainer}>
+        <View style={style.buttonContainer}>
           <ButtonLarge
             disabled={!checked || !isPasswordValid}
             onPress={handleSignUp}
@@ -249,12 +250,13 @@ const SignUp = ({ navigation }) => {
           </ButtonLarge>
         </View>
         <LineView>Or</LineView>
+        <ButtonSocialLogin type="phone" />
         <ButtonSocialLogin type="facebook" />
         <ButtonSocialLogin type="google" />
         <AuthSwitchPrompt />
       </ScrollView>
 
-      <LoadingDialog
+      <DialogLoading
         visible={authState.isLoading}
         title="Signing up..."
         onCancel={() => abort()}

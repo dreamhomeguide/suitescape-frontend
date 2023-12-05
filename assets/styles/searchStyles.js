@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 
+import globalStyles from "./globalStyles";
 import { Colors } from "../Colors";
 
 const style = StyleSheet.create({
@@ -7,7 +8,7 @@ const style = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.lightgray,
     paddingVertical: 20,
-    rowGap: 10,
+    ...globalStyles.containerGap,
   },
   headerText: {
     fontSize: 16,
@@ -21,6 +22,9 @@ const style = StyleSheet.create({
   },
   inputContainer: {
     flex: 1,
+  },
+  searchButton: {
+    borderRadius: 10,
   },
 });
 

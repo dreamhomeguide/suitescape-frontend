@@ -8,6 +8,7 @@ export const Routes = {
   SEARCH_MESSAGES: "Search Messages",
   CHAT: "Chat",
   CART: "Cart",
+  FILTER: "Filter",
   SEARCH: "Search",
   BOOKINGS: "Bookings",
   PROFILE: "Profile",
@@ -24,4 +25,5 @@ export const Routes = {
   COMPLETED_TAB: "Completed",
   RATING_TAB: "To Rate",
   CANCELLED_TAB: "Cancelled",
+  MANAGE_ACCOUNT: "Manage Account",
 };

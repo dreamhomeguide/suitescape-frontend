@@ -1,7 +1,7 @@
 import { useTheme } from "@react-navigation/native";
 import React from "react";
 import { Text, View } from "react-native";
-import { Checkbox } from "react-native-paper";
+import { Checkbox } from "react-native-ui-lib";
 
 import style from "./AgreementBoxStyles";
 import { Colors } from "../../assets/Colors";
@@ -12,10 +12,12 @@ const AgreementBox = ({ checked, setChecked }) => {
 
   return (
     <View style={style.container}>
-      <Checkbox.Android
-        status={checked ? "checked" : "unchecked"}
-        onPress={() => setChecked(!checked)}
+      <Checkbox
+        value={checked}
+        onValueChange={() => setChecked(!checked)}
+        size={23}
         color={Colors.blue}
+        style={style.checkbox}
       />
       <Text style={style.textContainer({ textColor: colors.text })}>
         I have agreed to the{" "}

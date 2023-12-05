@@ -18,19 +18,18 @@ const style = StyleSheet.create({
     paddingVertical: 5,
     paddingHorizontal: 15,
   },
-  settingsKey: ({ textColor }) => ({
-    color: textColor,
+  settingsKey: {
     fontWeight: "bold",
     fontSize: 20,
     paddingTop: 10,
     paddingBottom: 8,
-  }),
+  },
   settingsValuePressed: {
     // paddingRight: 10,
     // paddingLeft: 5,
     borderRadius: 5,
   },
-  settingsValueContainer: ({ borderColor }) => ({
+  settingsValueContainer: {
     flexDirection: "row",
     // alignItems: "center",
     justifyContent: "space-between",
@@ -42,12 +41,11 @@ const style = StyleSheet.create({
     // borderBottomLeftRadius: 5,
     borderBottomRightRadius: 10,
     borderBottomWidth: 1,
-    borderBottomColor: borderColor,
-  }),
+  },
   logoutButtonContainer: {
     marginHorizontal: 15,
     marginTop: 15,
-    marginBottom: 3 + StatusBar.currentHeight,
+    marginBottom: 5 + StatusBar.currentHeight,
   },
   logoutButton: {
     color: Colors.red,

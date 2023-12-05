@@ -1,14 +1,15 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import React, { useEffect } from "react";
+import { useTheme } from "@react-navigation/native";
+import React, { useEffect, useLayoutEffect } from "react";
 import { Alert, Linking, Platform, ScrollView, Text, View } from "react-native";
 import MapView from "react-native-maps";
+import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
 import { Colors } from "../../assets/Colors";
 import style from "../../assets/styles/detailsStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
-import AppHeader from "../../components/AppHeader/AppHeader";
 import ButtonIconRow from "../../components/ButtonIconRow/ButtonIconRow";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import ButtonLink from "../../components/ButtonLink/ButtonLink";
@@ -27,6 +28,7 @@ import { useBookingContext } from "../../contexts/BookingContext";
 import { useListingContext } from "../../contexts/ListingContext";
 import { ModalGalleryProvider } from "../../contexts/ModalGalleryContext";
 import useFetchAPI from "../../hooks/useFetchAPI";
+import { IoniconsHeaderButton } from "../../navigation/HeaderButtons";
 import { Routes } from "../../navigation/Routes";
 
 const NEARBY_IN_VIEW = 6;
@@ -45,6 +47,22 @@ const ListingDetails = ({ route, navigation }) => {
   const { data: listing } = useFetchAPI(`/listings/${listingId}`);
   const { setListing } = useListingContext();
   const { clearBookingInfo } = useBookingContext();
+  const { colors } = useTheme();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <HeaderButtons HeaderButtonComponent={IoniconsHeaderButton}>
+          <Item
+            title="menu"
+            iconName="menu"
+            color={colors.text}
+            onPress={() => console.log("menu")}
+          />
+        </HeaderButtons>
+      ),
+    });
+  }, [navigation]);
 
   // Set listing to global context
   useEffect(() => {
@@ -108,8 +126,6 @@ const ListingDetails = ({ route, navigation }) => {
       <SliderModalVideo videoData={videos} listing={listing} />
 
       <View style={globalStyles.flexFull}>
-        <AppHeader menuEnabled />
-
         <ScrollView>
           <SliderGalleryMode
             imageData={images ?? null}

@@ -27,9 +27,9 @@ const Button = ({
       style={({ pressed }) => ({
         ...style.button({ outlined, inverted, color }),
         ...containerStyle,
-        ...(outlined || inverted
+        ...(inverted
           ? pressedBgColor(pressed, color)
-          : pressedOpacity(pressed)),
+          : pressedOpacity(pressed, outlined ? 0.6 : 0.7)),
       })}
     >
       {({ pressed }) => (
@@ -37,7 +37,7 @@ const Button = ({
           style={{
             ...style.text({ outlined, inverted, color }),
             ...textStyle,
-            ...(pressed && { color: "white" }),
+            ...(pressed && !outlined && { color: "white" }),
           }}
         >
           {children}

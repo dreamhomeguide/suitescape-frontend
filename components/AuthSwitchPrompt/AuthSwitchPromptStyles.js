@@ -13,7 +13,6 @@ const style = StyleSheet.create({
   },
   hint: {
     paddingRight: 4,
-    color: "gray",
   },
 });
 

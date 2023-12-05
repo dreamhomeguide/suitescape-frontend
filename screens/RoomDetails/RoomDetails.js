@@ -1,8 +1,10 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useTheme } from "@react-navigation/native";
 import { format } from "date-fns";
-import React, { useEffect } from "react";
+import React, { useEffect, useLayoutEffect } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useToast } from "react-native-toast-notifications";
+import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
 import { Colors } from "../../assets/Colors";
 import style from "../../assets/styles/detailsStyles";
@@ -10,7 +12,6 @@ import globalStyles from "../../assets/styles/globalStyles";
 import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import AppFooterDetails from "../../components/AppFooterDetails/AppFooterDetails";
-import AppHeader from "../../components/AppHeader/AppHeader";
 import ButtonLink from "../../components/ButtonLink/ButtonLink";
 import DetailsTitleView from "../../components/DetailsTitleView/DetailsTitleView";
 import ListingFeaturesView, {
@@ -21,6 +22,7 @@ import SliderReviews from "../../components/SliderReviews/SliderReviews";
 import { useBookingContext } from "../../contexts/BookingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
 import useFetchAPI from "../../hooks/useFetchAPI";
+import { IoniconsHeaderButton } from "../../navigation/HeaderButtons";
 import { Routes } from "../../navigation/Routes";
 
 const AMENITIES_IN_VIEW = 6;
@@ -35,35 +37,23 @@ const RoomDetails = ({ navigation, route }) => {
 
   const { data: roomData } = useFetchAPI(`/rooms/${roomId}`);
   const { setRoom } = useRoomContext();
+  const { colors } = useTheme();
   const toast = useToast();
 
-  const footerTitle = roomData?.category.price
-    ? `₱${roomData.category.price}/night`
-    : "";
-
-  const footerLinkLabel = () => {
-    if (!bookingState.startDate && !bookingState.endDate) {
-      return "Date";
-    }
-
-    let year = ", yyyy";
-    if (new Date().getFullYear() === endDate.getFullYear()) {
-      year = "";
-    }
-
-    if (bookingState.startDate === bookingState.endDate) {
-      return format(startDate, "MMM d" + year);
-    }
-
-    if (startDate.getMonth() === endDate.getMonth()) {
-      return format(startDate, "MMM d") + " - " + format(endDate, "d" + year);
-    }
-
-    return format(startDate, "MMM d") + " - " + format(endDate, "MMM d" + year);
-  };
-
-  const footerLinkOnPress = () =>
-    navigation.navigate({ name: Routes.SELECT_DATES, merge: true });
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <HeaderButtons HeaderButtonComponent={IoniconsHeaderButton}>
+          <Item
+            title="menu"
+            iconName="menu"
+            color={colors.text}
+            onPress={() => console.log("menu")}
+          />
+        </HeaderButtons>
+      ),
+    });
+  }, [navigation]);
 
   // Set room to global context
   useEffect(() => {
@@ -86,7 +76,6 @@ const RoomDetails = ({ navigation, route }) => {
         placement: "top",
         style: toastStyles.toastInsetHeader,
       });
-
       navigation.navigate({
         name: Routes.SELECT_DATES,
         merge: true,
@@ -96,9 +85,36 @@ const RoomDetails = ({ navigation, route }) => {
     }
   };
 
+  const footerTitle = roomData?.category.price
+    ? `₱${roomData.category.price}/night`
+    : "";
+
+  const footerLinkLabel = () => {
+    if (!bookingState.startDate && !bookingState.endDate) {
+      return "Date";
+    }
+
+    let year = "";
+    if (new Date().getFullYear() !== endDate.getFullYear()) {
+      year = ", yyyy";
+    }
+
+    if (bookingState.startDate === bookingState.endDate) {
+      return format(startDate, "MMM d" + year);
+    }
+
+    if (startDate.getMonth() === endDate.getMonth()) {
+      return format(startDate, "MMM d") + " - " + format(endDate, "d" + year);
+    }
+
+    return format(startDate, "MMM d") + " - " + format(endDate, "MMM d" + year);
+  };
+
+  const footerLinkOnPress = () =>
+    navigation.navigate({ name: Routes.SELECT_DATES, merge: true });
+
   return (
     <View style={globalStyles.flexFull}>
-      <AppHeader menuEnabled />
       <ScrollView>
         <DetailsTitleView
           title={roomData?.category.name}

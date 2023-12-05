@@ -1,8 +1,7 @@
 import Entypo from "@expo/vector-icons/Entypo";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { useNavigation } from "@react-navigation/native";
 import React from "react";
-import { Pressable, useColorScheme, View } from "react-native";
+import { useColorScheme, View } from "react-native";
 
 import style from "./BottomTabsStyles";
 import { Colors } from "../../assets/Colors";
@@ -25,8 +24,8 @@ const tabBarStyle = {
 const bottomTabOptions = {
   headerShown: false,
   tabBarShowLabel: false,
-  tabBarActiveTintColor: "black",
-  tabBarInactiveTintColor: "black",
+  tabBarActiveTintColor: Colors.blue,
+  tabBarInactiveTintColor: Colors.lightblue,
   tabBarStyle,
 };
 
@@ -54,7 +53,9 @@ const tabIcons = {
     iconName: "calendar",
   },
   [Routes.PROFILE]: {
-    render: ({ size }) => <ProfileImage fill="white" size={size} />,
+    render: ({ size }) => (
+      <ProfileImage borderColor="transparent" borderWidth={0} size={size} />
+    ),
   },
 };
 
@@ -95,7 +96,7 @@ const renderTabIcons = (props, route) => {
 
 const BottomTabs = () => {
   const colorScheme = useColorScheme();
-  const navigation = useNavigation();
+
   return (
     <Tabs.Navigator
       screenOptions={({ route }) => ({
@@ -116,16 +117,7 @@ const BottomTabs = () => {
           headerShadowVisible: false,
         }}
       >
-        <Tabs.Screen
-          name={Routes.MESSAGES}
-          component={Messages}
-          options={{
-            headerBackgroundContainerStyle: {
-              borderBottomWidth: 2,
-              borderBottomColor: Colors.lightgray,
-            },
-          }}
-        />
+        <Tabs.Screen name={Routes.MESSAGES} component={Messages} />
         <Tabs.Screen name={Routes.CART} component={Cart} />
         <Tabs.Screen name={Routes.BOOKINGS} component={Bookings} />
         <Tabs.Screen name={Routes.PROFILE} component={Profile} />

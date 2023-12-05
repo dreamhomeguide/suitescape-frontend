@@ -22,12 +22,12 @@ const style = StyleSheet.create({
   iconContainer: {
     alignItems: "center",
     width: 40,
-    marginRight: 15,
+    marginRight: 18,
   },
   text: {
     color: Colors.gray,
-    fontWeight: "bold",
-    fontSize: 15,
+    // fontWeight: "bold",
+    fontSize: 16,
   },
 });
 
