@@ -8,7 +8,6 @@ const { height } = Dimensions.get("window");
 const style = StyleSheet.create({
   mainContainer: {
     padding: 20,
-    ...globalStyles.bottomGap,
     ...globalStyles.largeContainerGap,
   },
   detailsContainer: {
