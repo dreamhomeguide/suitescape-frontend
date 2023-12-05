@@ -11,8 +11,20 @@ const ButtonIcon = ({
   pressedColor = Colors.blue,
   renderIcon,
   onPress,
+  containerStyle,
 }) => {
   return (
+    // <RectButton
+    //   onPress={() => {
+    //     Haptics.selectionAsync();
+    //     onPress && onPress();
+    //   }}
+    //   style={style.button({ bgColor: color })}
+    //   rippleRadius={100}
+    //   rippleColor={pressedColor}
+    //   underlayColor={pressedColor}
+    //   activeOpacity={0.8}
+    // >
     <Pressable
       onPress={() => {
         Haptics.selectionAsync();
@@ -20,6 +32,7 @@ const ButtonIcon = ({
       }}
       style={({ pressed }) => ({
         ...style.button({ bgColor: color }),
+        ...containerStyle,
         ...pressedBgColor(pressed, pressedColor),
       })}
     >
