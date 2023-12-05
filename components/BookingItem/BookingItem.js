@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import React from "react";
+import React, { memo } from "react";
 import { Text, View } from "react-native";
 
 import style from "./BookingItemStyles";
@@ -33,7 +33,7 @@ const BookingItem = ({ item, type }) => {
       label: "Book Again",
       onPress: () => {},
     },
-    rating: {
+    to_rate: {
       label: "Rate Room",
       onPress: () => {},
     },
@@ -72,4 +72,4 @@ const BookingItem = ({ item, type }) => {
   );
 };
 
-export default BookingItem;
+export default memo(BookingItem);
