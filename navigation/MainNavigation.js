@@ -1,4 +1,5 @@
-import { useTheme } from "@react-navigation/native";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useNavigation, useTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { useColorScheme } from "react-native";
@@ -9,11 +10,13 @@ import { Colors } from "../assets/Colors";
 import { useAuth } from "../contexts/AuthContext";
 import { useSettings } from "../contexts/SettingsContext";
 import BookingSummary from "../screens/BookingSummary/BookingSummary";
+import Chat from "../screens/Chat/Chat";
 import CheckAvailability from "../screens/CheckAvailability/CheckAvailability";
 import Feedback from "../screens/Feedback/Feedback";
 import GuestInfo from "../screens/GuestInfo/GuestInfo";
 import ListingDetails from "../screens/ListingDetails/ListingDetails";
 import Login from "../screens/Login/Login";
+import MessagesSearch from "../screens/MessagesSearch/MessagesSearch";
 import Onboarding from "../screens/Onboarding/Onboarding";
 import PaymentMethod from "../screens/PaymentMethod/PaymentMethod";
 import ProfileHost from "../screens/ProfileHost/ProfileHost";
@@ -25,6 +28,7 @@ import SignUp from "../screens/SignUp/SignUp";
 const Stack = createNativeStackNavigator();
 
 const MainNavigation = () => {
+  const navigation = useNavigation();
   const { settings } = useSettings();
   const { authState } = useAuth();
 
@@ -45,7 +49,6 @@ const MainNavigation = () => {
           <Stack.Screen name={Routes.SIGNUP} component={SignUp} />
         </Stack.Group>
       )}
-
       <Stack.Group
         screenOptions={{
           animation: "slide_from_right",
@@ -97,6 +100,35 @@ const MainNavigation = () => {
         options={{
           animation: "fade_from_bottom",
           gestureEnabled: false,
+        }}
+      />
+
+      <Stack.Screen
+        name={Routes.CHAT}
+        component={Chat}
+        options={{
+          animation: "fade",
+          gestureEnabled: true,
+        }}
+      />
+
+      <Stack.Screen
+        name={Routes.SEARCH_MESSAGES}
+        component={MessagesSearch}
+        options={{
+          headerTitle: "Search",
+          animation: "fade",
+          gestureEnabled: true,
+          headerShown: true,
+          headerLeft: () => (
+            <Ionicons
+              onPress={() => navigation.goBack()}
+              style={{ marginRight: 10 }}
+              name="chevron-back-outline"
+              size={30}
+              color="black"
+            />
+          ),
         }}
       />
     </Stack.Navigator>

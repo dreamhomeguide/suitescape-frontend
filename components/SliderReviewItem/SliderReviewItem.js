@@ -3,7 +3,7 @@ import { Pressable, Text, View } from "react-native";
 
 import style from "./SliderReviewItemStyles";
 import { pressedBgColor } from "../../assets/styles/globalStyles";
-import AvatarSample from "../AvatarSample/AvatarSample";
+import ProfileImage from "../ProfileImage/ProfileImage";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
 const SliderReviewItem = ({ item, onPress, itemWidth, itemMargin }) => {
@@ -18,7 +18,7 @@ const SliderReviewItem = ({ item, onPress, itemWidth, itemMargin }) => {
       <View style={style.userContainer}>
         {/*<Avatar.Image source={item.img} size={50} style={style.avatar} />*/}
 
-        <AvatarSample size={45} />
+        <ProfileImage size={45} />
         <View style={style.userNameContainer}>
           <Text style={{ ...style.userName, ...style.text }} numberOfLines={1}>
             {item.user.fullname}
