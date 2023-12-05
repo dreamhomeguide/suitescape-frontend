@@ -1,16 +1,43 @@
-import React, { useMemo } from "react";
-import { Text, View } from "react-native";
+import { useScrollToTop } from "@react-navigation/native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Tabs } from "react-native-collapsible-tab-view";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import globalStyles from "../../assets/styles/globalStyles";
-import BookingItem from "../../components/BookingItem/BookingItem";
+import BookingList from "../../components/BookingList/BookingList";
 import useFetchAPI from "../../hooks/useFetchAPI";
 import { TabBar } from "../../navigation/TopTabs/TopTabs";
 
-const Bookings = () => {
-  const { data: bookings, isFetchedAfterMount } = useFetchAPI("/bookings");
-  const insets = useSafeAreaInsets();
+const Bookings = ({ navigation, route }) => {
+  const {
+    data: bookings,
+    refetch,
+    isFetchedAfterMount,
+  } = useFetchAPI("/bookings");
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const tabsRef = useRef(null);
+  const upcomingRef = useRef(null);
+  const completedRef = useRef(null);
+  const ratingRef = useRef(null);
+  const cancelledRef = useRef(null);
+
+  useScrollToTop(upcomingRef);
+  useScrollToTop(completedRef);
+  useScrollToTop(ratingRef);
+  useScrollToTop(cancelledRef);
+
+  // Jump to tab and scroll to top
+  useEffect(() => {
+    if (route.params?.tab) {
+      const tabToNavigate = route.params.tab;
+      tabsRef.current?.jumpToTab(tabToNavigate);
+
+      refetch().then(() => console.log("Bookings refetched"));
+
+      // Reset tab params
+      navigation.setParams({ tab: null });
+    }
+  }, [route.params?.tab]);
 
   const upcomingBookings = useMemo(
     () => bookings?.filter((booking) => booking.status === "upcoming"),
@@ -35,70 +62,61 @@ const Bookings = () => {
     [bookings],
   );
 
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setIsRefreshing(false);
+      console.log("Bookings refetched");
+    }
+  };
+
   return (
     <Tabs.Container
-      renderTabBar={(props) => <TabBar {...props} fontSize={12} />}
+      ref={tabsRef}
+      renderTabBar={(props) => (
+        <TabBar defaultProps={props} fontSize={12} scrollEnabled />
+      )}
     >
       <Tabs.Tab name="Upcoming">
-        <Tabs.FlatList
+        <BookingList
+          ref={upcomingRef}
           data={upcomingBookings}
-          contentInset={{ bottom: insets.bottom }}
-          renderItem={({ item }) => <BookingItem item={item} type="upcoming" />}
-          ListEmptyComponent={() =>
-            isFetchedAfterMount && (
-              <View style={globalStyles.flexCenter}>
-                <Text style={{ margin: 15 }}>No upcoming bookings</Text>
-              </View>
-            )
-          }
+          type="upcoming"
+          isFetched={isFetchedAfterMount}
+          isRefreshing={isRefreshing}
+          onRefresh={onRefresh}
         />
       </Tabs.Tab>
       <Tabs.Tab name="Completed">
-        <Tabs.FlatList
+        <BookingList
+          ref={completedRef}
           data={completedBookings}
-          contentInset={{ bottom: insets.bottom }}
-          renderItem={({ item }) => (
-            <BookingItem item={item} type="completed" />
-          )}
-          ListEmptyComponent={() =>
-            isFetchedAfterMount && (
-              <View style={globalStyles.flexCenter}>
-                <Text style={globalStyles.emptyText}>
-                  No completed bookings
-                </Text>
-              </View>
-            )
-          }
+          type="completed"
+          isFetched={isFetchedAfterMount}
+          isRefreshing={isRefreshing}
+          onRefresh={onRefresh}
         />
       </Tabs.Tab>
       <Tabs.Tab name="Rating">
-        <Tabs.FlatList
+        <BookingList
+          ref={ratingRef}
           data={toRateBookings}
-          contentInset={{ bottom: insets.bottom }}
-          renderItem={({ item }) => <BookingItem item={item} type="rating" />}
-          ListEmptyComponent={() =>
-            isFetchedAfterMount && (
-              <View style={globalStyles.flexCenter}>
-                <Text style={globalStyles.emptyText}>No bookings to rate</Text>
-              </View>
-            )
-          }
+          type="to_rate"
+          isFetched={isFetchedAfterMount}
+          isRefreshing={isRefreshing}
+          onRefresh={onRefresh}
         />
       </Tabs.Tab>
       <Tabs.Tab name="Cancelled">
-        <Tabs.FlatList
+        <BookingList
+          ref={cancelledRef}
           data={cancelledBookings}
-          contentInset={{ bottom: insets.bottom }}
-          renderItem={({ item }) => <BookingItem item={item} />}
-          ListEmptyComponent={() =>
-            isFetchedAfterMount && (
-              <View style={globalStyles.flexCenter}>
-                <Text style={globalStyles.emptyText}>
-                  No cancelled bookings
-                </Text>
-              </View>
-            )
-          }
+          type="cancelled"
+          isFetched={isFetchedAfterMount}
+          isRefreshing={isRefreshing}
+          onRefresh={onRefresh}
         />
       </Tabs.Tab>
     </Tabs.Container>
