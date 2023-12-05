@@ -4,9 +4,9 @@ import React, { memo } from "react";
 import style from "./ProfileImageStyles";
 
 const ProfileImage = ({
-  source = require("../../assets/images/onboarding/page2.png"),
+  source = require("../../assets/images/profile.png"),
   size = 50,
-  fillColor = "lightgray",
+  fillColor = "transparent",
   borderColor = "gray",
   borderWidth = 2,
   containerStyle,

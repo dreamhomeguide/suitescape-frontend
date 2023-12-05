@@ -1,7 +1,5 @@
 import { StyleSheet } from "react-native";
 
-import { Colors } from "../../assets/Colors";
-
 const style = StyleSheet.create({
   container: {
     width: 40,
@@ -10,7 +8,7 @@ const style = StyleSheet.create({
   },
   dash: {
     fontSize: 25,
-    color: Colors.blue,
+    color: "gray",
   },
 });
 

@@ -1,6 +1,7 @@
 import Entypo from "@expo/vector-icons/Entypo";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import React from "react";
+import { useScrollToTop } from "@react-navigation/native";
+import React, { useRef } from "react";
 import { Pressable, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,6 +17,11 @@ const Home = ({ navigation }) => {
 
   const bottomTabHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
+
+  const videoFeedRef = useRef(null);
+
+  // Allows the feed to scroll to top when the tab is pressed
+  useScrollToTop(videoFeedRef);
 
   return (
     <View style={style.mainContainer}>
@@ -33,6 +39,7 @@ const Home = ({ navigation }) => {
         </Pressable>
       </HeaderIconView>
       <VideoFeed
+        ref={videoFeedRef}
         videos={videos}
         onEndReached={() => fetchNextPage()}
         refreshControl={

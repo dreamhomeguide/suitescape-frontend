@@ -7,6 +7,7 @@ import {
   Poppins_400Regular,
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import {
   DarkTheme,
   DefaultTheme,
@@ -16,18 +17,19 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import React from "react";
 import { StatusBar, useColorScheme } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   DefaultTheme as MaterialTheme,
   PaperProvider,
 } from "react-native-paper";
 import { ToastProvider } from "react-native-toast-notifications";
+import { HeaderButtonsProvider } from "react-navigation-header-buttons";
 
 import { Colors } from "./assets/Colors";
+import globalStyles from "./assets/styles/globalStyles";
 import toastStyles from "./assets/styles/toastStyles";
 import { useAuth } from "./contexts/AuthContext";
-import { BookingProvider } from "./contexts/BookingContext";
-import { ListingProvider } from "./contexts/ListingContext";
-import { RoomProvider } from "./contexts/RoomContext";
+import BookingProcessProvider from "./contexts/BookingProcessProvider";
 import { useSettings } from "./contexts/SettingsContext";
 import MainNavigation from "./navigation/MainNavigation";
 
@@ -41,6 +43,8 @@ const navigationTheme = {
 };
 
 const paperTheme = MaterialTheme;
+
+const stackType = "native";
 
 const Root = () => {
   const [fontsLoaded] = useFonts({
@@ -63,29 +67,32 @@ const Root = () => {
   }
 
   return (
-    <ListingProvider>
-      <RoomProvider>
-        <BookingProvider>
-          <ToastProvider
-            offsetTop={StatusBar.currentHeight}
-            duration={1400}
-            normalColor={Colors.blue}
-            style={toastStyles.toast}
-          >
-            <PaperProvider theme={paperTheme}>
-              <NavigationContainer
-                theme={colorScheme === "dark" ? DarkTheme : navigationTheme}
-                onReady={() => {
-                  SplashScreen.hideAsync().catch((err) => console.log(err));
-                }}
-              >
-                <MainNavigation />
-              </NavigationContainer>
-            </PaperProvider>
-          </ToastProvider>
-        </BookingProvider>
-      </RoomProvider>
-    </ListingProvider>
+    <GestureHandlerRootView style={globalStyles.flexFull}>
+      <BottomSheetModalProvider style={globalStyles.flexFull}>
+        <ToastProvider
+          offsetTop={StatusBar.currentHeight}
+          duration={1400}
+          normalColor={Colors.blue}
+          style={toastStyles.toast}
+          // textStyle={{ textAlign: "center" }}
+        >
+          <PaperProvider theme={paperTheme}>
+            <NavigationContainer
+              theme={colorScheme === "dark" ? DarkTheme : navigationTheme}
+              onReady={() => {
+                SplashScreen.hideAsync().catch((err) => console.log(err));
+              }}
+            >
+              <HeaderButtonsProvider stackType={stackType}>
+                <BookingProcessProvider>
+                  <MainNavigation />
+                </BookingProcessProvider>
+              </HeaderButtonsProvider>
+            </NavigationContainer>
+          </PaperProvider>
+        </ToastProvider>
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 };
 

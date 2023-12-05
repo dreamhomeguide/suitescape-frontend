@@ -18,8 +18,8 @@ const style = StyleSheet.create({
     transform: [{ translateY: -115 }],
   },
   contentContainer: {
-    borderTopStartRadius: 25,
-    borderTopEndRadius: 25,
+    borderTopStartRadius: 30,
+    borderTopEndRadius: 30,
     padding: 20,
     backgroundColor: "white",
     marginTop: 60,

@@ -4,7 +4,7 @@ import { format } from "date-fns";
 import React, { useEffect, useLayoutEffect } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useToast } from "react-native-toast-notifications";
-import { HiddenItem, OverflowMenu } from "react-navigation-header-buttons";
+import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
 import { Colors } from "../../assets/Colors";
 import style from "../../assets/styles/detailsStyles";
@@ -22,6 +22,7 @@ import SliderReviews from "../../components/SliderReviews/SliderReviews";
 import { useBookingContext } from "../../contexts/BookingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
 import useFetchAPI from "../../hooks/useFetchAPI";
+import { IoniconsHeaderButton } from "../../navigation/HeaderButtons";
 import { Routes } from "../../navigation/Routes";
 
 const AMENITIES_IN_VIEW = 6;
@@ -42,13 +43,14 @@ const RoomDetails = ({ navigation, route }) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <OverflowMenu
-          OverflowIcon={() => (
-            <Ionicons name="menu" color={colors.text} size={25} />
-          )}
-        >
-          <HiddenItem title="Example" onPress={() => console.log("Example")} />
-        </OverflowMenu>
+        <HeaderButtons HeaderButtonComponent={IoniconsHeaderButton}>
+          <Item
+            title="menu"
+            iconName="menu"
+            color={colors.text}
+            onPress={() => console.log("menu")}
+          />
+        </HeaderButtons>
       ),
     });
   }, [navigation]);

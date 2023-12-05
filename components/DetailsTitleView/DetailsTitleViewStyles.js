@@ -19,7 +19,7 @@ const style = StyleSheet.create({
   },
   linkText: {
     fontSize: 15,
-    paddingTop: 1.2,
+    paddingTop: 1.5,
   },
   ratingsContainer: {
     flexDirection: "row",

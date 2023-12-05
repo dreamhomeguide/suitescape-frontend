@@ -18,7 +18,7 @@ import globalStyles from "../../assets/styles/globalStyles";
 import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import AppFooterDetails from "../../components/AppFooterDetails/AppFooterDetails";
-import LoadingDialog from "../../components/LoadingDialog/LoadingDialog";
+import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import { useBookingContext } from "../../contexts/BookingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
 import { Routes } from "../../navigation/Routes";
@@ -220,7 +220,7 @@ const SelectDates = ({ navigation }) => {
         />
       </View>
 
-      <LoadingDialog visible={isLoading} />
+      <DialogLoading visible={isLoading} />
 
       <AppFooter>
         <AppFooterDetails

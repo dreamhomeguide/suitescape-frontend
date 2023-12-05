@@ -1,15 +1,15 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTheme } from "@react-navigation/native";
 import React, { useLayoutEffect } from "react";
 import { View } from "react-native";
 import { Tabs } from "react-native-collapsible-tab-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { HiddenItem, OverflowMenu } from "react-navigation-header-buttons";
+import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
 import globalStyles from "../../assets/styles/globalStyles";
 import HeaderProfileHost from "../../components/HeaderProfileHost/HeaderProfileHost";
 import OnboardingItem from "../../components/OnboardingItem/OnboardingItem";
 import slideData from "../../data/slideData";
+import { IoniconsHeaderButton } from "../../navigation/HeaderButtons";
 import { TabBar } from "../../navigation/TopTabs/TopTabs";
 
 const ProfileHost = ({ navigation, route }) => {
@@ -21,13 +21,14 @@ const ProfileHost = ({ navigation, route }) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <OverflowMenu
-          OverflowIcon={() => (
-            <Ionicons name="menu" color={colors.text} size={25} />
-          )}
-        >
-          <HiddenItem title="Example" onPress={() => console.log("Example")} />
-        </OverflowMenu>
+        <HeaderButtons HeaderButtonComponent={IoniconsHeaderButton}>
+          <Item
+            title="menu"
+            iconName="menu"
+            color={colors.text}
+            onPress={() => console.log("menu")}
+          />
+        </HeaderButtons>
       ),
     });
   }, [navigation]);
@@ -36,7 +37,7 @@ const ProfileHost = ({ navigation, route }) => {
     <View style={globalStyles.flexFull}>
       <Tabs.Container
         renderHeader={() => <HeaderProfileHost />}
-        renderTabBar={(props) => <TabBar {...props} />}
+        renderTabBar={(props) => <TabBar defaultProps={props} />}
       >
         <Tabs.Tab name="Listings">
           <Tabs.FlatList

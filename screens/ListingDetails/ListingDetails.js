@@ -4,7 +4,7 @@ import { useTheme } from "@react-navigation/native";
 import React, { useEffect, useLayoutEffect } from "react";
 import { Alert, Linking, Platform, ScrollView, Text, View } from "react-native";
 import MapView from "react-native-maps";
-import { HiddenItem, OverflowMenu } from "react-navigation-header-buttons";
+import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
 import { Colors } from "../../assets/Colors";
 import style from "../../assets/styles/detailsStyles";
@@ -28,6 +28,7 @@ import { useBookingContext } from "../../contexts/BookingContext";
 import { useListingContext } from "../../contexts/ListingContext";
 import { ModalGalleryProvider } from "../../contexts/ModalGalleryContext";
 import useFetchAPI from "../../hooks/useFetchAPI";
+import { IoniconsHeaderButton } from "../../navigation/HeaderButtons";
 import { Routes } from "../../navigation/Routes";
 
 const NEARBY_IN_VIEW = 6;
@@ -51,13 +52,14 @@ const ListingDetails = ({ route, navigation }) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <OverflowMenu
-          OverflowIcon={() => (
-            <Ionicons name="menu" color={colors.text} size={25} />
-          )}
-        >
-          <HiddenItem title="Example" onPress={() => console.log("Example")} />
-        </OverflowMenu>
+        <HeaderButtons HeaderButtonComponent={IoniconsHeaderButton}>
+          <Item
+            title="menu"
+            iconName="menu"
+            color={colors.text}
+            onPress={() => console.log("menu")}
+          />
+        </HeaderButtons>
       ),
     });
   }, [navigation]);

@@ -1,5 +1,11 @@
 import { Slider } from "@miblanchard/react-native-slider";
-import React, { memo, useMemo, useState } from "react";
+import React, {
+  forwardRef,
+  memo,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from "react";
 import { View } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
@@ -16,179 +22,213 @@ const MAXIMUM_PRICE = 5_000;
 const STEP = 50;
 const RESET_VALUE = -1;
 
-const PriceRange = ({ onPriceRangeChanged, onScrollChange, scrollViewRef }) => {
-  const [minimumPrice, setMinimumPrice] = useState(RESET_VALUE);
-  const [maximumPrice, setMaximumPrice] = useState(RESET_VALUE);
-  // const [previousPriceRange, setPreviousPriceRange] = useState([
-  //   MINIMUM_PRICE,
-  //   MAXIMUM_PRICE,
-  // ]);
-  // const [isTyping, setIsTyping] = useState(false);
+const PriceRange = forwardRef(
+  (
+    { onMinPriceChanged, onMaxPriceChanged, onScrollChange, scrollToTop },
+    ref,
+  ) => {
+    const [minimumPrice, setMinimumPrice] = useState(RESET_VALUE);
+    const [maximumPrice, setMaximumPrice] = useState(RESET_VALUE);
 
-  const toast = useToast();
+    // const [previousPriceRange, setPreviousPriceRange] = useState([
+    //   MINIMUM_PRICE,
+    //   MAXIMUM_PRICE,
+    // ]);
+    // const [isTyping, setIsTyping] = useState(false);
 
-  const priceRange = useMemo(() => {
-    const minPrice =
-      minimumPrice === RESET_VALUE ? MINIMUM_PRICE : minimumPrice;
-    const maxPrice =
-      maximumPrice === RESET_VALUE ? MAXIMUM_PRICE : maximumPrice;
+    const toast = useToast();
 
-    // if (!isTyping) {
-    //   setPreviousPriceRange([minPrice, maxPrice]);
-    // }
+    const priceRange = useMemo(() => {
+      const minPrice =
+        minimumPrice === RESET_VALUE ? MINIMUM_PRICE : minimumPrice;
+      const maxPrice =
+        maximumPrice === RESET_VALUE ? MAXIMUM_PRICE : maximumPrice;
 
-    return [minPrice, maxPrice];
-  }, [minimumPrice, maximumPrice]);
+      // if (!isTyping) {
+      //   setPreviousPriceRange([minPrice, maxPrice]);
+      // }
 
-  return (
-    <>
-      <Slider
-        animateTransitions
-        onSlidingStart={() => {
-          scrollViewRef.current.scrollTo({ y: 0, animated: true });
-          onScrollChange(false);
-        }}
-        onSlidingComplete={() => {
-          onScrollChange(true);
-          onPriceRangeChanged(priceRange);
-        }}
-        thumbStyle={style.thumb}
-        minimumTrackStyle={{ backgroundColor: Colors.blue }}
-        maximumTrackStyle={{ backgroundColor: Colors.lightgray }}
-        minimumValue={MINIMUM_PRICE}
-        maximumValue={MAXIMUM_PRICE}
-        step={STEP}
-        // value={isTyping ? previousPriceRange : priceRange}
-        value={priceRange}
-        onValueChange={([minimum, maximum]) => {
-          const gap = maximum - minimum;
-          const minimumGap = STEP * 5;
-          if (gap < minimumGap) {
-            if (minimumPrice === minimum) {
-              maximum = minimum + minimumGap;
-            } else {
-              minimum = maximum - minimumGap;
-            }
-          }
-          setMinimumPrice(minimum);
-          setMaximumPrice(maximum);
-        }}
-      />
-      <View style={style.inputContainer}>
-        <FormInput
-          value={
-            minimumPrice === RESET_VALUE ? "" : "₱" + minimumPrice?.toString()
-          }
-          placeholder="Min Price"
-          keyboardType="number-pad"
-          onChangeText={(value) => {
-            extractNumber(value.replace("₱", ""), (numberValue) => {
-              if (!numberValue && numberValue !== 0) {
-                setMinimumPrice(RESET_VALUE);
-              } else {
-                setMinimumPrice(numberValue);
-              }
-            });
+      return [minPrice, maxPrice];
+    }, [minimumPrice, maximumPrice]);
+
+    useImperativeHandle(ref, () => ({
+      reset: () => {
+        setMinimumPrice(RESET_VALUE);
+        setMaximumPrice(RESET_VALUE);
+
+        onMinPriceChanged && onMinPriceChanged(RESET_VALUE);
+        onMaxPriceChanged && onMaxPriceChanged(RESET_VALUE);
+
+        // onPriceRangeChanged([]);
+      },
+    }));
+
+    return (
+      <>
+        <Slider
+          animateTransitions
+          onSlidingStart={() => {
+            scrollToTop && scrollToTop();
+            onScrollChange(false);
           }}
-          disableAnimations
-          useDefaultStyles={false}
-          // onFocus={() => setIsTyping(true)}
-          onBlur={() => {
-            // setIsTyping(false);
-
-            // if (minimumPrice === 0) {
-            //   setMinimumPrice(RESET_VALUE);
-            // }
-
-            if (minimumPrice === RESET_VALUE) {
-              return;
+          onSlidingComplete={() => {
+            onScrollChange(true);
+            // onPriceRangeChanged(priceRange);
+            onMinPriceChanged && onMinPriceChanged(minimumPrice);
+            onMaxPriceChanged && onMaxPriceChanged(maximumPrice);
+          }}
+          thumbStyle={style.thumb}
+          minimumTrackStyle={{ backgroundColor: Colors.blue }}
+          maximumTrackStyle={{ backgroundColor: Colors.lightgray }}
+          minimumValue={MINIMUM_PRICE}
+          maximumValue={MAXIMUM_PRICE}
+          step={STEP}
+          // value={isTyping ? previousPriceRange : priceRange}
+          value={priceRange}
+          onValueChange={([minimum, maximum]) => {
+            const gap = maximum - minimum;
+            const minimumGap = STEP * 5;
+            if (gap < minimumGap) {
+              if (minimumPrice === minimum) {
+                maximum = minimum + minimumGap;
+              } else {
+                minimum = maximum - minimumGap;
+              }
             }
+            setMinimumPrice(minimum);
+            setMaximumPrice(maximum);
+          }}
+        />
+        <View style={style.inputContainer}>
+          <FormInput
+            value={
+              minimumPrice === RESET_VALUE ? "" : "₱" + minimumPrice?.toString()
+            }
+            placeholder="Min Price"
+            keyboardType="number-pad"
+            onChangeText={(value) => {
+              extractNumber(value.replace("₱", ""), (numberValue) => {
+                if (!numberValue && numberValue !== 0) {
+                  setMinimumPrice(RESET_VALUE);
+                  onMinPriceChanged && onMinPriceChanged(RESET_VALUE);
+                } else {
+                  setMinimumPrice(numberValue);
+                  onMinPriceChanged && onMinPriceChanged(numberValue);
+                }
+              });
+            }}
+            disableAnimations
+            useDefaultStyles={false}
+            // onFocus={() => setIsTyping(true)}
+            onBlur={() => {
+              // setIsTyping(false);
 
-            if (minimumPrice > maximumPrice && maximumPrice !== RESET_VALUE) {
-              // Swap if minimum price is greater than maximum price
-              // let temp = minimumPrice;
-              // if (minimumPrice > MAXIMUM_PRICE) {
-              //   temp = MAXIMUM_PRICE;
+              // if (minimumPrice === 0) {
+              //   setMinimumPrice(RESET_VALUE);
               // }
-              // setMinimumPrice(maximumPrice);
-              // setMaximumPrice(temp);
 
-              toast.show("Min price cannot be greater than max price", {
-                placement: "top",
-                style: toastStyles.toastInsetHeader,
-              });
-              setMaximumPrice(RESET_VALUE);
-            }
-
-            // Normalize the minimum price
-            if (minimumPrice > MAXIMUM_PRICE) {
-              toast.show(`Min price cannot be greater than ₱${MAXIMUM_PRICE}`, {
-                placement: "top",
-                style: toastStyles.toastInsetHeader,
-              });
-              setMinimumPrice(MAXIMUM_PRICE);
-            }
-          }}
-          containerStyle={globalStyles.flexFull}
-        />
-        <DashView />
-
-        <FormInput
-          value={
-            maximumPrice === RESET_VALUE ? "" : "₱" + maximumPrice?.toString()
-          }
-          placeholder="Max Price"
-          keyboardType="number-pad"
-          onChangeText={(value) => {
-            extractNumber(value.replace("₱", ""), (numberValue) => {
-              if (!numberValue) {
-                setMaximumPrice(RESET_VALUE);
-              } else {
-                setMaximumPrice(numberValue);
+              if (minimumPrice === RESET_VALUE) {
+                return;
               }
-            });
-          }}
-          disableAnimations
-          useDefaultStyles={false}
-          // onFocus={() => setIsTyping(true)}
-          onBlur={() => {
-            // setIsTyping(false);
 
-            // if (maximumPrice === 0) {
-            //   setMaximumPrice(RESET_VALUE);
-            // }
+              if (minimumPrice > maximumPrice && maximumPrice !== RESET_VALUE) {
+                // Swap if minimum price is greater than maximum price
+                // let temp = minimumPrice;
+                // if (minimumPrice > MAXIMUM_PRICE) {
+                //   temp = MAXIMUM_PRICE;
+                // }
+                // setMinimumPrice(maximumPrice);
+                // setMaximumPrice(temp);
 
-            if (maximumPrice === RESET_VALUE) {
-              return;
+                toast.show("Min price cannot be greater than max price", {
+                  placement: "top",
+                  style: toastStyles.toastInsetHeader,
+                });
+                setMaximumPrice(RESET_VALUE);
+                onMaxPriceChanged && onMaxPriceChanged(RESET_VALUE);
+              }
+
+              // Normalize the minimum price
+              if (minimumPrice > MAXIMUM_PRICE) {
+                toast.show(
+                  `Min price cannot be greater than ₱${MAXIMUM_PRICE}`,
+                  {
+                    placement: "top",
+                    style: toastStyles.toastInsetHeader,
+                  },
+                );
+                setMinimumPrice(MAXIMUM_PRICE);
+                onMinPriceChanged && onMinPriceChanged(MAXIMUM_PRICE);
+              }
+            }}
+            containerStyle={globalStyles.flexFull}
+          />
+          <DashView />
+
+          <FormInput
+            value={
+              maximumPrice === RESET_VALUE ? "" : "₱" + maximumPrice?.toString()
             }
-
-            if (maximumPrice < minimumPrice && minimumPrice !== RESET_VALUE) {
-              // Swap if maximum price is less than minimum price
-              // const temp = maximumPrice;
-              // setMaximumPrice(minimumPrice);
-              // setMinimumPrice(temp);
-
-              toast.show("Max price cannot be less than min price", {
-                placement: "top",
-                style: toastStyles.toastInsetHeader,
+            placeholder="Max Price"
+            keyboardType="number-pad"
+            onChangeText={(value) => {
+              extractNumber(value.replace("₱", ""), (numberValue) => {
+                if (!numberValue) {
+                  setMaximumPrice(RESET_VALUE);
+                  onMaxPriceChanged && onMaxPriceChanged(RESET_VALUE);
+                } else {
+                  setMaximumPrice(numberValue);
+                  onMaxPriceChanged && onMaxPriceChanged(numberValue);
+                }
               });
-              setMinimumPrice(RESET_VALUE);
-            }
+            }}
+            disableAnimations
+            useDefaultStyles={false}
+            // onFocus={() => setIsTyping(true)}
+            onBlur={() => {
+              // setIsTyping(false);
 
-            // Set maximum price to maximum if it is greater than maximum
-            if (maximumPrice > MAXIMUM_PRICE) {
-              toast.show(`Max price cannot be greater than ₱${MAXIMUM_PRICE}`, {
-                placement: "top",
-                style: toastStyles.toastInsetHeader,
-              });
-              setMaximumPrice(MAXIMUM_PRICE);
-            }
-          }}
-          containerStyle={globalStyles.flexFull}
-        />
-      </View>
-    </>
-  );
-};
+              // if (maximumPrice === 0) {
+              //   setMaximumPrice(RESET_VALUE);
+              // }
+
+              if (maximumPrice === RESET_VALUE) {
+                return;
+              }
+
+              if (maximumPrice < minimumPrice && minimumPrice !== RESET_VALUE) {
+                // Swap if maximum price is less than minimum price
+                // const temp = maximumPrice;
+                // setMaximumPrice(minimumPrice);
+                // setMinimumPrice(temp);
+
+                toast.show("Max price cannot be less than min price", {
+                  placement: "top",
+                  style: toastStyles.toastInsetHeader,
+                });
+                setMinimumPrice(RESET_VALUE);
+                onMinPriceChanged && onMinPriceChanged(RESET_VALUE);
+              }
+
+              // Set maximum price to maximum if it is greater than maximum
+              if (maximumPrice > MAXIMUM_PRICE) {
+                toast.show(
+                  `Max price cannot be greater than ₱${MAXIMUM_PRICE}`,
+                  {
+                    placement: "top",
+                    style: toastStyles.toastInsetHeader,
+                  },
+                );
+                setMaximumPrice(MAXIMUM_PRICE);
+                onMaxPriceChanged && onMaxPriceChanged(MAXIMUM_PRICE);
+              }
+            }}
+            containerStyle={globalStyles.flexFull}
+          />
+        </View>
+      </>
+    );
+  },
+);
 
 export default memo(PriceRange);

@@ -10,7 +10,7 @@ import Paypal from "../../assets/images/svgs/PayPal.svg";
 import globalStyles from "../../assets/styles/globalStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
-import CheckboxCircle from "../../components/CheckboxCircle/CheckboxCircle";
+import FormRadio from "../../components/FormRadio/FormRadio";
 import { useBookingContext } from "../../contexts/BookingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
 import { Routes } from "../../navigation/Routes";
@@ -52,7 +52,10 @@ const PaymentMethod = ({ navigation }) => {
               type: "success",
               title: "Congratulations",
               subtitle: "You Have Booked Successfully",
-              screenToNavigate: Routes.BOOKINGS,
+              screenToNavigate: {
+                name: Routes.BOOKINGS,
+                params: { tab: "Upcoming" },
+              },
             });
           });
         },
@@ -85,7 +88,7 @@ const PaymentMethod = ({ navigation }) => {
                 ...{
                   borderColor:
                     selectedMethod === paymentMethod
-                      ? "black"
+                      ? Colors.blue
                       : Colors.lightgray,
                 },
               }}
@@ -95,7 +98,7 @@ const PaymentMethod = ({ navigation }) => {
                 <Text style={style.text}>{paymentMethod.label}</Text>
               </View>
               <View style={style.checkboxContainer}>
-                <CheckboxCircle selected={selectedMethod === paymentMethod} />
+                <FormRadio selected={selectedMethod === paymentMethod} />
               </View>
             </Pressable>
           )}

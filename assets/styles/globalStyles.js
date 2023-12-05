@@ -53,6 +53,10 @@ const globalStyles = StyleSheet.create({
     borderBottomWidth: 5,
     borderBottomColor: Colors.lightgray,
   },
+  bottomGapSmall: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.lightgray,
+  },
   iconShadow: {
     shadowOpacity: 0.6,
     shadowRadius: 2,

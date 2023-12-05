@@ -23,6 +23,9 @@ const style = StyleSheet.create({
   inputContainer: {
     flex: 1,
   },
+  searchButton: {
+    borderRadius: 10,
+  },
 });
 
 export default style;

@@ -1,9 +1,9 @@
 import React, { memo } from "react";
 import { Dialog, Portal } from "react-native-paper";
 
-import style from "./PaperDialogStyles";
+import style from "./DialogPaperStyles";
 
-const PaperDialog = ({ children, visible, title }) => (
+const DialogPaper = ({ title, visible, children }) => (
   <Portal>
     <Dialog visible={visible} dismissable={false} style={style.container}>
       <Dialog.Title style={style.title}>{title}</Dialog.Title>
@@ -12,4 +12,4 @@ const PaperDialog = ({ children, visible, title }) => (
   </Portal>
 );
 
-export default memo(PaperDialog);
+export default memo(DialogPaper);

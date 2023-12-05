@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
 
 import { Colors } from "../../assets/Colors";
-import globalStyles from "../../assets/styles/globalStyles";
 
 const style = StyleSheet.create({
   mainContainer: {
@@ -9,7 +8,6 @@ const style = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 20,
     paddingHorizontal: 20,
-    ...globalStyles.bottomGap,
   },
   titleContainer: {
     flex: 1,

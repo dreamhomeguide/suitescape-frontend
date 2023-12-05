@@ -2,15 +2,15 @@ import React, { memo } from "react";
 import { ActivityIndicator } from "react-native";
 
 import ButtonLink from "../ButtonLink/ButtonLink";
-import PaperDialog from "../PaperDialog/PaperDialog";
+import DialogPaper from "../DialogPaper/DialogPaper";
 
-const LoadingDialog = ({ visible, onCancel, title = "Loading..." }) => {
+const DialogLoading = ({ title = "Loading...", visible, onCancel }) => {
   return (
-    <PaperDialog title={title} visible={visible}>
+    <DialogPaper title={title} visible={visible}>
       <ActivityIndicator />
       {onCancel && <ButtonLink onPress={onCancel}>Cancel</ButtonLink>}
-    </PaperDialog>
+    </DialogPaper>
   );
 };
 
-export default memo(LoadingDialog);
+export default memo(DialogLoading);

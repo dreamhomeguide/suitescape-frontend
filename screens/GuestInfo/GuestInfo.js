@@ -1,12 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, Text } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
 import style from "./GuestInfoStyles";
@@ -14,8 +8,9 @@ import globalStyles from "../../assets/styles/globalStyles";
 import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
+import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import FormInput from "../../components/FormInput/FormInput";
-import LoadingDialog from "../../components/LoadingDialog/LoadingDialog";
+import FormPicker from "../../components/FormPicker/FormPicker";
 import { useBookingContext } from "../../contexts/BookingContext";
 import regionsList from "../../data/regionsData";
 import useFetchAPI from "../../hooks/useFetchAPI";
@@ -68,8 +63,6 @@ const GuestInfo = ({ navigation }) => {
     message,
   } = bookingState;
 
-  const [showGenderDropDown, setShowGenderDropDown] = useState(false);
-  const [showRegionDropDown, setShowRegionDropDown] = useState(false);
   const [errors, setErrors] = useState(null);
 
   const scrollViewRef = useRef(null);
@@ -145,18 +138,17 @@ const GuestInfo = ({ navigation }) => {
     <>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : null}
+        keyboardVerticalOffset={80}
         style={globalStyles.flexFull}
       >
         <ScrollView
           ref={scrollViewRef}
-          contentInset={{ top: 10, bottom: 15 }}
+          contentInset={{ top: 10, bottom: 35 }}
           contentContainerStyle={style.contentContainer}
         >
-          <View style={style.titleContainer}>
-            <Text style={globalStyles.smallHeaderText}>
-              Your Information Details
-            </Text>
-          </View>
+          <Text style={globalStyles.smallHeaderText}>
+            Your Information Details
+          </Text>
           <FormInput
             value={firstName}
             onChangeText={(value) => {
@@ -183,18 +175,14 @@ const GuestInfo = ({ navigation }) => {
             returnKeyType="next"
             errorMessage={errors?.lastname}
           />
-          <FormInput
-            type="dropdown"
+          <FormPicker
+            label="Gender"
+            data={genderList}
             value={gender}
-            setValue={(value) => {
+            onSelected={(value) => {
               setBookingData({ gender: value });
               clearErrorWhenNotEmpty(value, mappings.gender);
             }}
-            label="Gender"
-            visible={showGenderDropDown}
-            onDismiss={() => setShowGenderDropDown(false)}
-            showDropDown={() => setShowGenderDropDown(true)}
-            list={genderList}
             errorMessage={errors?.gender}
           />
           <FormInput
@@ -204,7 +192,8 @@ const GuestInfo = ({ navigation }) => {
               clearErrorWhenNotEmpty(value, mappings.email);
             }}
             placeholder="Email Address"
-            keyboardType="email-address"
+            // Bug: doesn't show cursor when this is on
+            // keyboardType="email-address"
             textContentType="emailAddress"
             autoCapitalize="none"
             autoCorrect={false}
@@ -250,18 +239,14 @@ const GuestInfo = ({ navigation }) => {
             returnKeyType="next"
             errorMessage={errors?.city}
           />
-          <FormInput
-            type="dropdown"
+          <FormPicker
+            label="Region"
+            data={regionsList}
             value={region}
-            setValue={(value) => {
+            onSelected={(value) => {
               setBookingData({ region: value });
               clearErrorWhenNotEmpty(value, mappings.region);
             }}
-            label="Region"
-            visible={showRegionDropDown}
-            onDismiss={() => setShowRegionDropDown(false)}
-            showDropDown={() => setShowRegionDropDown(true)}
-            list={regionsList}
             errorMessage={errors?.region}
           />
           <FormInput
@@ -297,7 +282,7 @@ const GuestInfo = ({ navigation }) => {
       <AppFooter>
         <ButtonLarge onPress={() => updateProfile()}>Confirm</ButtonLarge>
       </AppFooter>
-      <LoadingDialog visible={isLoading} onCancel={() => abort()} />
+      <DialogLoading visible={isLoading} onCancel={() => abort()} />
     </>
   );
 };

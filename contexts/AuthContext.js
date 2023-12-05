@@ -126,26 +126,14 @@ export const AuthProvider = ({ children }) => {
     const AbortController = window.AbortController;
     abortControllerRef.current = new AbortController();
 
+    let response;
+
     try {
-      const response = await SuitescapeAPI.post(
+      response = await SuitescapeAPI.post(
         "/login",
         { email: data.email, password: data.password },
         { signal: abortControllerRef.current.signal },
       );
-      handleApiResponse({
-        response,
-        onError: (e) => {
-          throw e.errors;
-        },
-        onSuccess: async (res) => {
-          setHeaderToken(res.token);
-
-          await disableOnboarding();
-          await SecureStore.setItemAsync("userToken", res.token);
-
-          dispatch({ type: "SIGN_IN", userToken: res.token });
-        },
-      });
     } catch (error) {
       handleApiError({
         error,
@@ -157,6 +145,24 @@ export const AuthProvider = ({ children }) => {
     } finally {
       dispatch({ type: "FINISH_LOADING" });
     }
+
+    handleApiResponse({
+      response,
+      onError: (e) => {
+        dispatch({ type: "FINISH_LOADING" });
+        throw e.errors;
+      },
+      onSuccess: async (res) => {
+        setHeaderToken(res.token);
+
+        await disableOnboarding();
+        await SecureStore.setItemAsync("userToken", res.token);
+
+        dispatch({ type: "SIGN_IN", userToken: res.token });
+
+        dispatch({ type: "FINISH_LOADING" });
+      },
+    });
   };
 
   const signUp = async (data) => {
@@ -168,8 +174,10 @@ export const AuthProvider = ({ children }) => {
     const AbortController = window.AbortController;
     abortControllerRef.current = new AbortController();
 
+    let response;
+
     try {
-      const response = await SuitescapeAPI.post(
+      response = await SuitescapeAPI.post(
         "/register",
         {
           firstname: data.firstName,
@@ -181,17 +189,6 @@ export const AuthProvider = ({ children }) => {
         },
         { signal: abortControllerRef.current.signal },
       );
-      handleApiResponse({
-        response,
-        onError: (e) => {
-          throw e.errors;
-        },
-        onSuccess: (res) => {
-          if (res.user) {
-            console.log(res.user);
-          }
-        },
-      });
     } catch (error) {
       handleApiError({
         error,
@@ -203,6 +200,20 @@ export const AuthProvider = ({ children }) => {
     } finally {
       dispatch({ type: "FINISH_LOADING" });
     }
+
+    handleApiResponse({
+      response,
+      onError: (e) => {
+        dispatch({ type: "FINISH_LOADING" });
+        throw e;
+      },
+      onSuccess: (res) => {
+        dispatch({ type: "FINISH_LOADING" });
+        if (res.user) {
+          console.log(res.user);
+        }
+      },
+    });
   };
 
   const signOut = async () => {
@@ -224,10 +235,13 @@ export const AuthProvider = ({ children }) => {
 
       await enableOnboarding();
       await SecureStore.deleteItemAsync("userToken");
-      await clearCacheDir("videos/").then(() => {
+
+      queryClient.resetQueries().then(() => {
+        console.log("Reset queries successful");
+      });
+      clearCacheDir("videos/").then(() => {
         console.log("Cache cleared");
       });
-      await queryClient.resetQueries();
 
       dispatch({ type: "FINISH_LOADING" });
 

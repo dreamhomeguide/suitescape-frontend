@@ -1,6 +1,9 @@
 import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
+  inputContainer: {
+    marginHorizontal: 20,
+  },
   buttonContainer: {
     marginTop: 12,
     marginHorizontal: 23,
