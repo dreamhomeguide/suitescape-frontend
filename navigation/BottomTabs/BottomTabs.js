@@ -4,6 +4,7 @@ import React from "react";
 import { useColorScheme, View } from "react-native";
 
 import style from "./BottomTabsStyles";
+import { Colors } from "../../assets/Colors";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import Bookings from "../../screens/Bookings/Bookings";
 import Cart from "../../screens/Cart/Cart";
@@ -23,8 +24,8 @@ const tabBarStyle = {
 const bottomTabOptions = {
   headerShown: false,
   tabBarShowLabel: false,
-  tabBarActiveTintColor: "black",
-  tabBarInactiveTintColor: "black",
+  tabBarActiveTintColor: Colors.blue,
+  tabBarInactiveTintColor: Colors.lightblue,
   tabBarStyle,
 };
 
@@ -52,7 +53,9 @@ const tabIcons = {
     iconName: "calendar",
   },
   [Routes.PROFILE]: {
-    render: ({ size }) => <ProfileImage fill="white" size={size} />,
+    render: ({ size }) => (
+      <ProfileImage borderColor="transparent" borderWidth={0} size={size} />
+    ),
   },
 };
 
