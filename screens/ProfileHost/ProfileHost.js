@@ -13,7 +13,7 @@ import { IoniconsHeaderButton } from "../../navigation/HeaderButtons";
 import { TabBar } from "../../navigation/TopTabs/TopTabs";
 
 const ProfileHost = ({ navigation, route }) => {
-  const listingId = route.params.listingId;
+  // const listingId = route.params.listingId;
 
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
