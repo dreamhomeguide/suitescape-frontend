@@ -4,7 +4,6 @@ import { Text, View } from "react-native";
 
 import style from "./BookingItemStyles";
 import globalStyles from "../../assets/styles/globalStyles";
-import useFetchAPI from "../../hooks/useFetchAPI";
 import { baseURL } from "../../services/SuitescapeAPI";
 import Button from "../Button/Button";
 import StarRatingView from "../StarRatingView/StarRatingView";
@@ -12,18 +11,21 @@ import StarRatingView from "../StarRatingView/StarRatingView";
 const BookingItem = ({ item, type }) => {
   const { id: bookingId, booking_rooms: bookingRooms } = item;
 
-  // Get first booking room
+  // Get the first room only on the booking
   const {
     room: {
-      listing: { id: listingId, name: listingName, location: listingLocation },
+      listing: {
+        name: listingName,
+        location: listingLocation,
+        cover_image: coverImage,
+      },
       average_rating: averageRating,
     },
-  } = bookingRooms[0];
-
-  const { data: images } = useFetchAPI(`/listings/${listingId}/images`);
+  } = bookingRooms[0] || {};
 
   // Get first image
-  const coverImage = images ? images[0] : null;
+  // const { data: images } = useFetchAPI(`/listings/${listingId}/images`);
+  // const coverImage = images ? images[0] : null;
 
   // Get random image
   // const coverImage = useMemo(
@@ -50,7 +52,7 @@ const BookingItem = ({ item, type }) => {
     <View style={style.mainContainer}>
       <Image
         source={{
-          uri: images ? baseURL + coverImage.url : null,
+          uri: baseURL + coverImage.url,
         }}
         style={globalStyles.coverImage}
       />
