@@ -8,7 +8,13 @@ import { SettingsProvider } from "./contexts/SettingsContext";
 
 SplashScreen.preventAutoHideAsync().catch((err) => console.log(err));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+    },
+  },
+});
 
 const App = () => {
   return (
