@@ -13,6 +13,7 @@ import Chip from "../../components/Chip/Chip";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import { useAuth } from "../../contexts/AuthContext";
+import { useVideoFilter } from "../../contexts/VideoFilterContext";
 import { Routes } from "../../navigation/Routes";
 import capitalizedText from "../../utilities/textCapitalizer";
 import splitTextSpaced from "../../utilities/textSplitSpacer";
@@ -21,6 +22,8 @@ const Profile = ({ navigation }) => {
   const { authState, signOut } = useAuth();
 
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const { setVideoFilter } = useVideoFilter();
 
   const scrollViewRef = useRef(null);
 
@@ -93,13 +96,15 @@ const Profile = ({ navigation }) => {
       },
       {
         text: "Confirm",
-        onPress: () => signOut(),
+        onPress: logOut,
         style: "destructive",
       },
     ]);
   };
 
-  const { colors } = useTheme();
+  const logOut = () => {
+    signOut().then(() => setVideoFilter(null));
+  };
 
   return (
     <ScrollView
