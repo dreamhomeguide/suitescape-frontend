@@ -136,7 +136,9 @@ const ModalSection = ({
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
-    scrollTimeoutRef.current = setTimeout(() => setIsScrolling(false), 1200);
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1500);
   };
 
   return (
@@ -174,9 +176,9 @@ const ModalSection = ({
         horizontal
         showsHorizontalScrollIndicator={false}
         onTouchStart={() => setIsScrolling(true)}
+        onTouchEnd={stopScrollingAfterDelay}
         onMomentumScrollBegin={() => setIsScrolling(true)}
         onMomentumScrollEnd={stopScrollingAfterDelay}
-        onTouchEnd={stopScrollingAfterDelay}
         keyExtractor={(item) => item.toString()}
         getItemLayout={(data, index) => ({
           length: ITEM_SIZE,
