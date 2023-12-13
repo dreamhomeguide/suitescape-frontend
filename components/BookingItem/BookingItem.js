@@ -4,25 +4,34 @@ import { Text, View } from "react-native";
 
 import style from "./BookingItemStyles";
 import globalStyles from "../../assets/styles/globalStyles";
-import useFetchAPI from "../../hooks/useFetchAPI";
 import { baseURL } from "../../services/SuitescapeAPI";
 import Button from "../Button/Button";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
 const BookingItem = ({ item, type }) => {
   const { id: bookingId, booking_rooms: bookingRooms } = item;
+
+  // Get the first room only on the booking
   const {
     room: {
-      listing: { id: listingId, name: listingName, location: listingLocation },
+      listing: {
+        name: listingName,
+        location: listingLocation,
+        cover_image: coverImage,
+      },
       average_rating: averageRating,
     },
-  } = bookingRooms[0];
+  } = bookingRooms[0] || {};
 
-  const { data: images } = useFetchAPI(`/listings/${listingId}/images`);
+  // Get first image
+  // const { data: images } = useFetchAPI(`/listings/${listingId}/images`);
+  // const coverImage = images ? images[0] : null;
 
-  const randomImage = images
-    ? images[Math.floor(Math.random() * images.length)]
-    : null;
+  // Get random image
+  // const coverImage = useMemo(
+  //   () => (images ? images[Math.floor(Math.random() * images.length)] : null),
+  //   [images],
+  // );
 
   const actionButton = {
     upcoming: {
@@ -43,9 +52,9 @@ const BookingItem = ({ item, type }) => {
     <View style={style.mainContainer}>
       <Image
         source={{
-          uri: images ? baseURL + randomImage.url : null,
+          uri: baseURL + coverImage.url,
         }}
-        style={style.image}
+        style={globalStyles.coverImage}
       />
       <View style={style.detailsContainer}>
         <Text style={style.listingName} numberOfLines={1}>

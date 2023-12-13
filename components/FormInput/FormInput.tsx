@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import React, {
   useState,
   memo,
@@ -7,16 +7,9 @@ import React, {
   useRef,
   useImperativeHandle,
 } from "react";
-import {
-  Keyboard,
-  Platform,
-  Pressable,
-  StyleProp,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Keyboard, Pressable, StyleProp, Text, ViewStyle } from "react-native";
 import { RectButton } from "react-native-gesture-handler";
+import { Masks, useMaskedInputProps } from "react-native-mask-input";
 import DateTimePickerModal, {
   DateTimePickerProps,
 } from "react-native-modal-datetime-picker";
@@ -24,21 +17,23 @@ import { TextField, TextFieldProps, TextFieldRef } from "react-native-ui-lib";
 
 import style from "./FormInputStyles";
 import { Colors } from "../../assets/Colors";
+import { pressedOpacity } from "../../assets/styles/globalStyles";
+import convertMMDDYYYY from "../../utilities/dateConverter";
 import ButtonLink from "../ButtonLink/ButtonLink";
 
-const VALID_DATE = "yyyy-MM-dd";
-const PARSE_FORMAT = "MMMM dd yyyy";
+// If you're going to change this, change also the maskedDateProps
+const VALID_DATE = "MM/dd/yyyy";
 
 type FormInputProps = TextFieldProps & {
-  type?: "text" | "password" | "date" | "textarea" | "editable";
+  type?: "text" | "password" | "date" | "textarea" | "editable" | "clearable";
   value?: string;
   onChangeText?: (text: string) => void;
-  onDateConfirm?: (date: Date) => boolean | void;
+  onDateConfirm?: (date: Date, text: string) => void;
   onEditPressed?: () => void;
   onEditDone?: () => void;
+  onClear?: () => void;
   label?: string;
   errorMessage?: string[];
-  onBlur?: (date?: Date) => void;
   containerStyle?: StyleProp<ViewStyle>;
   trailingAccessory?: React.ReactNode;
   dateProps?: DateTimePickerProps;
@@ -53,9 +48,9 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
       onDateConfirm = null,
       onEditPressed = null,
       onEditDone = null,
+      onClear = null,
       label = "",
       errorMessage = null,
-      onBlur,
       containerStyle,
       trailingAccessory,
       dateProps,
@@ -81,16 +76,18 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
     };
 
     const handleDateConfirm = (date: Date) => {
-      if (!onChangeText) {
-        console.log("onChangeText is not defined");
-        return;
+      // Clears minutes, seconds, and milliseconds
+      const timeResetDate = new Date(date.toISOString().split("T")[0]);
+
+      if (onDateConfirm) {
+        onDateConfirm(timeResetDate, format(date, VALID_DATE));
       }
 
-      const confirmed = onDateConfirm && onDateConfirm(date);
+      // const confirmed = onDateConfirm && onDateConfirm(date);
+      // if (confirmed !== false || !onDateConfirm) {
+      //   onChangeText(format(date, VALID_DATE));
+      // }
 
-      if (confirmed !== false || !onDateConfirm) {
-        onChangeText(date.toISOString().split("T")[0]);
-      }
       setShowDatepicker(false);
     };
 
@@ -152,10 +149,22 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
             {editable ? "Done" : "Edit"}
           </ButtonLink>
         ),
-        default: () =>
-          trailingAccessory && (
-            <View style={style.trailingIcon}>{trailingAccessory}</View>
-          ),
+        clearable: () =>
+          value ? (
+            <Pressable
+              style={({ pressed }) => ({
+                ...pressedOpacity(pressed),
+                ...style.trailingIcon,
+              })}
+              onPress={onClear}
+            >
+              <Ionicons name="close-circle" size={20} color="gray" />
+            </Pressable>
+          ) : null,
+        // default: () =>
+        //   trailingAccessory && (
+        //     <View style={style.trailingIcon}>{trailingAccessory}</View>
+        //   ),
       };
 
       // Get the function for the current accessory type
@@ -163,8 +172,14 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
       const accessoryFunction = accessoryTypes[type];
 
       // If the function exists, call it. Otherwise, call the default function
-      return accessoryFunction ? accessoryFunction() : accessoryTypes.default();
+      return accessoryFunction ? accessoryFunction() : trailingAccessory;
     };
+
+    const maskedDateProps = useMaskedInputProps({
+      value: value ?? "",
+      onChangeText,
+      mask: Masks.DATE_MMDDYYYY,
+    });
 
     return (
       <>
@@ -176,8 +191,10 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
           <TextField
             // @ts-expect-error
             ref={inputRef}
-            value={value}
-            onChangeText={onChangeText}
+            value={type === "date" ? maskedDateProps.value : value}
+            onChangeText={
+              type === "date" ? maskedDateProps.onChangeText : onChangeText
+            }
             editable={editable}
             cursorColor={Colors.blue}
             textAlignVertical="top"
@@ -202,36 +219,6 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
                 }),
             })}
             trailingAccessory={renderTrailingAccessory()}
-            onBlur={() => {
-              // The code after this only applies to date type
-              if (type !== "date" || !value) {
-                onBlur && onBlur();
-                return;
-              }
-
-              // If the date is already valid, do nothing
-              const validDate = parse(value, VALID_DATE, new Date());
-              if (!isNaN(validDate.getDate())) {
-                onBlur && onBlur(validDate);
-                return;
-              }
-
-              // If the date is invalid, try to parse it
-              const parsedDate = parse(
-                value.replaceAll(",", ""),
-                PARSE_FORMAT,
-                new Date(),
-              );
-
-              if (parsedDate && onChangeText) {
-                onChangeText(
-                  isNaN(parsedDate.getDate())
-                    ? ""
-                    : format(parsedDate, "yyyy-MM-dd"),
-                );
-              }
-              onBlur && onBlur(parsedDate);
-            }}
             {...props}
           />
           {renderErrorMessages()}
@@ -242,12 +229,10 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
             mode="date"
             themeVariant="light"
             isVisible={showDatepicker}
-            date={
-              value && !isNaN(Date.parse(value)) ? new Date(value) : new Date()
-            }
+            date={new Date(convertMMDDYYYY(value))}
             onConfirm={handleDateConfirm}
             onCancel={() => setShowDatepicker(false)}
-            display={Platform.OS === "ios" ? "inline" : "default"}
+            display="spinner"
             {...dateProps}
           />
         )}

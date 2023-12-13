@@ -1,4 +1,3 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useTheme } from "@react-navigation/native";
 import React, { useEffect, useLayoutEffect } from "react";
@@ -289,21 +288,21 @@ const ListingDetails = ({ route, navigation }) => {
           </View>
 
           {/* Report Listing */}
-          <View
-            style={{
-              ...style.container,
-              ...style.reportContainer,
-            }}
-          >
-            <ButtonIconRow
-              onPress={() => console.log("Report this listing")}
-              reverse
-              label="Report this listing"
-              textStyle={style.emphasizedText}
-            >
-              <FontAwesome name="flag-o" size={25} color={Colors.red} />
-            </ButtonIconRow>
-          </View>
+          {/*<View*/}
+          {/*  style={{*/}
+          {/*    ...style.container,*/}
+          {/*    ...style.reportContainer,*/}
+          {/*  }}*/}
+          {/*>*/}
+          {/*  <ButtonIconRow*/}
+          {/*    onPress={() => console.log("Report this listing")}*/}
+          {/*    reverse*/}
+          {/*    label="Report this listing"*/}
+          {/*    textStyle={style.emphasizedText}*/}
+          {/*  >*/}
+          {/*    <FontAwesome name="flag-o" size={25} color={Colors.red} />*/}
+          {/*  </ButtonIconRow>*/}
+          {/*</View>*/}
         </ScrollView>
 
         <AppFooter>

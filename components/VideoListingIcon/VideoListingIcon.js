@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import React, { memo } from "react";
-import { Pressable } from "react-native";
+import { Platform, Pressable } from "react-native";
 
 import style from "./VideoListingIconStyles";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
@@ -16,7 +16,9 @@ const VideoListingIcon = ({
   return (
     <Pressable
       onPress={() => {
-        hapticEnabled && Haptics.selectionAsync();
+        if (Platform.OS === "ios") {
+          hapticEnabled && Haptics.selectionAsync();
+        }
         onPress && onPress();
       }}
       style={({ pressed }) => ({

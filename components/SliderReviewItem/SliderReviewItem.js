@@ -1,19 +1,16 @@
 import React, { memo } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { RectButton } from "react-native-gesture-handler";
 
 import style from "./SliderReviewItemStyles";
-import { pressedBgColor } from "../../assets/styles/globalStyles";
 import ProfileImage from "../ProfileImage/ProfileImage";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
 const SliderReviewItem = ({ item, onPress, itemWidth, itemMargin }) => {
   return (
-    <Pressable
+    <RectButton
       onPress={onPress}
-      style={({ pressed }) => ({
-        ...style.mainContainer({ itemWidth, itemMargin }),
-        ...pressedBgColor(pressed),
-      })}
+      style={style.mainContainer({ itemWidth, itemMargin })}
     >
       <View style={style.userContainer}>
         {/*<Avatar.Image source={item.img} size={50} style={style.avatar} />*/}
@@ -29,7 +26,7 @@ const SliderReviewItem = ({ item, onPress, itemWidth, itemMargin }) => {
       <View style={style.reviewContainer}>
         <Text style={style.text}>{item.content}</Text>
       </View>
-    </Pressable>
+    </RectButton>
   );
 };
 

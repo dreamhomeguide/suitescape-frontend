@@ -1,7 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 
 import style from "./ButtonSocialLoginStyles";
 import Facebook from "../../assets/images/svgs/icons8-facebook.svg";
@@ -33,7 +33,9 @@ const ButtonSocialLogin = ({ type }) => {
   return (
     <Pressable
       onPress={() => {
-        Haptics.selectionAsync();
+        if (Platform.OS === "ios") {
+          Haptics.selectionAsync();
+        }
         SocialTypes[type]?.onPress && SocialTypes[type]?.onPress();
       }}
       style={({ pressed }) => ({

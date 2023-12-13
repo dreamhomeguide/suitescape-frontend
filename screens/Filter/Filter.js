@@ -1,6 +1,8 @@
 import { isBefore, subDays } from "date-fns";
 import _ from "lodash";
 import React, {
+  useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useReducer,
@@ -32,20 +34,23 @@ import FormRadio from "../../components/FormRadio/FormRadio";
 import FormStepper from "../../components/FormStepper/FormStepper";
 import PriceRange from "../../components/PriceRange/PriceRange";
 import StarRatingView from "../../components/StarRatingView/StarRatingView";
+import { useVideoFilter } from "../../contexts/VideoFilterContext";
 import facilityData from "../../data/facilityData";
 import { Routes } from "../../navigation/Routes";
+import convertMMDDYYYY from "../../utilities/dateConverter";
 
 const initialState = {
   minPrice: -1,
   maxPrice: -1,
-  destination: "",
   checkIn: "",
   checkOut: "",
+  destination: "",
   facilities: [],
   adults: -1,
   children: -1,
   numOfRooms: -1,
-  facilityRating: -1,
+  minRating: -1,
+  maxRating: -1,
   petFriendly: false,
   parkingLot: false,
 };
@@ -65,32 +70,53 @@ const reducer = (state, action) => {
 };
 
 const starSelections = [
-  { label: "4.5 and above", stars: 5 },
-  { label: "4.0 - 4.5", stars: 4.5 },
-  { label: "3.5 - 4.0", stars: 4 },
-  { label: "3.0 - 3.5", stars: 3 },
-  { label: "2.5 - 3.0", stars: 2.5 },
+  { label: "4.5 and above", minRating: 4.5, maxRating: 5, stars: 5 },
+  { label: "4.0 - 4.5", minRating: 4.0, maxRating: 4.5, stars: 4.5 },
+  { label: "3.5 - 4.0", minRating: 3.5, maxRating: 4.0, stars: 4 },
+  { label: "3.0 - 3.5", minRating: 3.0, maxRating: 3.5, stars: 3 },
+  { label: "2.5 - 3.0", minRating: 2.5, maxRating: 3.0, stars: 2.5 },
 ];
 
-const Filter = ({ navigation }) => {
+const Filter = ({ navigation, route }) => {
   const [state, dispatch] = useReducer(reducer, initialState, undefined);
 
-  const [isScrollEnabled, setIsScrollEnabled] = useState(true);
+  const [isScrolling, setIsScrolling] = useState(false);
 
-  const priceRangeRef = useRef(null);
   const scrollViewRef = useRef(null);
-  const toast = useToast();
 
-  const handleClear = () => {
+  const toast = useToast();
+  const { videoFilter, setVideoFilter } = useVideoFilter();
+
+  const setData = (payload) => {
+    dispatch({ type: "SET_DATA", payload });
+  };
+
+  // Sync filter context with filter screen
+  useEffect(() => {
+    if (videoFilter) {
+      setData(videoFilter);
+    }
+  }, [videoFilter]);
+
+  // Get destination query from search screen
+  useEffect(() => {
+    if (route.params?.destination !== undefined) {
+      setData({ destination: route.params.destination });
+    }
+  }, [route.params?.destination]);
+
+  const handleClear = useCallback(() => {
     dispatch({ type: "CLEAR_DATA" });
-    priceRangeRef.current.reset();
+
+    // Apply the change to the filter context
+    setVideoFilter(null);
 
     toast.show("Filter cleared", {
       style: toastStyles.toastInsetFooter,
     });
-  };
+  }, []);
 
-  const clearDisabled = useMemo(() => {
+  const isStateReset = useMemo(() => {
     return _.isEqual(state, initialState);
   }, [state]);
 
@@ -100,31 +126,30 @@ const Filter = ({ navigation }) => {
         <HeaderButtons>
           <Item
             title="Clear"
-            color={clearDisabled ? Colors.lightgray : Colors.blue}
-            disabled={clearDisabled}
+            color={isStateReset ? Colors.lightgray : Colors.blue}
+            disabled={isStateReset}
             onPress={handleClear}
           />
         </HeaderButtons>
       ),
     });
-  }, [clearDisabled, navigation]);
-
-  const setData = (payload) => {
-    dispatch({ type: "SET_DATA", payload });
-  };
+  }, [isStateReset, navigation]);
 
   const renderStarRatings = () => {
     const starRatings = [];
-    for (const { label, stars } of starSelections) {
+    for (const { label, minRating, maxRating, stars } of starSelections) {
+      const selected =
+        state.minRating === minRating && state.maxRating === maxRating;
+
       starRatings.push(
         <Pressable
           key={stars}
           onPress={() => {
-            if (state.facilityRating === stars) {
-              setData({ facilityRating: -1 });
+            if (selected) {
+              setData({ minRating: -1, maxRating: -1 });
               return;
             }
-            setData({ facilityRating: stars });
+            setData({ minRating, maxRating });
           }}
           style={{
             flexDirection: "row",
@@ -142,11 +167,31 @@ const Filter = ({ navigation }) => {
             <StarRatingView rating={stars} starSize={25} labelEnabled={false} />
             <Text style={{ fontSize: 16 }}>{label}</Text>
           </View>
-          <FormRadio selected={state.facilityRating === stars} />
+          <FormRadio selected={selected} />
         </Pressable>,
       );
     }
     return starRatings;
+  };
+
+  const validateCheckIn = (checkIn, checkOut) => {
+    if (isBefore(checkIn, subDays(new Date(), 1))) {
+      setData({ checkIn: "" });
+      return;
+    }
+
+    if (checkIn && checkOut && isBefore(checkOut, checkIn)) {
+      setData({ checkOut: "" });
+    }
+  };
+
+  const validateCheckOut = (checkIn, checkOut) => {
+    if (
+      isBefore(checkOut, checkIn) ||
+      isBefore(checkOut, subDays(new Date(), 1))
+    ) {
+      setData({ checkOut: "" });
+    }
   };
 
   return (
@@ -158,21 +203,22 @@ const Filter = ({ navigation }) => {
       >
         <ScrollView
           ref={scrollViewRef}
-          contentInset={{ bottom: 45 }}
+          contentInset={{ bottom: 40 }}
           contentContainerStyle={style.scrollContainer}
-          scrollEnabled={isScrollEnabled}
+          onScrollBeginDrag={() => setIsScrolling(true)}
+          onScrollEndDrag={() => setIsScrolling(false)}
+          onMomentumScrollBegin={() => setIsScrolling(true)}
+          onMomentumScrollEnd={() => setIsScrolling(false)}
         >
           <View style={style.container}>
             <Text style={style.headerText}>Price Range</Text>
             <PriceRange
-              ref={priceRangeRef}
-              scrollToTop={() =>
-                scrollViewRef.current.scrollTo({ y: 0, animated: true })
-              }
-              onScrollChange={setIsScrollEnabled}
+              minimumPrice={state.minPrice}
+              maximumPrice={state.maxPrice}
               onMinPriceChanged={(minPrice) => setData({ minPrice })}
               onMaxPriceChanged={(maxPrice) => setData({ maxPrice })}
               // onPriceRangeChanged={(priceRange) => setData({ priceRange })}
+              disabled={isScrolling}
             />
           </View>
 
@@ -180,15 +226,16 @@ const Filter = ({ navigation }) => {
             <Text style={style.headerText}>Destination</Text>
 
             <RectButton
-              onPress={() => navigation.navigate(Routes.SEARCH)}
+              onPress={() =>
+                navigation.navigate({
+                  name: Routes.SEARCH,
+                  params: { prevDestination: state.destination },
+                })
+              }
               style={style.searchButton}
             >
               <View pointerEvents="none">
-                <FormInput
-                  placeholder="Where To?"
-                  value={state.destination}
-                  onChangeText={(destination) => setData({ destination })}
-                />
+                <FormInput placeholder="Where To?" value={state.destination} />
               </View>
             </RectButton>
           </View>
@@ -200,22 +247,61 @@ const Filter = ({ navigation }) => {
                 type="date"
                 placeholder="Check-in"
                 value={state.checkIn}
-                onChangeText={(checkIn) => {
-                  if (isBefore(new Date(checkIn), subDays(new Date(), 1))) {
-                    setData({ checkIn: "" });
-                    return;
-                  }
-                  setData({ checkIn });
+                onChangeText={(value) => {
+                  setData({ checkIn: value });
+                }}
+                onDateConfirm={(checkIn, text) => {
+                  // if (isBefore(checkIn, subDays(new Date(), 1))) {
+                  //   setData({ checkIn: "" });
+                  //   return;
+                  // }
+                  // setData({ checkIn: text });
+                  //
+                  // if (
+                  //   checkIn &&
+                  //   state.checkOut &&
+                  //   isBefore(convertMMDDYYYY(state.checkOut), checkIn)
+                  // ) {
+                  //   setData({ checkOut: "" });
+                  // }
+                  const checkOutDate = new Date(
+                    convertMMDDYYYY(state.checkOut),
+                  );
 
-                  if (
-                    checkIn &&
-                    state.checkOut &&
-                    isBefore(new Date(state.checkOut), new Date(checkIn))
-                  ) {
-                    setData({ checkOut: "" });
-                  }
+                  setData({ checkIn: text });
+                  validateCheckIn(checkIn, checkOutDate);
+                }}
+                onBlur={() => {
+                  // if (
+                  //   isBefore(
+                  //     convertMMDDYYYY(state.checkIn),
+                  //     subDays(new Date(), 1),
+                  //   )
+                  // ) {
+                  //   setData({ checkIn: "" });
+                  //   return;
+                  // }
+                  //
+                  // if (
+                  //   state.checkIn &&
+                  //   state.checkOut &&
+                  //   isBefore(
+                  //     convertMMDDYYYY(state.checkOut),
+                  //     convertMMDDYYYY(state.checkIn),
+                  //   )
+                  // ) {
+                  //   setData({ checkOut: "" });
+                  // }
+
+                  const checkInDate = new Date(convertMMDDYYYY(state.checkIn));
+                  const checkOutDate = new Date(
+                    convertMMDDYYYY(state.checkOut),
+                  );
+
+                  validateCheckIn(checkInDate, checkOutDate);
                 }}
                 dateProps={{ minimumDate: new Date() }}
+                keyboardType="number-pad"
                 containerStyle={style.inputContainer}
               />
               <DashView />
@@ -223,21 +309,48 @@ const Filter = ({ navigation }) => {
                 type="date"
                 placeholder="Check-out"
                 value={state.checkOut}
-                onChangeText={(checkOut) => {
-                  if (
-                    isBefore(new Date(checkOut), new Date(state.checkIn)) ||
-                    isBefore(new Date(checkOut), subDays(new Date(), 1))
-                  ) {
-                    setData({ checkOut: "" });
-                    return;
-                  }
-                  setData({ checkOut });
+                onChangeText={(value) => {
+                  setData({ checkOut: value });
+                }}
+                onDateConfirm={(checkOut, text) => {
+                  // if (
+                  //   isBefore(checkOut, convertMMDDYYYY(state.checkIn)) ||
+                  //   isBefore(checkOut, subDays(new Date(), 1))
+                  // ) {
+                  //   setData({ checkOut: "" });
+                  //   return;
+                  // }
+                  const checkInDate = new Date(convertMMDDYYYY(state.checkIn));
+
+                  setData({ checkOut: text });
+                  validateCheckOut(checkInDate, checkOut);
+                }}
+                onBlur={() => {
+                  // if (
+                  //   isBefore(
+                  //     convertMMDDYYYY(state.checkOut),
+                  //     convertMMDDYYYY(state.checkIn),
+                  //   ) ||
+                  //   isBefore(
+                  //     convertMMDDYYYY(state.checkOut),
+                  //     subDays(new Date(), 1),
+                  //   )
+                  // ) {
+                  //   setData({ checkOut: "" });
+                  // }
+                  const checkInDate = new Date(convertMMDDYYYY(state.checkIn));
+                  const checkOutDate = new Date(
+                    convertMMDDYYYY(state.checkOut),
+                  );
+
+                  validateCheckOut(checkInDate, checkOutDate);
                 }}
                 dateProps={{
                   minimumDate: state.checkIn
-                    ? new Date(state.checkIn)
+                    ? new Date(convertMMDDYYYY(state.checkIn))
                     : new Date(),
                 }}
+                keyboardType="number-pad"
                 containerStyle={style.inputContainer}
               />
             </View>
@@ -350,7 +463,20 @@ const Filter = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
       <AppFooter>
-        <ButtonLarge>Apply Filter</ButtonLarge>
+        <ButtonLarge
+          onPress={() => {
+            setVideoFilter(isStateReset ? null : state);
+            navigation.goBack();
+
+            // navigation.navigate(Routes.BOTTOM_TABS, {
+            //   screen: Routes.HOME,
+            //   params: { search: state },
+            //   merge: true,
+            // })
+          }}
+        >
+          Apply Filter
+        </ButtonLarge>
       </AppFooter>
     </>
   );

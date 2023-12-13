@@ -3,10 +3,6 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import Foundation from "@expo/vector-icons/Foundation";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import {
-  Poppins_400Regular,
-  Poppins_700Bold,
-} from "@expo-google-fonts/poppins";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import {
   DarkTheme,
@@ -31,6 +27,7 @@ import toastStyles from "./assets/styles/toastStyles";
 import { useAuth } from "./contexts/AuthContext";
 import BookingProcessProvider from "./contexts/BookingProcessProvider";
 import { useSettings } from "./contexts/SettingsContext";
+import { VideoFilterProvider } from "./contexts/VideoFilterContext";
 import MainNavigation from "./navigation/MainNavigation";
 
 const navigationTheme = {
@@ -48,8 +45,8 @@ const stackType = "native";
 
 const Root = () => {
   const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_700Bold,
+    "Agenor-Bold": require("./assets/fonts/Agenor-Bold.ttf"),
+    "Agenor-Thin": require("./assets/fonts/Agenor-Thin.ttf"),
     ...AntDesign.font,
     ...Entypo.font,
     ...FontAwesome5.font,
@@ -85,7 +82,9 @@ const Root = () => {
             >
               <HeaderButtonsProvider stackType={stackType}>
                 <BookingProcessProvider>
-                  <MainNavigation />
+                  <VideoFilterProvider>
+                    <MainNavigation />
+                  </VideoFilterProvider>
                 </BookingProcessProvider>
               </HeaderButtonsProvider>
             </NavigationContainer>

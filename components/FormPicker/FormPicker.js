@@ -10,6 +10,7 @@ import { Colors } from "../../assets/Colors";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import BottomSheet from "../BottomSheet/BottomSheet";
 import FormInput from "../FormInput/FormInput";
+import formInputStyles from "../FormInput/FormInputStyles";
 import FormRadio from "../FormRadio/FormRadio";
 
 const FormPicker = ({
@@ -32,19 +33,23 @@ const FormPicker = ({
         onSelected([...value, option]);
       }
     } else {
-      onSelected(option);
+      onSelected(option === value ? null : option);
     }
   };
 
   const inputValue = useMemo(() => {
+    let result;
+
     if (multiSelect) {
-      return data
+      result = data
         .filter((item) => value?.includes(item.value))
         .map((item) => item.label)
         .join(", ");
     } else {
-      return data?.find((item) => item.value === value)?.label;
+      result = data?.find((item) => item.value === value)?.label;
     }
+
+    return result;
   }, [value]);
 
   const renderItem = useCallback(
@@ -95,7 +100,9 @@ const FormPicker = ({
             errorMessage={errorMessage}
             useDefaultStyles={false}
             trailingAccessory={
-              <Ionicons name="chevron-down" color="black" size={20} />
+              <View style={formInputStyles.trailingIcon}>
+                <Ionicons name="chevron-down" color="black" size={20} />
+              </View>
             }
           />
         </View>

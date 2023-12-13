@@ -28,7 +28,11 @@ const SliderModalVideo = ({ videoData, listing }) => {
         />
 
         {isVideoGalleryShown && (
-          <VideoFeed videos={videoData} currentListing={listing} />
+          <VideoFeed
+            videos={videoData}
+            currentListing={listing}
+            scrollEnabled={videoData?.length > 1}
+          />
         )}
       </View>
     </Modal>

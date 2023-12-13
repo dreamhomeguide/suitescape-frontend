@@ -5,7 +5,8 @@ import { Dimensions, View } from "react-native";
 import style from "./SliderGalleryStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import Slider from "../Slider/Slider";
-import SliderGalleryItem from "../SliderGalleryItem/SliderGalleryItem";
+import SliderGalleryItemPhoto from "../SliderGalleryItemPhoto/SliderGalleryItemPhoto";
+import SliderGalleryItemVideo from "../SliderGalleryItemVideo/SliderGalleryItemVideo";
 
 const { width: WINDOW_WIDTH } = Dimensions.get("window");
 
@@ -16,14 +17,18 @@ const SliderGallery = ({ data, mediaType, height }) => {
 
   const renderItem = useCallback(
     ({ item }) => {
-      return (
-        <SliderGalleryItem
-          mediaId={item.id}
-          mediaUrl={item.url}
-          mediaFileName={item.filename}
-          type={mediaType}
+      return mediaType === "image" ? (
+        <SliderGalleryItemPhoto
+          photoId={item.id}
+          photoUrl={item.url}
           height={height}
-          // modalMode={modalMode}
+        />
+      ) : (
+        <SliderGalleryItemVideo
+          videoId={item.id}
+          videoUrl={item.url}
+          filename={item.filename}
+          height={height}
         />
       );
     },

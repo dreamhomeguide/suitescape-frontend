@@ -4,14 +4,12 @@ import capitalizedText from "./textCapitalizer";
 
 export const handleApiResponse = ({ response, onError, onSuccess }) => {
   if (!response) {
-    console.log("No response");
-    return;
+    throw new Error("No response provided");
   }
 
   const result = response.data;
-
   if (result.errors) {
-    errorAlert(result.message);
+    Alert.alert("Error", capitalizedText(result.message));
     onError && onError(result);
     console.log(result.errors);
     return;
@@ -25,31 +23,25 @@ export const handleApiError = ({
   error,
   handleErrors,
   defaultAlert = false,
+  defaultAlertTitle,
 }) => {
   if (!error) {
-    console.log("No error");
-    return;
+    throw new Error("No error provided");
   }
 
   const errorResponse = error.response;
-
   if (!errorResponse) {
     console.log(error.request);
-    errorAlert(error.message);
+    Alert.alert("No response", capitalizedText(error.message));
     handleErrors && handleErrors(error);
     return;
   }
 
   const responseErrors = errorResponse.data;
-
   if (defaultAlert) {
-    errorAlert(responseErrors.message);
+    Alert.alert(defaultAlertTitle, capitalizedText(responseErrors.message));
   }
 
   handleErrors && handleErrors(responseErrors);
   console.log(responseErrors);
-};
-
-export const errorAlert = (message) => {
-  Alert.alert("Error", capitalizedText(message));
 };

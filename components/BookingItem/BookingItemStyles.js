@@ -1,9 +1,6 @@
-import { Dimensions, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
-import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
-
-const { height } = Dimensions.get("window");
 
 const style = StyleSheet.create({
   mainContainer: {
@@ -13,12 +10,6 @@ const style = StyleSheet.create({
   detailsContainer: {
     width: "60%",
     ...globalStyles.containerGap,
-  },
-  image: {
-    height: height / 4,
-    width: "100%",
-    backgroundColor: Colors.lightgray,
-    borderRadius: 10,
   },
   listingName: {
     fontSize: 20,

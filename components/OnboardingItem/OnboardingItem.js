@@ -7,13 +7,13 @@ import style from "./OnboardingItemStyles";
 
 const OnboardingItem = ({ title, img }) => {
   // const [assets] = useAssets(img);
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { colors } = useTheme();
 
   return (
     <View style={{ width, ...style.container }}>
       <Image
-        style={style.image({ width })}
+        style={style.image({ width, height })}
         contentFit="cover"
         source={img}
         // source={assets ? assets[0] : null}

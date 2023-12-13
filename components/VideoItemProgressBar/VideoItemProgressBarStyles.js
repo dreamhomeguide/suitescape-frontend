@@ -30,7 +30,7 @@ const style = StyleSheet.create({
   trackMark: {
     width: 3,
     height: 6,
-    backgroundColor: "white",
+    backgroundColor: "gray",
     marginLeft: 12,
   },
   track: {

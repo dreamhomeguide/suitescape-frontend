@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { Pressable, Text } from "react-native";
+import { Platform, Pressable, Text } from "react-native";
 
 import style from "./ButtonLargeStyles";
 import {
@@ -17,7 +17,9 @@ const ButtonLarge = ({
 }) => (
   <Pressable
     onPress={() => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      if (Platform.OS === "ios") {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
       onPress && onPress();
     }}
     disabled={disabled}

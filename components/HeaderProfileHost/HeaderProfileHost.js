@@ -7,10 +7,19 @@ import globalStyles from "../../assets/styles/globalStyles";
 import Button from "../Button/Button";
 import ProfileImage from "../ProfileImage/ProfileImage";
 
-const HeaderProfileHost = () => {
+const MIN_HEIGHT = 700;
+
+const HeaderProfileHost = ({
+  hostName,
+  userName,
+  listingsCount,
+  likesCount,
+  reviewsCount,
+}) => {
   const { height } = useWindowDimensions();
 
-  const coverHeight = height / 4 - 50;
+  const heightAdjustment = height > MIN_HEIGHT ? 45 : -10;
+  const coverHeight = height / 4 - heightAdjustment;
 
   return (
     <View style={style.mainContainer} pointerEvents="box-none">
@@ -29,22 +38,22 @@ const HeaderProfileHost = () => {
         />
         <View style={style.contentContainer} pointerEvents="box-none">
           <View style={style.nameContainer} pointerEvents="none">
-            <Text style={style.hostName}>Anne Hathaway</Text>
-            <Text style={style.userName}>@AnneHath</Text>
+            <Text style={style.hostName}>{hostName}</Text>
+            <Text style={style.userName}>{userName}</Text>
           </View>
-          <View style={style.overviewContainer} pointerEvents="box-none">
+          <View style={style.overviewContainer} pointerEvents="none">
             <View style={style.overviewItemContainer}>
-              <Text style={style.overviewItemCount}>5</Text>
+              <Text style={style.overviewItemCount}>{listingsCount}</Text>
               <Text style={style.overviewItemLabel}>Listings</Text>
             </View>
             <View style={globalStyles.verticalDivider} />
             <View style={style.overviewItemContainer}>
-              <Text style={style.overviewItemCount}>1.9k</Text>
+              <Text style={style.overviewItemCount}>{likesCount}</Text>
               <Text style={style.overviewItemLabel}>Likes</Text>
             </View>
             <View style={globalStyles.verticalDivider} />
             <View style={style.overviewItemContainer}>
-              <Text style={style.overviewItemCount}>1.5k</Text>
+              <Text style={style.overviewItemCount}>{reviewsCount}</Text>
               <Text style={style.overviewItemLabel}>Reviews</Text>
             </View>
           </View>

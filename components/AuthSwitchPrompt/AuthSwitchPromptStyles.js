@@ -10,6 +10,7 @@ const style = StyleSheet.create({
   },
   text: {
     fontSize: 14,
+    fontWeight: "500",
   },
   hint: {
     paddingRight: 4,

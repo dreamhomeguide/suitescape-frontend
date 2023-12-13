@@ -1,6 +1,6 @@
 import * as Haptics from "expo-haptics";
 import React from "react";
-import { Pressable, Text } from "react-native";
+import { Platform, Pressable, Text } from "react-native";
 
 import style from "./ButtonStyles";
 import { Colors } from "../../assets/Colors";
@@ -21,7 +21,9 @@ const Button = ({
   return (
     <Pressable
       onPress={() => {
-        Haptics.selectionAsync();
+        if (Platform.OS === "ios") {
+          Haptics.selectionAsync();
+        }
         onPress && onPress();
       }}
       style={({ pressed }) => ({

@@ -13,7 +13,8 @@ import useFetchVideos from "../../hooks/useFetchVideos";
 import { Routes } from "../../navigation/Routes";
 
 const Home = ({ navigation }) => {
-  const { videos, fetchNextPage, isRefreshing, refresh } = useFetchVideos();
+  const { videos, isFetching, fetchNextPage, isRefreshing, refresh, refetch } =
+    useFetchVideos();
 
   const bottomTabHeight = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
@@ -21,7 +22,14 @@ const Home = ({ navigation }) => {
   const videoFeedRef = useRef(null);
 
   // Allows the feed to scroll to top when the tab is pressed
-  useScrollToTop(videoFeedRef);
+  useScrollToTop(
+    useRef({
+      scrollToTop: () => {
+        videoFeedRef.current?.scrollToOffset({ offset: 0 });
+        refetch().then(() => console.log("Videos refetched"));
+      },
+    }),
+  );
 
   return (
     <View style={style.mainContainer}>
@@ -41,12 +49,13 @@ const Home = ({ navigation }) => {
       <VideoFeed
         ref={videoFeedRef}
         videos={videos}
-        onEndReached={() => fetchNextPage()}
+        onEndReached={() => !isFetching && fetchNextPage()}
         refreshControl={
           <RefreshControl
             tintColor="white"
             refreshing={isRefreshing}
             onRefresh={() => refresh()}
+            style={{ ...(isRefreshing && { marginTop: insets.top + 10 }) }}
             progressViewOffset={insets.top}
           />
         }

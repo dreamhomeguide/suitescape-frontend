@@ -14,9 +14,11 @@ import ProfileImage from "../ProfileImage/ProfileImage";
 import VideoListingIcon from "../VideoListingIcon/VideoListingIcon";
 
 const VideoListingIconsView = ({ listingId, previewMode, onShowModal }) => {
-  const { isLiked, isSaved, likesCount, handleLike, handleSave } =
-    useSocialActions();
   const navigation = useNavigation();
+  const socialActionsContext = useSocialActions();
+
+  const { isLiked, isSaved, likesCount, handleLike, handleSave } =
+    socialActionsContext || {};
 
   const iconsConfig = [
     {

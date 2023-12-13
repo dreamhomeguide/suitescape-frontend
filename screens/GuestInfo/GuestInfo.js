@@ -1,6 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, Text } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
 import style from "./GuestInfoStyles";
@@ -15,7 +22,7 @@ import { useBookingContext } from "../../contexts/BookingContext";
 import regionsList from "../../data/regionsData";
 import useFetchAPI from "../../hooks/useFetchAPI";
 import { Routes } from "../../navigation/Routes";
-import SuitescapeAPI from "../../services/SuitescapeAPI";
+import SuitescapeAPI, { getHeaderToken } from "../../services/SuitescapeAPI";
 import { handleApiError, handleApiResponse } from "../../utilities/apiHelpers";
 
 const genderList = [
@@ -67,9 +74,16 @@ const GuestInfo = ({ navigation }) => {
 
   const scrollViewRef = useRef(null);
 
-  const { data: userData, isLoading, abort } = useFetchAPI("/user");
+  const { data: userData, isLoading, abort } = useFetchAPI("/profile");
   const queryClient = useQueryClient();
   const toast = useToast();
+
+  useEffect(() => {
+    if (!getHeaderToken()) {
+      navigation.goBack();
+      Alert.alert("You are not logged in.");
+    }
+  }, []);
 
   useEffect(() => {
     if (userData) {
@@ -99,8 +113,8 @@ const GuestInfo = ({ navigation }) => {
               style: toastStyles.toastInsetFooter,
             });
             queryClient
-              .invalidateQueries({ queryKey: ["user"] })
-              .then(() => console.log("User info invalidated"));
+              .invalidateQueries({ queryKey: ["profile"] })
+              .then(() => console.log("Profile info invalidated"));
           }
 
           navigation.navigate(Routes.BOOKING_SUMMARY);
@@ -125,7 +139,9 @@ const GuestInfo = ({ navigation }) => {
       {}, // acc - initial value
     );
 
-    updateProfileMutation.mutate({ profileData });
+    if (!updateProfileMutation.isPending) {
+      updateProfileMutation.mutate({ profileData });
+    }
   };
 
   const clearErrorWhenNotEmpty = (value, key) => {
@@ -149,134 +165,138 @@ const GuestInfo = ({ navigation }) => {
           <Text style={globalStyles.smallHeaderText}>
             Your Information Details
           </Text>
-          <FormInput
-            value={firstName}
-            onChangeText={(value) => {
-              setBookingData({ firstName: value });
-              clearErrorWhenNotEmpty(value, mappings.firstName);
-            }}
-            placeholder="First Name"
-            textContentType="givenName"
-            autoCapitalize="words"
-            autoCorrect={false}
-            returnKeyType="next"
-            errorMessage={errors?.firstname}
-          />
-          <FormInput
-            value={lastName}
-            onChangeText={(value) => {
-              setBookingData({ lastName: value });
-              clearErrorWhenNotEmpty(value, mappings.lastName);
-            }}
-            placeholder="Last Name"
-            textContentType="familyName"
-            autoCapitalize="words"
-            autoCorrect={false}
-            returnKeyType="next"
-            errorMessage={errors?.lastname}
-          />
-          <FormPicker
-            label="Gender"
-            data={genderList}
-            value={gender}
-            onSelected={(value) => {
-              setBookingData({ gender: value });
-              clearErrorWhenNotEmpty(value, mappings.gender);
-            }}
-            errorMessage={errors?.gender}
-          />
-          <FormInput
-            value={email}
-            onChangeText={(value) => {
-              setBookingData({ email: value });
-              clearErrorWhenNotEmpty(value, mappings.email);
-            }}
-            placeholder="Email Address"
-            // Bug: doesn't show cursor when this is on
-            // keyboardType="email-address"
-            textContentType="emailAddress"
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="next"
-            errorMessage={errors?.email}
-          />
-          <FormInput
-            value={address}
-            onChangeText={(value) => {
-              setBookingData({ address: value });
-              clearErrorWhenNotEmpty(value, mappings.address);
-            }}
-            placeholder="Address"
-            textContentType="fullStreetAddress"
-            autoCapitalize="words"
-            autoCorrect={false}
-            returnKeyType="next"
-            errorMessage={errors?.address}
-          />
-          <FormInput
-            value={zipCode}
-            onChangeText={(value) => {
-              setBookingData({ zipCode: value });
-              clearErrorWhenNotEmpty(value, mappings.zipCode);
-            }}
-            placeholder="Zip/Post Code"
-            keyboardType="number-pad"
-            textContentType="postalCode"
-            autoCorrect={false}
-            returnKeyType="next"
-            errorMessage={errors?.zipcode}
-          />
-          <FormInput
-            value={city}
-            onChangeText={(value) => {
-              setBookingData({ city: value });
-              clearErrorWhenNotEmpty(value, mappings.city);
-            }}
-            placeholder="City"
-            textContentType="addressCity"
-            autoCapitalize="words"
-            autoCorrect={false}
-            returnKeyType="next"
-            errorMessage={errors?.city}
-          />
-          <FormPicker
-            label="Region"
-            data={regionsList}
-            value={region}
-            onSelected={(value) => {
-              setBookingData({ region: value });
-              clearErrorWhenNotEmpty(value, mappings.region);
-            }}
-            errorMessage={errors?.region}
-          />
-          <FormInput
-            value={mobileNumber}
-            onChangeText={(value) => {
-              setBookingData({ mobileNumber: value });
-              clearErrorWhenNotEmpty(value, mappings.mobileNumber);
-            }}
-            placeholder="Mobile Number"
-            keyboardType="phone-pad"
-            textContentType="telephoneNumber"
-            autoCorrect={false}
-            returnKeyType="next"
-            errorMessage={errors?.mobile_number}
-          />
-          <FormInput
-            type="textarea"
-            value={message}
-            onChangeText={(value) => {
-              setBookingData({ message: value });
-              clearErrorWhenNotEmpty(value, mappings.message);
-            }}
-            label="Message (Optional)"
-            blurOnSubmit
-            returnKeyType="done"
-            onFocus={() =>
-              setTimeout(() => scrollViewRef.current.scrollToEnd(), 300)
-            }
-            errorMessage={errors?.message}
-          />
+          <View
+            pointerEvents={updateProfileMutation.isPending ? "none" : "auto"}
+          >
+            <FormInput
+              value={firstName}
+              onChangeText={(value) => {
+                setBookingData({ firstName: value });
+                clearErrorWhenNotEmpty(value, mappings.firstName);
+              }}
+              placeholder="First Name"
+              textContentType="givenName"
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="next"
+              errorMessage={errors?.firstname}
+            />
+            <FormInput
+              value={lastName}
+              onChangeText={(value) => {
+                setBookingData({ lastName: value });
+                clearErrorWhenNotEmpty(value, mappings.lastName);
+              }}
+              placeholder="Last Name"
+              textContentType="familyName"
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="next"
+              errorMessage={errors?.lastname}
+            />
+            <FormPicker
+              label="Gender"
+              data={genderList}
+              value={gender}
+              onSelected={(value) => {
+                setBookingData({ gender: value });
+                clearErrorWhenNotEmpty(value, mappings.gender);
+              }}
+              errorMessage={errors?.gender}
+            />
+            <FormInput
+              value={email}
+              onChangeText={(value) => {
+                setBookingData({ email: value });
+                clearErrorWhenNotEmpty(value, mappings.email);
+              }}
+              placeholder="Email Address"
+              // Bug: doesn't show cursor when this is on
+              // keyboardType="email-address"
+              textContentType="emailAddress"
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="next"
+              errorMessage={errors?.email}
+            />
+            <FormInput
+              value={address}
+              onChangeText={(value) => {
+                setBookingData({ address: value });
+                clearErrorWhenNotEmpty(value, mappings.address);
+              }}
+              placeholder="Address"
+              textContentType="fullStreetAddress"
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="next"
+              errorMessage={errors?.address}
+            />
+            <FormInput
+              value={zipCode}
+              onChangeText={(value) => {
+                setBookingData({ zipCode: value });
+                clearErrorWhenNotEmpty(value, mappings.zipCode);
+              }}
+              placeholder="Zip/Post Code"
+              keyboardType="number-pad"
+              textContentType="postalCode"
+              autoCorrect={false}
+              returnKeyType="next"
+              errorMessage={errors?.zipcode}
+            />
+            <FormInput
+              value={city}
+              onChangeText={(value) => {
+                setBookingData({ city: value });
+                clearErrorWhenNotEmpty(value, mappings.city);
+              }}
+              placeholder="City"
+              textContentType="addressCity"
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="next"
+              errorMessage={errors?.city}
+            />
+            <FormPicker
+              label="Region"
+              data={regionsList}
+              value={region}
+              onSelected={(value) => {
+                setBookingData({ region: value });
+                clearErrorWhenNotEmpty(value, mappings.region);
+              }}
+              errorMessage={errors?.region}
+            />
+            <FormInput
+              value={mobileNumber}
+              onChangeText={(value) => {
+                setBookingData({ mobileNumber: value });
+                clearErrorWhenNotEmpty(value, mappings.mobileNumber);
+              }}
+              placeholder="Mobile Number"
+              keyboardType="phone-pad"
+              textContentType="telephoneNumber"
+              autoCorrect={false}
+              returnKeyType="next"
+              errorMessage={errors?.mobile_number}
+            />
+            <FormInput
+              type="textarea"
+              value={message}
+              onChangeText={(value) => {
+                setBookingData({ message: value });
+                clearErrorWhenNotEmpty(value, mappings.message);
+              }}
+              label="Message (Optional)"
+              blurOnSubmit
+              returnKeyType="done"
+              onFocus={() =>
+                setTimeout(() => scrollViewRef.current.scrollToEnd(), 300)
+              }
+              errorMessage={errors?.message}
+            />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
       <AppFooter>

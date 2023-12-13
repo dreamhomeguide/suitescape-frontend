@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // Replace this with your local/private IP Address
-// const serverIpAddress = "192.168.1.106";
+// const serverIpAddress = "192.168.100.151";
+// const serverIpAddress = "192.168.1.112";
 
 // export const baseURL = `http://${serverIpAddress}/suitescape-api.test/api`;
 

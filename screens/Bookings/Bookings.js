@@ -1,12 +1,13 @@
 import { useScrollToTop } from "@react-navigation/native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { RefreshControl } from "react-native";
 import { Tabs } from "react-native-collapsible-tab-view";
 
 import BookingList from "../../components/BookingList/BookingList";
 import useFetchAPI from "../../hooks/useFetchAPI";
 import { TabBar } from "../../navigation/TopTabs/TopTabs";
 
-const Bookings = ({ navigation, route }) => {
+const Bookings = ({ route }) => {
   const {
     data: bookings,
     refetch,
@@ -16,28 +17,30 @@ const Bookings = ({ navigation, route }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const tabsRef = useRef(null);
-  const upcomingRef = useRef(null);
-  const completedRef = useRef(null);
-  const ratingRef = useRef(null);
-  const cancelledRef = useRef(null);
 
-  useScrollToTop(upcomingRef);
-  useScrollToTop(completedRef);
-  useScrollToTop(ratingRef);
-  useScrollToTop(cancelledRef);
-
-  // Jump to tab and scroll to top
+  // Jump to tab and scroll to top after finishing booking
   useEffect(() => {
     if (route.params?.tab) {
       const tabToNavigate = route.params.tab;
       tabsRef.current?.jumpToTab(tabToNavigate);
 
-      refetch().then(() => console.log("Bookings refetched"));
+      // Refetch bookings
+      // refetch().then(() => console.log("Bookings refetched"));
 
       // Reset tab params
-      navigation.setParams({ tab: null });
+      // navigation.setParams({ tab: null });
     }
   }, [route.params?.tab]);
+
+  // Scroll to top whenever tab is pressed
+  useScrollToTop(
+    useRef({
+      scrollToTop: () => {
+        const currentIndex = tabsRef.current?.getCurrentIndex();
+        tabsRef.current?.setIndex(currentIndex);
+      },
+    }),
+  );
 
   const upcomingBookings = useMemo(
     () => bookings?.filter((booking) => booking.status === "upcoming"),
@@ -66,57 +69,56 @@ const Bookings = ({ navigation, route }) => {
     setIsRefreshing(true);
     try {
       await refetch();
+      console.log("Bookings refetched");
+    } catch (err) {
+      console.log(err);
     } finally {
       setIsRefreshing(false);
-      console.log("Bookings refetched");
     }
   };
+
+  const refreshControl = (
+    <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+  );
 
   return (
     <Tabs.Container
       ref={tabsRef}
+      lazy
       renderTabBar={(props) => (
         <TabBar defaultProps={props} fontSize={12} scrollEnabled />
       )}
     >
       <Tabs.Tab name="Upcoming">
         <BookingList
-          ref={upcomingRef}
           data={upcomingBookings}
           type="upcoming"
           isFetched={isFetchedAfterMount}
-          isRefreshing={isRefreshing}
-          onRefresh={onRefresh}
+          refreshControl={refreshControl}
         />
       </Tabs.Tab>
       <Tabs.Tab name="Completed">
         <BookingList
-          ref={completedRef}
           data={completedBookings}
           type="completed"
           isFetched={isFetchedAfterMount}
-          isRefreshing={isRefreshing}
-          onRefresh={onRefresh}
+          refreshControl={refreshControl}
         />
       </Tabs.Tab>
       <Tabs.Tab name="Rating">
         <BookingList
-          ref={ratingRef}
           data={toRateBookings}
           type="to_rate"
           isFetched={isFetchedAfterMount}
-          isRefreshing={isRefreshing}
-          onRefresh={onRefresh}
+          refreshControl={refreshControl}
         />
       </Tabs.Tab>
       <Tabs.Tab name="Cancelled">
         <BookingList
-          ref={cancelledRef}
           data={cancelledBookings}
           type="cancelled"
           isFetched={isFetchedAfterMount}
-          isRefreshing={isRefreshing}
-          onRefresh={onRefresh}
+          refreshControl={refreshControl}
         />
       </Tabs.Tab>
     </Tabs.Container>
