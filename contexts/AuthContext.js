@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
 
   const abortControllerRef = useRef(null);
 
-  const { enableOnboarding, disableOnboarding } = useSettings();
+  const { disableOnboarding } = useSettings();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -128,6 +128,7 @@ export const AuthProvider = ({ children }) => {
 
     let response;
 
+    // This will wait for the request to finish
     try {
       response = await SuitescapeAPI.post(
         "/login",
@@ -137,15 +138,16 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       handleApiError({
         error,
-        // defaultAlert: true,
+        defaultAlert: true,
+        defaultAlertTitle: "Login failed",
         handleErrors: (e) => {
+          dispatch({ type: "FINISH_LOADING" });
           throw e.errors;
         },
       });
-    } finally {
-      dispatch({ type: "FINISH_LOADING" });
     }
 
+    // This will validate the response
     handleApiResponse({
       response,
       onError: (e) => {
@@ -176,12 +178,14 @@ export const AuthProvider = ({ children }) => {
 
     let response;
 
+    // This will wait for the request to finish
     try {
       response = await SuitescapeAPI.post(
         "/register",
         {
           firstname: data.firstName,
           lastname: data.lastName,
+          // date_of_birth: convertMMDDYYYY(data.birthday),
           date_of_birth: data.birthday,
           email: data.email,
           password: data.password,
@@ -192,20 +196,21 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       handleApiError({
         error,
-        // defaultAlert: true,
+        defaultAlert: true,
+        defaultAlertTitle: "Registration failed",
         handleErrors: (e) => {
+          dispatch({ type: "FINISH_LOADING" });
           throw e.errors;
         },
       });
-    } finally {
-      dispatch({ type: "FINISH_LOADING" });
     }
 
+    // This will validate the response
     handleApiResponse({
       response,
       onError: (e) => {
         dispatch({ type: "FINISH_LOADING" });
-        throw e;
+        throw e.errors;
       },
       onSuccess: (res) => {
         dispatch({ type: "FINISH_LOADING" });
@@ -233,7 +238,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       removeHeaderToken();
 
-      await enableOnboarding();
+      // await enableOnboarding();
       await SecureStore.deleteItemAsync("userToken");
 
       queryClient.resetQueries().then(() => {
