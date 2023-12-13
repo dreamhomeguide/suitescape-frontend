@@ -24,7 +24,8 @@ const Bookings = ({ route }) => {
       const tabToNavigate = route.params.tab;
       tabsRef.current?.jumpToTab(tabToNavigate);
 
-      refetch().then(() => console.log("Bookings refetched"));
+      // Refetch bookings
+      // refetch().then(() => console.log("Bookings refetched"));
 
       // Reset tab params
       // navigation.setParams({ tab: null });
@@ -83,6 +84,7 @@ const Bookings = ({ route }) => {
   return (
     <Tabs.Container
       ref={tabsRef}
+      lazy
       renderTabBar={(props) => (
         <TabBar defaultProps={props} fontSize={12} scrollEnabled />
       )}
