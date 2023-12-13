@@ -113,8 +113,8 @@ const GuestInfo = ({ navigation }) => {
               style: toastStyles.toastInsetFooter,
             });
             queryClient
-              .invalidateQueries({ queryKey: ["user"] })
-              .then(() => console.log("User info invalidated"));
+              .invalidateQueries({ queryKey: ["profile"] })
+              .then(() => console.log("Profile info invalidated"));
           }
 
           navigation.navigate(Routes.BOOKING_SUMMARY);
