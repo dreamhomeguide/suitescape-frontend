@@ -80,7 +80,7 @@ const starSelections = [
 const Filter = ({ navigation, route }) => {
   const [state, dispatch] = useReducer(reducer, initialState, undefined);
 
-  const [isScrollEnabled, setIsScrollEnabled] = useState(true);
+  const [isScrolling, setIsScrolling] = useState(false);
 
   const scrollViewRef = useRef(null);
 
@@ -205,22 +205,20 @@ const Filter = ({ navigation, route }) => {
           ref={scrollViewRef}
           contentInset={{ bottom: 40 }}
           contentContainerStyle={style.scrollContainer}
-          scrollEnabled={isScrollEnabled}
+          onScrollBeginDrag={() => setIsScrolling(true)}
+          onScrollEndDrag={() => setIsScrolling(false)}
+          onMomentumScrollBegin={() => setIsScrolling(true)}
+          onMomentumScrollEnd={() => setIsScrolling(false)}
         >
           <View style={style.container}>
             <Text style={style.headerText}>Price Range</Text>
             <PriceRange
-              scrollToTop={() =>
-                scrollViewRef.current.scrollTo({ y: 0, animated: true })
-              }
               minimumPrice={state.minPrice}
               maximumPrice={state.maxPrice}
               onMinPriceChanged={(minPrice) => setData({ minPrice })}
               onMaxPriceChanged={(maxPrice) => setData({ maxPrice })}
               // onPriceRangeChanged={(priceRange) => setData({ priceRange })}
-              onScrollEnabled={(scrollEnabled) =>
-                setIsScrollEnabled(scrollEnabled)
-              }
+              disabled={isScrolling}
             />
           </View>
 
