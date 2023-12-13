@@ -76,10 +76,6 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
     };
 
     const handleDateConfirm = (date: Date) => {
-      // if (!onChangeText) {
-      //   throw new Error("onChangeText is not defined");
-      // }
-
       // Clears minutes, seconds, and milliseconds
       const timeResetDate = new Date(date.toISOString().split("T")[0]);
 
