@@ -39,7 +39,7 @@ const VideoFeed = forwardRef(
   ) => {
     const [index, setIndex] = useState(null);
     const [lastPlayedIndex, setLastPlayedIndex] = useState(null);
-    const [shouldVideoScroll, setShouldVideoScroll] = useState(true);
+    const [isScrolling, setIsScrolling] = useState(false);
 
     const colorScheme = useColorScheme();
     const insets = useSafeAreaInsets();
@@ -154,9 +154,7 @@ const VideoFeed = forwardRef(
     const statusBarColor = isFeedFocused ? "rgba(0,0,0,0.2)" : "transparent";
 
     return (
-      <VideoScrollContext.Provider
-        value={{ shouldVideoScroll, setShouldVideoScroll }}
-      >
+      <VideoScrollContext.Provider value={{ isScrolling }}>
         <StatusBar
           animated
           translucent
@@ -167,7 +165,7 @@ const VideoFeed = forwardRef(
           ref={ref}
           data={videos}
           contentOffset={{ x: 0, y: 0 }}
-          scrollEnabled={shouldVideoScroll && scrollEnabled}
+          scrollEnabled={scrollEnabled}
           initialNumToRender={5}
           windowSize={5}
           keyExtractor={(item) => item.id}
@@ -179,6 +177,10 @@ const VideoFeed = forwardRef(
           refreshControl={refreshControl}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
+          onScrollBeginDrag={() => setIsScrolling(true)}
+          onScrollEndDrag={() => setIsScrolling(false)}
+          onMomentumScrollBegin={() => setIsScrolling(true)}
+          onMomentumScrollEnd={() => setIsScrolling(false)}
           disableIntervalMomentum
           viewabilityConfigCallbackPairs={
             viewabilityConfigCallbackPairs.current

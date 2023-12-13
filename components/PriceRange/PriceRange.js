@@ -21,8 +21,7 @@ const PriceRange = ({
   maximumPrice = RESET_VALUE,
   onMinPriceChanged,
   onMaxPriceChanged,
-  onScrollEnabled,
-  scrollToTop,
+  disabled,
 }) => {
   // const [previousPriceRange, setPreviousPriceRange] = useState([
   //   MINIMUM_PRICE,
@@ -49,13 +48,7 @@ const PriceRange = ({
     <>
       <Slider
         animateTransitions
-        onSlidingStart={() => {
-          scrollToTop && scrollToTop();
-          onScrollEnabled(false);
-        }}
-        onSlidingComplete={() => {
-          onScrollEnabled(true);
-        }}
+        disabled={disabled}
         thumbStyle={style.thumb}
         minimumTrackStyle={{ backgroundColor: Colors.blue }}
         maximumTrackStyle={{ backgroundColor: Colors.lightgray }}

@@ -23,7 +23,7 @@ const VideoItemProgressBar = ({
 
   const timeoutRef = useRef(null);
 
-  const { setShouldVideoScroll } = useVideoScroll();
+  const { isScrolling } = useVideoScroll();
 
   const trackHeight = useRef(new Animated.Value(3)).current;
   const opacity = useRef(new Animated.Value(1)).current;
@@ -57,7 +57,7 @@ const VideoItemProgressBar = ({
   };
 
   const onSlidingStart = () => {
-    setShouldVideoScroll && setShouldVideoScroll(false);
+    // setShouldVideoScroll && setShouldVideoScroll(false);
     setIsSeeking(true);
     onSeekStart && onSeekStart();
 
@@ -78,7 +78,7 @@ const VideoItemProgressBar = ({
       onSeekEnd && onSeekEnd();
     }, 300); // Increase timeout if its flickering
 
-    setShouldVideoScroll && setShouldVideoScroll(true);
+    // setShouldVideoScroll && setShouldVideoScroll(true);
 
     // Don't play video after seeking if it was paused
     // if (!videoRef.current.isClickPaused) {
@@ -104,6 +104,7 @@ const VideoItemProgressBar = ({
         onValueChange={onValueChange}
         onSlidingStart={onSlidingStart}
         onSlidingComplete={onSlidingComplete}
+        disabled={isScrolling}
         maximumValue={duration}
         trackStyle={{ height: trackHeight }}
         maximumTrackStyle={style.track}
