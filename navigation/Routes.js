@@ -5,6 +5,8 @@ export const Routes = {
   LOGIN: "Login",
   SIGNUP: "Sign Up",
   MESSAGES: "Messages",
+  SEARCH_MESSAGES: "Search Messages",
+  CHAT: "Chat",
   CART: "Cart",
   FILTER: "Filter",
   SEARCH: "Search",
