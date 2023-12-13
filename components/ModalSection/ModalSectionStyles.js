@@ -1,25 +1,25 @@
-import { Platform, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
-  mainContainer: {
+  mainContainer: ({ bottomInsets }) => ({
     backgroundColor: "white",
     position: "absolute",
-    bottom: Platform.OS === "android" ? 35 : 0,
+    bottom: bottomInsets < 30 ? 35 : 0,
     left: 0,
     right: 0,
-    height: 150,
-  },
-  scrollViewContainer: {
-    alignItems: "center",
-    marginHorizontal: 10,
-    marginBottom: 15,
-  },
+    height: "auto",
+    padding: 10,
+    rowGap: 10,
+  }),
   headerText: {
     textAlign: "center",
-    paddingTop: 15,
-    paddingBottom: 10,
     fontSize: 18,
     fontWeight: "bold",
+  },
+  progressText: {
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: "500",
   },
 });
 

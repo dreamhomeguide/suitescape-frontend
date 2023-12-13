@@ -67,12 +67,30 @@ const PaymentMethod = ({ navigation }) => {
       }),
   });
 
+  const onConfirm = () => {
+    if (!selectedMethod) {
+      Alert.alert("No payment method", "Please select a payment method");
+      return;
+    }
+
+    if (createBookingMutation.isPending) {
+      console.log("Booking is pending");
+      return;
+    }
+
+    createBookingMutation.mutate({
+      room_id: room.id,
+      coupon_id: null,
+      amount: bookingState.amount,
+      start_date: bookingState.startDate,
+      end_date: bookingState.endDate,
+      message: bookingState.message,
+    });
+  };
+
   return (
     <View style={globalStyles.flexFull}>
-      <Pressable
-        style={style.mainContainer}
-        onPress={() => setSelectedMethod(null)}
-      >
+      <View style={style.mainContainer}>
         <Text style={globalStyles.smallHeaderText}>
           Select the payment method
         </Text>
@@ -82,7 +100,11 @@ const PaymentMethod = ({ navigation }) => {
           keyExtractor={(_, index) => index.toString()}
           renderItem={({ item: paymentMethod }) => (
             <Pressable
-              onPress={() => setSelectedMethod(paymentMethod)}
+              onPress={() =>
+                setSelectedMethod(
+                  paymentMethod === selectedMethod ? null : paymentMethod,
+                )
+              }
               style={{
                 ...style.paymentMethodContainer,
                 ...{
@@ -103,30 +125,10 @@ const PaymentMethod = ({ navigation }) => {
             </Pressable>
           )}
         />
-      </Pressable>
+      </View>
 
       <AppFooter>
-        <ButtonLarge
-          onPress={() => {
-            if (selectedMethod) {
-              createBookingMutation.mutate({
-                room_id: room.id,
-                coupon_id: null,
-                amount: bookingState.amount,
-                start_date: bookingState.startDate,
-                end_date: bookingState.endDate,
-                message: bookingState.message,
-              });
-            } else {
-              Alert.alert(
-                "No payment method",
-                "Please select a payment method",
-              );
-            }
-          }}
-        >
-          Confirm
-        </ButtonLarge>
+        <ButtonLarge onPress={onConfirm}>Confirm</ButtonLarge>
       </AppFooter>
     </View>
   );

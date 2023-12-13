@@ -33,12 +33,13 @@ const VideoFeed = forwardRef(
       refreshControl,
       onEndReached,
       bottomTabHeight,
+      scrollEnabled = true,
     },
     ref,
   ) => {
     const [index, setIndex] = useState(null);
     const [lastPlayedIndex, setLastPlayedIndex] = useState(null);
-    const [isScrollEnabled, setIsScrollEnabled] = useState(true);
+    const [shouldVideoScroll, setShouldVideoScroll] = useState(true);
 
     const colorScheme = useColorScheme();
     const insets = useSafeAreaInsets();
@@ -149,21 +150,24 @@ const VideoFeed = forwardRef(
     const statusBarStyle =
       colorScheme === "dark" || isFeedFocused ? "light" : "dark";
 
+    // Applies to android only
+    const statusBarColor = isFeedFocused ? "rgba(0,0,0,0.2)" : "transparent";
+
     return (
       <VideoScrollContext.Provider
-        value={{ isScrollEnabled, setIsScrollEnabled }}
+        value={{ shouldVideoScroll, setShouldVideoScroll }}
       >
         <StatusBar
           animated
           translucent
-          backgroundColor="transparent"
+          backgroundColor={statusBarColor}
           style={statusBarStyle}
         />
         <FlatList
           ref={ref}
           data={videos}
           contentOffset={{ x: 0, y: 0 }}
-          scrollEnabled={isScrollEnabled}
+          scrollEnabled={shouldVideoScroll && scrollEnabled}
           initialNumToRender={5}
           windowSize={5}
           keyExtractor={(item) => item.id}
@@ -171,7 +175,7 @@ const VideoFeed = forwardRef(
           showsVerticalScrollIndicator={false}
           snapToInterval={videoHeight}
           snapToAlignment="center"
-          decelerationRate="fast"
+          decelerationRate={0.1}
           refreshControl={refreshControl}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}

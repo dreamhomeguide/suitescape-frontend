@@ -50,11 +50,11 @@ const Login = () => {
 
   return (
     <ScrollView
-      style={{
+      bounces={false}
+      contentContainerStyle={{
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
       }}
-      bounces={false}
     >
       <StatusBar animated />
       <LogoView />

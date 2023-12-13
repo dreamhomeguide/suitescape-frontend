@@ -4,13 +4,12 @@ const style = StyleSheet.create({
   container: {
     justifyContent: "center",
     flexDirection: "row",
-    paddingVertical: 25,
   },
   logoText: ({ textColor, bold }) => ({
     color: textColor,
-    fontFamily: bold ? "Poppins_700Bold" : "Poppins_400Regular",
+    fontFamily: bold ? "Agenor-Bold" : "Agenor-Thin",
     letterSpacing: 0.15,
-    fontSize: 45,
+    fontSize: 40,
     textTransform: "uppercase",
     includeFontPadding: false,
   }),

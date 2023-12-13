@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { useToast } from "react-native-toast-notifications";
@@ -9,20 +9,25 @@ import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
 
 export const SocialActionsContext = createContext(undefined);
 
-export const SocialActionsProvider = ({ children, listingData }) => {
-  const { id: listingId, is_liked, is_saved, likes_count } = listingData;
-
+export const SocialActionsProvider = ({
+  children,
+  listingId,
+  currentIsLiked,
+  currentIsSaved,
+  currentLikesCount,
+}) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
 
+  const queryClient = useQueryClient();
   const toast = useToast();
 
   useEffect(() => {
-    setIsLiked(is_liked);
-    setIsSaved(is_saved);
-    setLikesCount(likes_count);
-  }, [listingData]);
+    setIsLiked(currentIsLiked);
+    setIsSaved(currentIsSaved);
+    setLikesCount(currentLikesCount);
+  }, [currentIsLiked, currentIsSaved, currentLikesCount]);
 
   const likeMutation = useMutation({
     mutationFn: () => SuitescapeAPI.post(`/listings/${listingId}/like`),
@@ -32,6 +37,11 @@ export const SocialActionsProvider = ({ children, listingData }) => {
         onSuccess: ({ liked }) => {
           setIsLiked(liked);
           setLikesCount((prevLikes) => (liked ? prevLikes + 1 : prevLikes - 1));
+
+          // queryClient.invalidateQueries({ queryKey: ["videos"] });
+          queryClient.invalidateQueries({
+            queryKey: ["listings", listingId, "host"],
+          });
         },
       }),
     onError: (err) =>
@@ -64,16 +74,27 @@ export const SocialActionsProvider = ({ children, listingData }) => {
   });
 
   const handleLike = () => {
-    likeMutation.mutate();
+    if (!likeMutation.isPending) {
+      likeMutation.mutate();
+    }
   };
 
   const handleSave = () => {
-    saveMutation.mutate();
+    if (!saveMutation.isPending) {
+      saveMutation.mutate();
+    }
   };
 
   return (
     <SocialActionsContext.Provider
-      value={{ isLiked, isSaved, likesCount, handleLike, handleSave }}
+      value={{
+        isLiked,
+        isSaved,
+        likesCount,
+        isPending: likeMutation.isPending || saveMutation.isPending,
+        handleLike,
+        handleSave,
+      }}
     >
       {children}
     </SocialActionsContext.Provider>
@@ -81,11 +102,5 @@ export const SocialActionsProvider = ({ children, listingData }) => {
 };
 
 export const useSocialActions = () => {
-  const context = useContext(SocialActionsContext);
-  if (context === undefined) {
-    throw new Error(
-      "useSocialActions must be used within a SocialActionsProvider",
-    );
-  }
-  return context;
+  return useContext(SocialActionsContext);
 };

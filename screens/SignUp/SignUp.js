@@ -24,6 +24,7 @@ import LogoView from "../../components/LogoView/LogoView";
 import PasswordCheckerView from "../../components/PasswordCheckerView/PasswordCheckerView";
 import { useAuth } from "../../contexts/AuthContext";
 import { Routes } from "../../navigation/Routes";
+import convertMMDDYYYY from "../../utilities/dateConverter";
 
 const SignUp = ({ navigation }) => {
   const [firstName, setFirstName] = useState("");
@@ -71,20 +72,22 @@ const SignUp = ({ navigation }) => {
     }
   };
 
-  const handleBirthdayConfirm = (birthdate) => {
-    if (!birthdate) {
-      return;
+  const isBirthdayValid = (dateFormatResult) => {
+    if (!dateFormatResult) {
+      return false;
     }
 
     const today = new Date();
-    const eighteenthBirthday = new Date(birthdate);
-    eighteenthBirthday.setFullYear(birthdate.getFullYear() + 18);
+    const eighteenthBirthday = new Date(convertMMDDYYYY(dateFormatResult));
+    eighteenthBirthday.setFullYear(eighteenthBirthday.getFullYear() + 18);
 
     if (eighteenthBirthday > today) {
       Alert.alert("You must be 18 years old or above to register.");
       setBirthday("");
       return false;
     }
+
+    return true;
   };
 
   const handleSignUp = () => {
@@ -164,15 +167,20 @@ const SignUp = ({ navigation }) => {
               setBirthday(value);
               clearErrorWhenNotEmpty(value, "date_of_birth");
             }}
-            onDateConfirm={handleBirthdayConfirm}
+            onDateConfirm={(_, text) => {
+              if (isBirthdayValid(text)) {
+                setBirthday(text);
+              }
+            }}
             dateProps={{ maximumDate: new Date() }}
-            placeholder="Birthday"
+            placeholder="Birthday (MM/DD/YYYY)"
             textContentType="none"
+            keyboardType="number-pad"
             autoCorrect={false}
             spellCheck={false}
             errorMessage={errors?.date_of_birth}
             returnKeyType="next"
-            onBlur={handleBirthdayConfirm}
+            onBlur={() => isBirthdayValid(birthday)}
             onSubmitEditing={() => {
               emailRef.current.focus();
             }}

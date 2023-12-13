@@ -67,9 +67,9 @@ const style = StyleSheet.create({
   serviceRatingContainer: {
     paddingVertical: 3,
   },
-  reportContainer: {
-    borderBottomWidth: 0,
-  },
+  // reportContainer: {
+  //   borderBottomWidth: 0,
+  // },
 });
 
 export default style;

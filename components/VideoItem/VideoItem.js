@@ -1,28 +1,31 @@
 import Icon from "@expo/vector-icons/FontAwesome5";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { ResizeMode, Video } from "expo-av";
 import React, {
   forwardRef,
   memo,
+  useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import { ActivityIndicator, Dimensions, Pressable, View } from "react-native";
+import { ActivityIndicator, AppState, Dimensions, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-reanimated";
+import { useToast } from "react-native-toast-notifications";
 
 import style from "./VideoItemStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import { useAuth } from "../../contexts/AuthContext";
-import useCachedMedia from "../../hooks/useCachedMedia";
-import { baseURL } from "../../services/SuitescapeAPI";
+import { useSocialActions } from "../../contexts/SocialActionsContext";
 
 const { width: WINDOW_WIDTH } = Dimensions.get("window");
 
 const VideoItem = forwardRef(
   (
     {
-      videoId,
-      videoUrl,
-      fileExtension,
+      videoUri,
       height,
       width = WINDOW_WIDTH,
       iconSize = 55,
@@ -30,22 +33,27 @@ const VideoItem = forwardRef(
       initialIsMuted = false,
       onPlaybackUpdate,
       shouldPlay,
+      onClearMode,
+      clearModeEnabled = true,
+      likeEnabled = true,
+      pauseEnabled = true,
     },
     ref,
   ) => {
     const [status, setStatus] = useState({});
     const [isPaused, setIsPaused] = useState(initialIsPaused);
     const [isMuted, setIsMuted] = useState(initialIsMuted);
-
-    const { userToken } = useAuth();
+    const [inBackground, setInBackground] = useState(false);
 
     const videoRef = useRef(null);
 
-    const { cachedUri } = useCachedMedia(
-      "videos/",
-      videoId + "." + fileExtension,
-      baseURL + videoUrl,
-    );
+    const { userToken } = useAuth();
+    const toast = useToast();
+    const socialActionsContext = useSocialActions();
+    const { isLiked, handleLike } = socialActionsContext || {};
+
+    const shouldVideoPlay =
+      status.isLoaded && shouldPlay && !isPaused && !inBackground;
 
     useImperativeHandle(ref, () => ({
       video: videoRef.current,
@@ -59,6 +67,20 @@ const VideoItem = forwardRef(
       setIsClickMuted: setIsMuted,
     }));
 
+    // Pauses the video when the app is in the background
+    useEffect(() => {
+      const subscription = AppState.addEventListener(
+        "change",
+        (nextAppState) => {
+          setInBackground(!!nextAppState.match(/inactive|background/));
+        },
+      );
+
+      return () => {
+        subscription.remove();
+      };
+    }, []);
+
     const togglePauseOrUnmute = () => {
       if (status.isMuted) {
         setIsMuted(false);
@@ -67,6 +89,7 @@ const VideoItem = forwardRef(
 
       // Pause if the video is playing
       setIsPaused(status.isPlaying);
+
       if (status.isPlaying) {
         videoRef.current.pauseAsync();
       } else {
@@ -74,56 +97,126 @@ const VideoItem = forwardRef(
       }
     };
 
+    const likeVideo = () => {
+      if (!isLiked) {
+        handleLike && handleLike();
+      }
+
+      toast.hideAll();
+      toast.show("", {
+        icon: (
+          <MaterialCommunityIcons
+            name="heart"
+            color="red"
+            size={90}
+            style={globalStyles.iconShadow}
+          />
+        ),
+        style: { top: -50, backgroundColor: "transparent" },
+        animationType: "zoom-in",
+        duration: 500,
+        placement: "center",
+      });
+    };
+
+    const singleTap = useMemo(
+      () =>
+        Gesture.Tap()
+          .enabled(pauseEnabled)
+          .numberOfTaps(1)
+          .onEnd(() => {
+            runOnJS(togglePauseOrUnmute)();
+          }),
+      [status.isMuted, status.isPlaying],
+    );
+
+    const doubleTap = useMemo(
+      () =>
+        Gesture.Tap()
+          .enabled(likeEnabled)
+          .numberOfTaps(2)
+          .onEnd(() => {
+            runOnJS(likeVideo)();
+          }),
+      [isLiked],
+    );
+
+    const longPan = useMemo(
+      () =>
+        Gesture.Pan()
+          .enabled(clearModeEnabled)
+          .activateAfterLongPress(500)
+          .onUpdate(() => {
+            if (onClearMode) {
+              runOnJS(onClearMode)(true);
+            }
+          })
+          .onEnd(() => {
+            if (onClearMode) {
+              runOnJS(onClearMode)(false);
+            }
+          }),
+      [onClearMode],
+    );
+
+    const composed = useMemo(
+      () => Gesture.Exclusive(doubleTap, singleTap, longPan),
+      [doubleTap, singleTap, longPan],
+    );
+
     return (
-      <Pressable onPress={togglePauseOrUnmute}>
-        {isMuted && (
-          <View
-            style={{ ...globalStyles.absoluteCenter, ...style.actionButton }}
-          >
-            <Icon
-              name="volume-mute"
-              size={iconSize}
-              color="white"
-              style={style.iconOpacity}
-            />
-          </View>
-        )}
-        {isPaused && (
-          <View
-            style={{ ...globalStyles.absoluteCenter, ...style.actionButton }}
-          >
-            <Icon
-              name="play"
-              size={iconSize}
-              color="white"
-              style={style.iconOpacity}
-            />
-          </View>
-        )}
-        {status.isBuffering && (
-          <View style={globalStyles.absoluteCenter}>
-            <ActivityIndicator size="large" style={style.iconOpacity} />
-          </View>
-        )}
-        <Video
-          ref={videoRef}
-          source={{
-            uri: cachedUri,
-            headers: {
-              Authorization: "Bearer " + userToken,
-            },
-          }}
-          onPlaybackStatusUpdate={(playbackStatus) => {
-            setStatus(() => playbackStatus);
-            onPlaybackUpdate && onPlaybackUpdate(playbackStatus);
-          }}
-          shouldPlay={status.isLoaded && shouldPlay && !isPaused}
-          isMuted={isMuted}
-          isLooping
-          resizeMode={ResizeMode.COVER}
-          style={{ width, height }}
-        />
-      </Pressable>
+      <GestureDetector gesture={composed}>
+        <View>
+          {isMuted && (
+            <View
+              style={{ ...globalStyles.absoluteCenter, ...style.actionButton }}
+            >
+              <Icon
+                name="volume-mute"
+                size={iconSize}
+                color="white"
+                style={style.iconOpacity}
+              />
+            </View>
+          )}
+          {isPaused && (
+            <View
+              style={{ ...globalStyles.absoluteCenter, ...style.actionButton }}
+            >
+              <Icon
+                name="play"
+                size={iconSize}
+                color="white"
+                style={style.iconOpacity}
+              />
+            </View>
+          )}
+          {status.isBuffering && !status.isPlaying && (
+            <View style={globalStyles.absoluteCenter}>
+              <ActivityIndicator size="large" style={style.iconOpacity} />
+            </View>
+          )}
+          <Video
+            ref={videoRef}
+            source={{
+              uri: videoUri,
+              headers: {
+                Authorization: "Bearer " + userToken,
+              },
+            }}
+            progressUpdateIntervalMillis={1000}
+            onPlaybackStatusUpdate={(playbackStatus) => {
+              setStatus(() => playbackStatus);
+              onPlaybackUpdate && onPlaybackUpdate(playbackStatus);
+            }}
+            shouldPlay={shouldVideoPlay}
+            isMuted={isMuted}
+            isLooping
+            resizeMode={ResizeMode.COVER}
+            style={{ width, height }}
+          />
+        </View>
+      </GestureDetector>
     );
   },
 );

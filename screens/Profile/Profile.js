@@ -102,7 +102,10 @@ const Profile = ({ navigation }) => {
   const { colors } = useTheme();
 
   return (
-    <ScrollView ref={scrollViewRef} contentInset={{ bottom: insets.bottom }}>
+    <ScrollView
+      ref={scrollViewRef}
+      contentInset={{ bottom: insets.bottom + 10 }}
+    >
       <View style={style.headerContainer}>
         <ProfileImage size={100} />
         <Chip

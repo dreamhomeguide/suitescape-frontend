@@ -5,6 +5,7 @@ import { cacheDir, ensureDirExists } from "../utilities/cacheMedia";
 
 const useCachedMedia = (subDir, fileName, downloadUrl) => {
   const [cachedUri, setCachedUri] = useState(downloadUrl);
+  const [isCached, setIsCached] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -19,23 +20,27 @@ const useCachedMedia = (subDir, fileName, downloadUrl) => {
       if (!fileInfo.exists) {
         // console.log("Media isn't cached locally. Downloading…");
 
-        // No wait here, we want to return the downloadUrl immediately so users can play the video
         FileSystem.downloadAsync(downloadUrl, fileUri)
           .then(({ uri }) => {
             console.log("Finished downloading cache to", uri);
             setCachedUri(uri);
+            setIsCached(true);
           })
           .catch(() => {
             console.log("Cache download aborted");
           });
 
         // Stream the video while cache is downloading
-        setCachedUri(downloadUrl);
+        // setCachedUri(downloadUrl);
+      } else {
+        console.log(fileName + " is already cached locally");
+        setCachedUri(fileUri);
+        setIsCached(true);
       }
     })();
   }, []);
 
-  return { cachedUri };
+  return { cachedUri, isCached };
 };
 
 export default useCachedMedia;

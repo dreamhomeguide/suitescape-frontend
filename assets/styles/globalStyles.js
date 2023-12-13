@@ -1,6 +1,8 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 
 import { Colors } from "../Colors";
+
+const { height } = Dimensions.get("window");
 
 const globalStyles = StyleSheet.create({
   flexFull: {
@@ -69,6 +71,12 @@ const globalStyles = StyleSheet.create({
   loadingCircle: {
     alignSelf: "center",
     marginVertical: 15,
+  },
+  coverImage: {
+    height: height / 4,
+    width: "100%",
+    backgroundColor: Colors.lightgray,
+    borderRadius: 10,
   },
   horizontalDivider: {
     height: 1,

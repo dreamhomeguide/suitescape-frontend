@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
+import { useVideoFilter } from "../contexts/VideoFilterContext";
 import SuitescapeAPI from "../services/SuitescapeAPI";
 import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
 
@@ -9,19 +10,28 @@ const useFetchVideos = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const queryClient = useQueryClient();
+  const { videoFilter } = useVideoFilter();
+
+  useEffect(() => {
+    // if (filter) {
+    //   queryClient.setQueryData(["videos"], {
+    //     pages: [],
+    //     pageParams: [],
+    //   });
+    // }
+    if (videoFilter) {
+      console.log(videoFilter);
+    } else {
+      console.log("No filters applied");
+    }
+  }, [videoFilter]);
 
   const fetchVideos = async ({ pageParam = 0 }) => {
     // const token = getAuthToken();
+    console.log(`Fetching videos... (cursor: ${pageParam})`);
 
-    console.log("Fetching videos...", pageParam);
-    const res = await SuitescapeAPI.get("/videos/feed?cursor=" + pageParam, {
-      // FIXED: Workaround since auth doesn't seem to apply fast enough
-      // headers: {
-      //   Authorization: "Bearer " + token,
-      // },
-    });
-
-    console.log("HEADERS:", res.request._headers);
+    const res = await SuitescapeAPI.get("/videos/feed?cursor=" + pageParam);
+    console.log("AUTHORIZATION:", res.request._headers.authorization);
     return res.data;
   };
 

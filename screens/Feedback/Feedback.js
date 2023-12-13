@@ -1,12 +1,19 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import * as Haptics from "expo-haptics";
 import React, { useEffect } from "react";
-import { Pressable, SafeAreaView, StatusBar, Text, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  SafeAreaView,
+  StatusBar,
+  Text,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./FeedbackStyles";
 import { Colors } from "../../assets/Colors";
-import globalStyles from "../../assets/styles/globalStyles";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 
 const Feedback = ({ navigation, route }) => {
   const {
@@ -37,52 +44,55 @@ const Feedback = ({ navigation, route }) => {
   };
 
   useEffect(() => {
-    if (feedbackType[type]?.haptic) {
+    if (Platform.OS === "ios" && feedbackType[type]?.haptic) {
       Haptics.notificationAsync(feedbackType[type].haptic);
     }
   }, []);
 
   return (
-    <SafeAreaView
-      style={{
-        ...globalStyles.flexFull,
-        ...(feedbackType[type] && {
-          backgroundColor: feedbackType[type].color,
-        }),
+    <Pressable
+      style={globalStyles.flexFull}
+      onPress={() => {
+        popToTop && navigation.popToTop();
+        screenToNavigate && navigation.navigate(screenToNavigate);
       }}
     >
-      <Pressable
-        style={globalStyles.flexFull}
-        onPress={() => {
-          popToTop && navigation.popToTop();
-          screenToNavigate && navigation.navigate(screenToNavigate);
-        }}
-      >
-        <View style={style.mainContainer}>
-          <View style={style.contentContainer}>
-            {feedbackType[type] && (
-              <FontAwesome5
-                name={feedbackType[type].icon}
-                size={100}
-                color="white"
-                style={style.icon}
-              />
-            )}
-
-            <Text style={style.headerText}>{title}</Text>
-            <Text style={style.subHeaderText}>{subtitle}</Text>
-          </View>
-        </View>
-        <View
+      {({ pressed }) => (
+        <SafeAreaView
           style={{
-            ...style.continueContainer,
-            marginBottom: insets.bottom + StatusBar.currentHeight + 25,
+            ...globalStyles.flexFull,
+            ...(feedbackType[type] && {
+              backgroundColor: feedbackType[type].color,
+            }),
+            ...pressedOpacity(pressed, 0.8),
           }}
         >
-          <Text style={style.text}>Tap to continue</Text>
-        </View>
-      </Pressable>
-    </SafeAreaView>
+          <View style={style.mainContainer}>
+            <View style={style.contentContainer}>
+              {feedbackType[type] && (
+                <FontAwesome5
+                  name={feedbackType[type].icon}
+                  size={100}
+                  color="white"
+                  style={style.icon}
+                />
+              )}
+
+              <Text style={style.headerText}>{title}</Text>
+              <Text style={style.subHeaderText}>{subtitle}</Text>
+            </View>
+          </View>
+          <View
+            style={{
+              ...style.continueContainer,
+              marginBottom: insets.bottom + StatusBar.currentHeight + 25,
+            }}
+          >
+            <Text style={style.text}>Tap to continue</Text>
+          </View>
+        </SafeAreaView>
+      )}
+    </Pressable>
   );
 };
 
