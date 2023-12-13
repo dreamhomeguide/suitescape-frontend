@@ -160,9 +160,15 @@ export const AuthProvider = ({ children }) => {
         await disableOnboarding();
         await SecureStore.setItemAsync("userToken", res.token);
 
-        dispatch({ type: "SIGN_IN", userToken: res.token });
-
-        dispatch({ type: "FINISH_LOADING" });
+        queryClient
+          .resetQueries()
+          .then(() => {
+            console.log("Reset queries successful");
+            dispatch({ type: "SIGN_IN", userToken: res.token });
+          })
+          .finally(() => {
+            dispatch({ type: "FINISH_LOADING" });
+          });
       },
     });
   };
@@ -241,16 +247,12 @@ export const AuthProvider = ({ children }) => {
       // await enableOnboarding();
       await SecureStore.deleteItemAsync("userToken");
 
-      queryClient.resetQueries().then(() => {
-        console.log("Reset queries successful");
-      });
       clearCacheDir("videos/").then(() => {
         console.log("Cache cleared");
       });
 
-      dispatch({ type: "FINISH_LOADING" });
-
       dispatch({ type: "SIGN_OUT" });
+      dispatch({ type: "FINISH_LOADING" });
     }
   };
 
