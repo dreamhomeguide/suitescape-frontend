@@ -69,7 +69,7 @@ const VideoFeedItem = ({
         <VideoItem
           ref={videoRef}
           videoUri={cachedUri}
-          shouldPlay={videoInFocus}
+          shouldPlay={feedFocused && videoInFocus}
           width={width}
           height={height}
           onPlaybackUpdate={({ isLoaded, durationMillis, positionMillis }) => {
