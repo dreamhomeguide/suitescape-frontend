@@ -11,6 +11,8 @@ import StarRatingView from "../StarRatingView/StarRatingView";
 
 const BookingItem = ({ item, type }) => {
   const { id: bookingId, booking_rooms: bookingRooms } = item;
+
+  // Get first booking room
   const {
     room: {
       listing: { id: listingId, name: listingName, location: listingLocation },
@@ -20,9 +22,14 @@ const BookingItem = ({ item, type }) => {
 
   const { data: images } = useFetchAPI(`/listings/${listingId}/images`);
 
-  const randomImage = images
-    ? images[Math.floor(Math.random() * images.length)]
-    : null;
+  // Get first image
+  const coverImage = images ? images[0] : null;
+
+  // Get random image
+  // const coverImage = useMemo(
+  //   () => (images ? images[Math.floor(Math.random() * images.length)] : null),
+  //   [images],
+  // );
 
   const actionButton = {
     upcoming: {
@@ -43,9 +50,9 @@ const BookingItem = ({ item, type }) => {
     <View style={style.mainContainer}>
       <Image
         source={{
-          uri: images ? baseURL + randomImage.url : null,
+          uri: images ? baseURL + coverImage.url : null,
         }}
-        style={style.image}
+        style={globalStyles.coverImage}
       />
       <View style={style.detailsContainer}>
         <Text style={style.listingName} numberOfLines={1}>
