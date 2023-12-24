@@ -9,10 +9,9 @@ const style = StyleSheet.create({
     marginHorizontal: 23,
   },
   forgotPasswordButtonContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
+    alignItems: "flex-end",
     marginHorizontal: 23,
-    marginTop: 6,
+    marginTop: 5,
     marginBottom: 12,
   },
   forgotPasswordText: {
