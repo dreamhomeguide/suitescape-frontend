@@ -7,7 +7,7 @@ const style = StyleSheet.create({
     paddingHorizontal: 20,
     height: 30,
     zIndex: 1,
-    top: topInsets + 10,
+    top: topInsets + 15,
     ...(right && { right: 0 }),
   }),
 });
