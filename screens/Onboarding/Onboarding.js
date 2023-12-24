@@ -1,11 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import React, { useRef, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import style from "./OnboardingStyles";
-import AuthSwitchPrompt from "../../components/AuthSwitchPrompt/AuthSwitchPrompt";
-import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
+import Button from "../../components/Button/Button";
 import DotsView from "../../components/DotsView/DotsView";
 import HeaderOnboarding from "../../components/HeaderOnboarding/HeaderOnboarding";
 import LogoText from "../../components/LogoText/LogoText";
@@ -20,18 +20,25 @@ const Onboarding = ({ navigation }) => {
   const sliderRef = useRef(null);
   const endReached = index === slides.length - 1;
 
-  const { width, height } = useWindowDimensions();
-  const { disableOnboarding } = useSettings();
+  const { width } = useWindowDimensions();
+  const { disableOnboarding, enableGuestMode } = useSettings();
 
-  const highScreenHeight = height > 850;
+  const queryClient = useQueryClient();
 
-  const handleNextButtonClick = async () => {
-    if (endReached) {
-      await disableOnboarding();
-      navigation.replace(Routes.SIGNUP);
+  // const highScreenHeight = height > 700;
+
+  const handleNextButtonClick = () => {
+    if (!endReached) {
+      sliderRef.current.scrollToIndex({
+        index: index + 1,
+        animated: true,
+      });
       return;
     }
-    sliderRef.current.scrollToIndex({ index: index + 1, animated: true });
+
+    disableOnboarding().then(() => {
+      navigation.replace(Routes.SIGNUP);
+    });
   };
 
   const handlePrevButtonClick = () => {
@@ -41,13 +48,19 @@ const Onboarding = ({ navigation }) => {
     });
   };
 
+  const handleSkipButtonClick = async () => {
+    await queryClient.resetQueries();
+    await enableGuestMode();
+    await disableOnboarding();
+  };
+
   return (
     <SafeAreaView>
       <StatusBar style="light" />
       <HeaderOnboarding
         index={index}
         onPrevButtonClick={handlePrevButtonClick}
-        showSkipButton={endReached && !highScreenHeight}
+        // signInEnabled={endReached && !highScreenHeight}
       />
       <LogoText />
       <Slider
@@ -66,11 +79,23 @@ const Onboarding = ({ navigation }) => {
         }
       />
       <View style={style.nextButtonContainer}>
-        <ButtonLarge onPress={handleNextButtonClick}>
+        <Button
+          onPress={handleNextButtonClick}
+          containerStyle={{ paddingVertical: 14 }}
+        >
           {endReached ? "Get Started" : "Next"}
-        </ButtonLarge>
+        </Button>
+        {endReached && (
+          <Button
+            outlined
+            onPress={handleSkipButtonClick}
+            containerStyle={{ paddingVertical: 14 }}
+          >
+            Maybe Later
+          </Button>
+        )}
       </View>
-      {endReached && highScreenHeight && <AuthSwitchPrompt isOnboarding />}
+      {/*{endReached && highScreenHeight && <AuthSwitchPrompt isOnboarding />}*/}
     </SafeAreaView>
   );
 };
