@@ -42,6 +42,9 @@ const globalStyles = StyleSheet.create({
   boldText: {
     fontWeight: "bold",
   },
+  uniformGap: {
+    gap: 5,
+  },
   textGap: {
     rowGap: 5,
   },
