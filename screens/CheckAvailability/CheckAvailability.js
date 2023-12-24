@@ -1,10 +1,10 @@
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import React, { useLayoutEffect } from "react";
+import React, { useCallback, useLayoutEffect } from "react";
 import { ActivityIndicator, FlatList, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
 import { Colors } from "../../assets/Colors";
+import Fontello from "../../assets/fontello/Fontello";
 import globalStyles from "../../assets/styles/globalStyles";
 import IconBadge from "../../components/IconBadge/IconBadge";
 import ListingAvailableRoomItem from "../../components/ListingAvailableRoomItem/ListingAvailableRoomItem";
@@ -23,18 +23,20 @@ const CheckAvailability = ({ navigation, route }) => {
             title="shopping-cart"
             renderButton={() => (
               <IconBadge count={0}>
-                <FontAwesome5
-                  name="shopping-cart"
-                  size={20}
-                  color={Colors.blue}
-                />
+                <Fontello name="cart-solid" size={23} color={Colors.blue} />
               </IconBadge>
             )}
+            onPress={() => console.log("Shopping cart pressed")}
           />
         </HeaderButtons>
       ),
     });
   }, [navigation]);
+
+  const renderItem = useCallback(
+    ({ item }) => <ListingAvailableRoomItem item={item} />,
+    [],
+  );
 
   return (
     <FlatList
@@ -43,7 +45,8 @@ const CheckAvailability = ({ navigation, route }) => {
       // contentContainerStyle={{
       //   paddingBottom: insets.bottom,
       // }}
-      renderItem={({ item }) => <ListingAvailableRoomItem item={item} />}
+      keyExtractor={(item) => item.id.toString()}
+      renderItem={renderItem}
       ItemSeparatorComponent={() => <View style={globalStyles.bottomGap} />}
       ListEmptyComponent={() => (
         <ActivityIndicator style={globalStyles.loadingCircle} />
