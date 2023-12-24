@@ -41,7 +41,7 @@ const ListingAvailableRoomItem = ({ item }) => {
         </Text>
 
         {/* This is causing virtualized list issues */}
-        <StarRatingView rating={average_rating} />
+        <StarRatingView rating={average_rating} textStyle={{ fontSize: 14 }} />
       </View>
 
       <View style={style.detailsContainer}>
