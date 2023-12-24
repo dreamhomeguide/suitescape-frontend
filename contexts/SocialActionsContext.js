@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Alert } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
 import toastStyles from "../assets/styles/toastStyles";
@@ -11,6 +10,7 @@ export const SocialActionsContext = createContext(undefined);
 
 export const SocialActionsProvider = ({
   children,
+  hostId,
   listingId,
   currentIsLiked,
   currentIsSaved,
@@ -38,9 +38,11 @@ export const SocialActionsProvider = ({
           setIsLiked(liked);
           setLikesCount((prevLikes) => (liked ? prevLikes + 1 : prevLikes - 1));
 
-          // queryClient.invalidateQueries({ queryKey: ["videos"] });
           queryClient.invalidateQueries({
-            queryKey: ["listings", listingId, "host"],
+            queryKey: ["hosts", hostId],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["profile", "liked"],
           });
         },
       }),
@@ -64,12 +66,16 @@ export const SocialActionsProvider = ({
               style: toastStyles.toastInsetTop,
             });
           }
+
+          queryClient.invalidateQueries({
+            queryKey: ["profile", "saved"],
+          });
         },
       }),
     onError: (err) =>
       handleApiError({
         error: err,
-        handleErrors: (errors) => Alert.alert(errors.message),
+        defaultAlert: true,
       }),
   });
 
