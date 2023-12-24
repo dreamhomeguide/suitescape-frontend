@@ -1,19 +1,18 @@
 import { useTheme } from "@react-navigation/native";
 import { Image } from "expo-image";
 import React from "react";
-import { Text, useWindowDimensions, View } from "react-native";
+import { Text, View } from "react-native";
 
 import style from "./OnboardingItemStyles";
 
 const OnboardingItem = ({ title, img }) => {
   // const [assets] = useAssets(img);
-  const { width, height } = useWindowDimensions();
   const { colors } = useTheme();
 
   return (
-    <View style={{ width, ...style.container }}>
+    <View style={style.container}>
       <Image
-        style={style.image({ width, height })}
+        style={style.image}
         contentFit="cover"
         source={img}
         // source={assets ? assets[0] : null}

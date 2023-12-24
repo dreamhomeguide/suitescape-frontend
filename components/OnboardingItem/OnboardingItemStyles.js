@@ -1,24 +1,26 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 const MIN_HEIGHT = 700;
 
+const containerMargin = height < MIN_HEIGHT ? 25 : 35;
+const imageScaleFactor = height < MIN_HEIGHT ? 1.4 : 1;
+const imageSize = (width * 0.85) / imageScaleFactor;
+
 const style = StyleSheet.create({
   container: {
+    width,
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 30,
+    marginVertical: containerMargin,
   },
-  image: ({ width, height }) => {
-    const imageScaleFactor = height < MIN_HEIGHT ? 1.4 : 1;
-    const size = (width * 0.85) / imageScaleFactor;
-
-    return {
-      justifyContent: "center",
-      width: size,
-      height: size,
-      borderRadius: size / 2,
-      backgroundColor: "lightgray",
-    };
+  image: {
+    justifyContent: "center",
+    width: imageSize,
+    height: imageSize,
+    borderRadius: imageSize / 2,
+    backgroundColor: "lightgray",
   },
   title: ({ textColor }) => ({
     color: textColor,
