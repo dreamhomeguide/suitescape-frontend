@@ -15,11 +15,13 @@ const style = StyleSheet.create({
     color: "gray",
   },
   error: {
+    flex: 1,
     color: Colors.red,
     fontSize: 12,
     left: 15,
-    paddingTop: 3,
-    paddingBottom: 10,
+    marginTop: 3,
+    marginBottom: 10,
+    marginRight: 20,
   },
   trailingIcon: {
     position: "absolute",
