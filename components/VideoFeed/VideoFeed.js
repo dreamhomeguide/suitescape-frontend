@@ -16,10 +16,10 @@ import { VideoScrollContext } from "../../contexts/VideoScrollContext";
 import VideoFeedItem from "../VideoFeedItem/VideoFeedItem";
 
 const VIEWABILITY_CONFIG = {
-  // minimumViewTime: 250,
-
   // Adjust this if onViewableItemsChanged is not working properly
   itemVisiblePercentThreshold: 80,
+
+  minimumViewTime: 100,
 };
 
 const { height: WINDOW_HEIGHT } = Dimensions.get("window");
@@ -76,7 +76,7 @@ const VideoFeed = forwardRef(
             playsInSilentModeIOS: true,
             interruptionModeIOS: InterruptionModeIOS.DoNotMix,
             interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-          });
+          }).catch((error) => console.log(error));
         })();
 
         // return () => {
@@ -108,10 +108,11 @@ const VideoFeed = forwardRef(
       }, []),
     );
 
-    // Sets the index of the video that is currently in focus
     const handleViewableItemsChanged = useCallback(({ viewableItems }) => {
       const firstViewableItem = viewableItems[0];
+
       if (firstViewableItem?.isViewable) {
+        // Sets the index of the video that is currently in focus
         const newIndex = firstViewableItem.item.id;
         setLastPlayedIndex(newIndex);
         setIndex(newIndex);
@@ -167,13 +168,15 @@ const VideoFeed = forwardRef(
           contentOffset={{ x: 0, y: 0 }}
           scrollEnabled={scrollEnabled}
           initialNumToRender={5}
-          windowSize={5}
+          windowSize={10}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={30}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           snapToInterval={videoHeight}
           snapToAlignment="center"
-          decelerationRate={0.1}
+          decelerationRate="fast"
           refreshControl={refreshControl}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
