@@ -1,33 +1,48 @@
+import { useNavigation } from "@react-navigation/native";
 import { ImageBackground } from "expo-image";
-import React from "react";
-import { Pressable, Text, View } from "react-native";
+import React, { memo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import style from "./ListingItemStyles";
 import globalStyles, { pressedBgColor } from "../../assets/styles/globalStyles";
+import { Routes } from "../../navigation/Routes";
+import { baseURL } from "../../services/SuitescapeAPI";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
 const ListingItem = ({ item }) => {
+  const {
+    images: [coverImage],
+    ...listing
+  } = item;
+
+  const navigation = useNavigation();
+
   return (
-    <Pressable style={globalStyles.flexFull}>
+    <Pressable
+      style={globalStyles.flexFull}
+      onPress={() =>
+        navigation.push(Routes.LISTING_DETAILS, { listingId: listing.id })
+      }
+    >
       {({ pressed }) => (
         <View style={style.mainContainer}>
           <ImageBackground
-            source={require("../../assets/images/onboarding/page1.png")}
+            source={{ uri: baseURL + coverImage.url }}
             style={globalStyles.coverImage}
             imageStyle={style.imageBorderRadius}
           >
             <View
               style={{
-                ...globalStyles.flexFull,
+                ...StyleSheet.absoluteFillObject,
                 ...style.imageBorderRadius,
                 ...pressedBgColor(pressed, "rgba(0,0,0,0.3)"),
               }}
             />
           </ImageBackground>
           <View style={style.detailsContainer}>
-            <Text style={style.detailsName}>{item.name}</Text>
+            <Text style={style.detailsName}>{listing.name}</Text>
             <StarRatingView
-              rating={item.average_rating}
+              rating={listing.average_rating}
               textStyle={style.detailsRatingText}
               starSize={25}
             />
@@ -38,4 +53,4 @@ const ListingItem = ({ item }) => {
   );
 };
 
-export default ListingItem;
+export default memo(ListingItem);
