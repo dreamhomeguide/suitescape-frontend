@@ -1,41 +1,40 @@
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Fontello from "../assets/fontello/Fontello";
 
 export default {
   restaurant: {
     label: "Restaurant",
-    icon: "restaurant",
-    iconSize: 35,
-    IconLibrary: MaterialIcons,
+    icon: "restaurant-solid",
+    iconSize: 30,
+    IconLibrary: Fontello,
   },
   mall: {
     label: "Mall",
-    icon: "building",
-    iconSize: 35,
-    IconLibrary: FontAwesome5,
+    icon: "hotel-solid",
+    iconSize: 25,
+    IconLibrary: Fontello,
   },
   hospital: {
     label: "Hospital",
-    icon: "hospital",
-    iconSize: 30,
-    IconLibrary: FontAwesome5,
+    icon: "hospital-solid",
+    iconSize: 25,
+    IconLibrary: Fontello,
   },
   bank: {
     label: "Bank",
-    icon: "piggy-bank",
-    iconSize: 30,
-    IconLibrary: FontAwesome5,
+    icon: "bank-solid",
+    iconSize: 25,
+    IconLibrary: Fontello,
   },
   church: {
     label: "Church",
-    icon: "church",
-    iconSize: 30,
-    IconLibrary: FontAwesome5,
+    icon: "church-solid",
+    iconSize: 25,
+    IconLibrary: Fontello,
   },
   supermarket: {
     label: "Supermarket",
-    icon: "shopping-bag",
-    iconSize: 30,
-    IconLibrary: FontAwesome5,
+    icon: "mall-solid",
+    iconSize: 25,
+    IconLibrary: Fontello,
   },
 };
