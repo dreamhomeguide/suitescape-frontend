@@ -42,13 +42,17 @@ const style = StyleSheet.create({
     borderBottomRightRadius: 10,
     borderBottomWidth: 1,
   },
-  logoutButtonContainer: {
+  bottomButtonContainer: {
     marginHorizontal: 15,
     marginTop: 15,
-    marginBottom: 5 + StatusBar.currentHeight,
+    marginBottom: StatusBar.currentHeight + 5,
   },
   logoutButton: {
     color: Colors.red,
+    fontWeight: "600",
+  },
+  loginButton: {
+    color: Colors.blue,
     fontWeight: "600",
   },
 });
