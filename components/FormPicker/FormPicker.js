@@ -67,7 +67,7 @@ const FormPicker = ({
           }}
           // activeOpacity={0.1}
         >
-          <Text style={{ fontSize: 15 }}>{item.label}</Text>
+          <Text style={{ color: "black", fontSize: 15 }}>{item.label}</Text>
           <View pointerEvents="none">
             {multiSelect ? (
               <Checkbox
