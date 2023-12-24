@@ -16,13 +16,8 @@ const BookingList = ({ data, type, isFetched, refreshControl }) => {
 
   const EmptyListComponent = useCallback(() => {
     return isFetched ? (
-      <View
-        style={{
-          ...globalStyles.flexCenter,
-          marginTop: 20,
-        }}
-      >
-        <Text style={globalStyles.emptyText}>
+      <View style={globalStyles.flexCenter}>
+        <Text style={globalStyles.emptyTextCenter}>
           No {splitTextSpaced(type)} bookings
         </Text>
       </View>
