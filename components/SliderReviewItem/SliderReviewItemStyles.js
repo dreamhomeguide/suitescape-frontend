@@ -27,12 +27,10 @@ const style = StyleSheet.create({
   userNameContainer: {
     flex: 1,
     marginTop: 5,
-    marginLeft: 6,
+    marginLeft: 10,
     marginRight: 16,
   },
   userName: {
-    paddingLeft: 3,
-    marginBottom: 5,
     fontWeight: "600",
   },
   reviewContainer: {
