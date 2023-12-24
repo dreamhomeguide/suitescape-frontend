@@ -45,13 +45,14 @@ const stackType = "native";
 
 const Root = () => {
   const [fontsLoaded] = useFonts({
-    "Agenor-Bold": require("./assets/fonts/Agenor-Bold.ttf"),
-    "Agenor-Thin": require("./assets/fonts/Agenor-Thin.ttf"),
+    Fontello: require("./assets/fontello/Fontello.ttf"),
     ...AntDesign.font,
     ...Entypo.font,
     ...FontAwesome5.font,
     ...Foundation.font,
     ...MaterialCommunityIcons.font,
+    "Agenor-Bold": require("./assets/fonts/Agenor-Bold.ttf"),
+    "Agenor-Thin": require("./assets/fonts/Agenor-Thin.ttf"),
   });
 
   const colorScheme = useColorScheme();
