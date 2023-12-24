@@ -1,10 +1,10 @@
-import Entypo from "@expo/vector-icons/Entypo";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { useColorScheme, View } from "react-native";
 
 import style from "./BottomTabsStyles";
 import { Colors } from "../../assets/Colors";
+import Icon from "../../assets/fontello/Fontello";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import Bookings from "../../screens/Bookings/Bookings";
 import Cart from "../../screens/Cart/Cart";
@@ -41,29 +41,39 @@ const darkThemeTabOptions = {
 
 const tabIcons = {
   [Routes.HOME]: {
-    iconName: "home",
+    iconName: "home-regular",
+    iconFocused: "home-solid",
   },
   [Routes.MESSAGES]: {
-    iconName: "message",
+    iconName: "message-regular",
+    iconFocused: "message-solid",
   },
   [Routes.CART]: {
-    iconName: "shopping-cart",
+    iconName: "cart-regular",
+    iconFocused: "cart-solid",
   },
   [Routes.BOOKINGS]: {
-    iconName: "calendar",
+    iconName: "bookings-regular",
+    iconFocused: "bookings-solid",
   },
   [Routes.PROFILE]: {
-    render: ({ size }) => (
-      <ProfileImage borderColor="transparent" borderWidth={0} size={size} />
+    render: ({ focused, size }) => (
+      <ProfileImage
+        size={size}
+        borderWidth={focused ? 1 : 0}
+        borderColor={Colors.blue}
+      />
     ),
   },
 };
 
 const renderTabIcons = (props, route) => {
-  const { focused, color, size } = props;
+  const { focused, size, color } = props;
+
+  const iconSize = size - 3;
 
   const tabIcon = tabIcons[route.name];
-  const { iconName, render } = tabIcon ?? {};
+  const { iconName, iconFocused, render } = tabIcon ?? {};
 
   return (
     <>
@@ -75,9 +85,13 @@ const renderTabIcons = (props, route) => {
         }}
       >
         {iconName ? (
-          <Entypo name={iconName} size={size} color={color} />
+          <Icon
+            name={focused ? iconFocused : iconName}
+            size={iconSize}
+            color={color}
+          />
         ) : (
-          render(props)
+          render({ focused, size, color })
         )}
       </View>
 
