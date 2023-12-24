@@ -1,7 +1,21 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useTheme } from "@react-navigation/native";
-import React, { useEffect, useLayoutEffect } from "react";
-import { Alert, Linking, Platform, ScrollView, Text, View } from "react-native";
+import { useFocusEffect, useTheme } from "@react-navigation/native";
+import { useQueryClient } from "@tanstack/react-query";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
+import {
+  Alert,
+  Linking,
+  Platform,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import MapView from "react-native-maps";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
@@ -27,8 +41,9 @@ import { useBookingContext } from "../../contexts/BookingContext";
 import { useListingContext } from "../../contexts/ListingContext";
 import { ModalGalleryProvider } from "../../contexts/ModalGalleryContext";
 import useFetchAPI from "../../hooks/useFetchAPI";
-import { IoniconsHeaderButton } from "../../navigation/HeaderButtons";
+import { FontelloHeaderButton } from "../../navigation/HeaderButtons";
 import { Routes } from "../../navigation/Routes";
+import SuitescapeAPI from "../../services/SuitescapeAPI";
 
 const NEARBY_IN_VIEW = 6;
 const REVIEWS_IN_VIEW = 6;
@@ -41,22 +56,34 @@ const angelesRegion = {
 };
 
 const ListingDetails = ({ route, navigation }) => {
+  const [showHeavyComponents, setShowHeavyComponents] = useState(false);
+
   const listingId = route.params.listingId;
 
-  const { data: listing } = useFetchAPI(`/listings/${listingId}`);
+  const { data: listing } = useFetchAPI(
+    `/listings/${listingId}`,
+    undefined,
+    undefined,
+    { enabled: showHeavyComponents },
+  );
   const { setListing } = useListingContext();
   const { clearBookingInfo } = useBookingContext();
+  const { height } = useWindowDimensions();
   const { colors } = useTheme();
+
+  const sliderHeight = height / 2 - 50;
+
+  const queryClient = useQueryClient();
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <HeaderButtons HeaderButtonComponent={IoniconsHeaderButton}>
+        <HeaderButtons HeaderButtonComponent={FontelloHeaderButton}>
           <Item
             title="menu"
-            iconName="menu"
+            iconName="hamburger-regular"
             color={colors.text}
-            onPress={() => console.log("menu")}
+            onPress={() => console.log("Menu pressed")}
           />
         </HeaderButtons>
       ),
@@ -64,16 +91,33 @@ const ListingDetails = ({ route, navigation }) => {
   }, [navigation]);
 
   // Set listing to global context
-  useEffect(() => {
-    setListing(listing);
-  }, [listing]);
+  useFocusEffect(
+    useCallback(() => {
+      setListing(listing);
+    }, [listing]),
+  );
 
-  // Clear global listing and guest info on unmount
   useEffect(() => {
+    // Increment view count
+    SuitescapeAPI.post("/listings/" + listingId + "/view")
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ["profile", "saved"] });
+        queryClient.invalidateQueries({ queryKey: ["profile", "liked"] });
+      })
+      .catch((err) => console.log(err));
+
     return () => {
+      // Clear global listing and guest info on unmount
       clearBookingInfo();
       setListing(null);
     };
+  }, []);
+
+  // Delay showing heavy components
+  useEffect(() => {
+    return navigation.addListener("transitionEnd", () => {
+      setShowHeavyComponents(true);
+    });
   }, []);
 
   const {
@@ -121,15 +165,24 @@ const ListingDetails = ({ route, navigation }) => {
 
   return (
     <ModalGalleryProvider>
-      <SliderModalPhoto imageData={images} />
-      <SliderModalVideo videoData={videos} listing={listing} />
+      {showHeavyComponents && (
+        <>
+          <SliderModalPhoto imageData={images} />
+          <SliderModalVideo videoData={videos} listing={listing} />
+        </>
+      )}
 
       <View style={globalStyles.flexFull}>
         <ScrollView>
-          <SliderGalleryMode
-            imageData={images ?? null}
-            videoData={videos ?? null}
-          />
+          <View style={{ height: sliderHeight }}>
+            {showHeavyComponents && (
+              <SliderGalleryMode
+                imageData={images ?? null}
+                videoData={videos ?? null}
+                height={sliderHeight}
+              />
+            )}
+          </View>
 
           {/* Title */}
           <DetailsTitleView
@@ -178,11 +231,7 @@ const ListingDetails = ({ route, navigation }) => {
             <Text style={style.headerText}>Description</Text>
 
             {details?.description ? (
-              <ReadMore
-                numberOfLines={4}
-                textStyle={style.text}
-                linkStyle={style.readMoreText}
-              >
+              <ReadMore numberOfLines={4} textStyle={style.text}>
                 {details.description}
               </ReadMore>
             ) : (
@@ -198,7 +247,7 @@ const ListingDetails = ({ route, navigation }) => {
               <>
                 {/* Map View only available to iOS for now */}
                 <View style={style.locationContainer}>
-                  {Platform.OS === "ios" && (
+                  {Platform.OS === "ios" && showHeavyComponents && (
                     <MapView
                       style={style.locationContainer}
                       region={angelesRegion}
@@ -228,7 +277,7 @@ const ListingDetails = ({ route, navigation }) => {
 
             <ListingFeaturesView
               feature={FEATURES.placesNearby}
-              data={nearbyPlaces}
+              data={showHeavyComponents ? nearbyPlaces : null}
               size={NEARBY_IN_VIEW}
             />
 
@@ -251,7 +300,7 @@ const ListingDetails = ({ route, navigation }) => {
               }}
             >
               <>
-                {serviceRating ? (
+                {serviceRating && showHeavyComponents ? (
                   Object.entries(serviceRating).map(([key, value], index) => (
                     <ServiceRating label={key} rating={value} key={index} />
                   ))
@@ -273,6 +322,13 @@ const ListingDetails = ({ route, navigation }) => {
                     gap={1}
                     textStyle={style.seeAllText}
                     label="See All"
+                    onPress={() =>
+                      navigation.push(Routes.LISTING_RATINGS, {
+                        listingId,
+                        averageRating: details?.average_rating,
+                        reviewsCount: details?.reviews_count,
+                      })
+                    }
                   >
                     <Ionicons
                       name="chevron-forward"
@@ -284,7 +340,10 @@ const ListingDetails = ({ route, navigation }) => {
               )}
             </View>
 
-            <SliderReviews reviews={reviews} size={REVIEWS_IN_VIEW} />
+            <SliderReviews
+              reviews={showHeavyComponents ? reviews : null}
+              size={REVIEWS_IN_VIEW}
+            />
           </View>
 
           {/* Report Listing */}
