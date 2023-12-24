@@ -29,9 +29,6 @@ const style = StyleSheet.create({
     color: Colors.red,
     fontSize: 14,
   },
-  readMoreText: {
-    color: "rgba(0,0,0,0.5)",
-  },
   headerText: {
     color: "black",
     fontSize: 18,
