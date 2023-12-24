@@ -68,7 +68,6 @@ const Search = ({ navigation, route }) => {
             fontSize: 18,
             fontWeight: "bold",
             paddingHorizontal: 5,
-            paddingTop: 20,
             paddingBottom: 5,
           }}
         >
@@ -194,7 +193,6 @@ const Search = ({ navigation, route }) => {
             fontSize: 18,
             fontWeight: "bold",
             paddingHorizontal: 5,
-            paddingTop: 20,
             paddingBottom: 5,
           }}
         >
@@ -244,8 +242,9 @@ const Search = ({ navigation, route }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20 }} horizontal={false}>
+    <View style={globalStyles.flexFull}>
       <FormInput
+        // ref={textInputRef}
         type="clearable"
         value={searchQuery}
         onChangeText={(value) => {
@@ -256,6 +255,7 @@ const Search = ({ navigation, route }) => {
         }}
         placeholder="Where To?"
         returnKeyType="search"
+        containerStyle={{ padding: 20 }}
         onClear={() => {
           setSearchQuery("");
           setResults([]);
@@ -293,19 +293,24 @@ const Search = ({ navigation, route }) => {
         }}
       />
       <ScrollView
-        horizontal
-        scrollEnabled={false}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 20 }}
+        horizontal={false}
       >
-        <View style={{ flexGrow: 1 }}>
-          {recentSearches.length > 0 &&
-            results.length === 0 &&
-            renderRecentSearches()}
+        <ScrollView
+          horizontal
+          scrollEnabled={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <View style={{ flexGrow: 1 }}>
+            {recentSearches.length > 0 &&
+              results.length === 0 &&
+              renderRecentSearches()}
 
-          {results.length > 0 && renderResults()}
-        </View>
+            {results.length > 0 && renderResults()}
+          </View>
+        </ScrollView>
       </ScrollView>
-    </ScrollView>
+    </View>
   );
 };
 
