@@ -62,7 +62,8 @@ export const AuthProvider = ({ children }) => {
 
   const abortControllerRef = useRef(null);
 
-  const { disableOnboarding } = useSettings();
+  const { settings, enableOnboarding, disableOnboarding, disableGuestMode } =
+    useSettings();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -76,6 +77,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (!userToken) {
+        console.log("No token found");
         dispatch({ type: "RESTORE_TOKEN_FINISH" });
         return;
       }
@@ -233,6 +235,20 @@ export const AuthProvider = ({ children }) => {
     }
     dispatch({ type: "START_LOADING" });
 
+    clearCacheDir("videos/").then(() => {
+      console.log("Cache cleared");
+    });
+
+    if (settings.guestModeEnabled) {
+      dispatch({ type: "FINISH_LOADING" });
+
+      await disableGuestMode();
+
+      // Enable onboarding here, so it will be shown again when the user quits the app
+      await enableOnboarding();
+      return;
+    }
+
     try {
       const response = await SuitescapeAPI.post("/logout");
       handleApiResponse({ response });
@@ -244,15 +260,14 @@ export const AuthProvider = ({ children }) => {
     } finally {
       removeHeaderToken();
 
-      // await enableOnboarding();
       await SecureStore.deleteItemAsync("userToken");
 
-      clearCacheDir("videos/").then(() => {
-        console.log("Cache cleared");
-      });
-
-      dispatch({ type: "SIGN_OUT" });
       dispatch({ type: "FINISH_LOADING" });
+      dispatch({ type: "SIGN_OUT" });
+
+      // Enable onboarding so when the user quits the app while not logged in,
+      // the onboarding will be shown again
+      await enableOnboarding();
     }
   };
 
