@@ -25,9 +25,6 @@ const style = StyleSheet.create({
     fontSize: 16,
     color: "gold",
   },
-  ratingText: {
-    marginBottom: 4,
-  },
   readMoreText: {
     color: "rgba(255,255,255,0.5)",
   },

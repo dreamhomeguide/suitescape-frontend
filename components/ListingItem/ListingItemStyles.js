@@ -1,7 +1,5 @@
 import { StyleSheet } from "react-native";
 
-import globalStyles from "../../assets/styles/globalStyles";
-
 const style = StyleSheet.create({
   mainContainer: {
     paddingTop: 20,
@@ -13,7 +11,6 @@ const style = StyleSheet.create({
     paddingTop: 15,
     paddingHorizontal: 5,
     paddingBottom: 10,
-    ...globalStyles.textGap,
   },
   detailsName: {
     fontSize: 18,

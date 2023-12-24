@@ -4,6 +4,7 @@ const style = StyleSheet.create({
   ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
+    paddingTop: 4,
   },
   starRatingContainer: {
     left: -3,

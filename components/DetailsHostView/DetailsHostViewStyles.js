@@ -6,12 +6,12 @@ const style = StyleSheet.create({
     marginBottom: 12,
   },
   hostContentContainer: {
-    padding: 15,
+    padding: 20,
     flexDirection: "row",
+    alignItems: "center",
   },
   hostDetailsContainer: {
     flex: 1,
-    paddingTop: 2,
     paddingLeft: 12,
   },
   hostNameText: {
@@ -20,7 +20,7 @@ const style = StyleSheet.create({
     fontWeight: "bold",
   },
   responseContainer: {
-    marginTop: 8,
+    marginTop: 5,
     marginBottom: 1,
   },
   responseText: {

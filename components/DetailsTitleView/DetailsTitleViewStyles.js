@@ -17,14 +17,10 @@ const style = StyleSheet.create({
   ratingText: {
     fontSize: 15,
   },
-  linkText: {
-    fontSize: 15,
-    paddingTop: 1.5,
-  },
   ratingsContainer: {
     flexDirection: "row",
+    alignItems: "center",
     columnGap: 20,
-    paddingTop: 1,
   },
 });
 

@@ -13,6 +13,7 @@ const style = StyleSheet.create({
     flex: 1,
     marginRight: 15,
     marginBottom: 5,
+    rowGap: 5,
   },
   text: {
     color: "black",
@@ -24,7 +25,6 @@ const style = StyleSheet.create({
   },
   roomNameText: {
     fontSize: 25,
-    marginBottom: 10,
   },
   detailsTitleText: {
     fontSize: 19,

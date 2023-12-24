@@ -41,10 +41,7 @@ const VideoListingDetails = ({ listing }) => {
       >
         P{lowest_room_price} Per night
       </Text>
-      <StarRatingView
-        rating={average_rating}
-        textStyle={{ ...style.text, ...style.ratingText }}
-      />
+      <StarRatingView rating={average_rating} textStyle={style.text} />
       <ReadMore
         numberOfLines={1}
         linkStyle={style.readMoreText}
