@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { FlatList, Pressable, ScrollView, Text, View } from "react-native";
 
 import { Colors } from "../../assets/Colors";
+import Fontello from "../../assets/fontello/Fontello";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import FormInput from "../../components/FormInput/FormInput";
 import { Routes } from "../../navigation/Routes";
@@ -151,8 +152,7 @@ const Search = ({ navigation, route }) => {
               <Pressable
                 style={({ pressed }) => ({
                   ...pressedOpacity(pressed),
-                  paddingVertical: 10,
-                  paddingHorizontal: 5,
+                  padding: 10,
                 })}
                 onPress={() => {
                   setRecentSearches((prevSearches) => {
@@ -176,7 +176,7 @@ const Search = ({ navigation, route }) => {
                   });
                 }}
               >
-                <Ionicons name="ios-close" size={20} color={Colors.blue} />
+                <Fontello name="x-regular" size={10} color={Colors.blue} />
               </Pressable>
             </View>
           )}
