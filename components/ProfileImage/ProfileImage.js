@@ -4,11 +4,11 @@ import React, { memo } from "react";
 import style from "./ProfileImageStyles";
 
 const ProfileImage = ({
-  source = require("../../assets/images/profile.png"),
+  source = require("../../assets/images/pngs/profile.png"),
   size = 50,
   fillColor = "transparent",
   borderColor = "gray",
-  borderWidth = 2,
+  borderWidth = 0,
   containerStyle,
 }) => (
   <Image
