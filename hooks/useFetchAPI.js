@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import SuitescapeAPI from "../services/SuitescapeAPI";
 import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
 
-const useFetchAPI = (endpoint, config, initialData) => {
+const useFetchAPI = (endpoint, config, initialData, queryOptions) => {
   const [data, setData] = useState(initialData);
 
   const queryClient = useQueryClient();
@@ -19,6 +19,7 @@ const useFetchAPI = (endpoint, config, initialData) => {
   const query = useQuery({
     queryKey: fetchKey,
     queryFn: fetchAPI,
+    ...queryOptions,
   });
 
   const abort = () => {
