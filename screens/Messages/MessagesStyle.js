@@ -12,11 +12,13 @@ const MessagesStyle = StyleSheet.create({
     backgroundColor: "#F4F4F4",
   },
   searchContainer: {
-    backgroundColor: "#3333330D",
-    borderRadius: 5,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    // backgroundColor: "#3333330D",
+    // borderRadius: 5,
+    // paddingHorizontal: 20,
+    // paddingVertical: 20,
+    borderRadius: 10,
     marginVertical: 20,
+    marginHorizontal: 15,
   },
   searchText: {
     fontSize: 15,
@@ -25,7 +27,7 @@ const MessagesStyle = StyleSheet.create({
   messagesContainer: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 15,
+    // paddingHorizontal: 15,
   },
   singleChatContainer: (pressed) => ({
     opacity: pressed ? 0.5 : 1,
