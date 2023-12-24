@@ -55,7 +55,7 @@ const DetailsHostView = ({ hostName }) => {
         onShare={async () =>
           await Share.share({
             message:
-              "Check out this listing: " + baseURL + "/listings/" + listing.id,
+              "Check out this listing: " + baseURL + "/listings/" + listing?.id,
           })
         }
       />
