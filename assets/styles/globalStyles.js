@@ -27,6 +27,10 @@ const globalStyles = StyleSheet.create({
     marginTop: 0,
     margin: 15,
   },
+  emptyTextCenter: {
+    textAlign: "center",
+    margin: 20,
+  },
   headerText: {
     color: "black",
     fontSize: 22,
