@@ -11,14 +11,15 @@ import ButtonBack from "../ButtonBack/ButtonBack";
 const HeaderOnboarding = ({
   index,
   onPrevButtonClick,
-  showSkipButton = false,
+  signInEnabled = false,
 }) => {
   const navigation = useNavigation();
   const { disableOnboarding } = useSettings();
 
-  const handleSignInButtonClick = async () => {
-    await disableOnboarding();
-    navigation.replace(Routes.LOGIN);
+  const handleSignInButtonClick = () => {
+    disableOnboarding().then(() => {
+      navigation.replace(Routes.LOGIN);
+    });
   };
 
   return (
@@ -27,17 +28,7 @@ const HeaderOnboarding = ({
         {index > 0 && <ButtonBack onPress={onPrevButtonClick} />}
       </View>
       <View style={style.headerRight}>
-        {index === 0 && (
-          <Button
-            inverted
-            onPress={handleSignInButtonClick}
-            containerStyle={style.buttonContainer}
-            textStyle={style.buttonText}
-          >
-            Skip
-          </Button>
-        )}
-        {showSkipButton && (
+        {signInEnabled && (
           <Button
             inverted
             onPress={handleSignInButtonClick}
