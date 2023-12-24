@@ -1,19 +1,21 @@
-import AntDesign from "@expo/vector-icons/AntDesign";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import Foundation from "@expo/vector-icons/Foundation";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useNavigation } from "@react-navigation/native";
 import React, { memo } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import style from "./VideoListingIconsViewStyles";
+import Fontello from "../../assets/fontello/Fontello";
 import { pressedOpacity } from "../../assets/styles/globalStyles";
 import { useSocialActions } from "../../contexts/SocialActionsContext";
 import { Routes } from "../../navigation/Routes";
 import ProfileImage from "../ProfileImage/ProfileImage";
 import VideoListingIcon from "../VideoListingIcon/VideoListingIcon";
 
-const VideoListingIconsView = ({ listingId, previewMode, onShowModal }) => {
+const VideoListingIconsView = ({
+  hostId,
+  listingId,
+  previewMode,
+  onShowModal,
+}) => {
   const navigation = useNavigation();
   const socialActionsContext = useSocialActions();
 
@@ -22,29 +24,29 @@ const VideoListingIconsView = ({ listingId, previewMode, onShowModal }) => {
 
   const iconsConfig = [
     {
-      IconComponent: AntDesign,
-      name: "heart",
+      IconComponent: Fontello,
+      name: "heart-solid",
       label: likesCount,
       color: isLiked ? "red" : "white",
       onPress: handleLike,
     },
     {
-      IconComponent: Foundation,
-      name: "info",
+      IconComponent: Fontello,
+      name: "info-solid",
       label: "View",
       onPress: () => navigation.navigate(Routes.LISTING_DETAILS, { listingId }),
       hapticEnabled: false,
     },
     {
-      IconComponent: FontAwesome,
-      name: "bookmark",
+      IconComponent: Fontello,
+      name: "save-solid",
       label: isSaved ? "Saved" : "Save",
       color: isSaved ? "gold" : "white",
       onPress: handleSave,
     },
     {
-      IconComponent: MaterialCommunityIcons,
-      name: "format-list-bulleted-type",
+      IconComponent: Fontello,
+      name: "section-solid",
       label: "Sections",
       onPress: onShowModal,
       enableOnPreview: true,
@@ -55,12 +57,10 @@ const VideoListingIconsView = ({ listingId, previewMode, onShowModal }) => {
     <View style={style.mainContainer}>
       {!previewMode && (
         <Pressable
-          onPress={() =>
-            navigation.navigate(Routes.PROFILE_HOST, { listingId })
-          }
+          onPress={() => navigation.navigate(Routes.PROFILE_HOST, { hostId })}
           style={({ pressed }) => pressedOpacity(pressed, 0.8)}
         >
-          <ProfileImage fill="rgba(0,0,0,0.5)" size={35}>
+          <ProfileImage borderWidth={1} borderColor="white" size={35}>
             Profile
           </ProfileImage>
           <Text style={style.text}>Profile</Text>
@@ -69,9 +69,7 @@ const VideoListingIconsView = ({ listingId, previewMode, onShowModal }) => {
 
       <>
         {iconsConfig
-          .filter(
-            (icon) => (previewMode && icon.enableOnPreview) || !previewMode,
-          )
+          .filter((icon) => !previewMode || icon.enableOnPreview)
           .map((config, index) => (
             <View key={index}>
               <VideoListingIcon {...config} />
