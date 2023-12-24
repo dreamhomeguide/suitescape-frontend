@@ -1,24 +1,24 @@
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useNavigation } from "@react-navigation/native";
 import React, { useEffect, useRef } from "react";
 import {
   FlatList,
   Keyboard,
+  KeyboardAvoidingView,
   Platform,
+  Pressable,
   Text,
   TextInput,
   View,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./ChatStyle";
 import { Colors } from "../../assets/Colors";
-import ChatClient from "../../components/ChatClient/ChatClient";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
+import ButtonBack from "../../components/ButtonBack/ButtonBack";
+import ChatItem from "../../components/ChatItem/ChatItem";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import StarRatingView from "../../components/StarRatingView/StarRatingView";
 
@@ -86,22 +86,26 @@ const message = [
 ];
 
 const Chat = () => {
-  const navigation = useNavigation();
-  const inset = useSafeAreaInsets();
   const flatListRef = useRef(null);
+
+  const insets = useSafeAreaInsets();
+
   useEffect(() => {
     flatListRef.current.scrollToEnd({ animated: false });
   }, []);
+
   return (
-    <SafeAreaView style={{ paddingTop: inset.top - 25, flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{
+        marginTop: insets.top,
+        marginBottom: insets.bottom,
+        ...globalStyles.flexFull,
+      }}
+    >
       <View style={style.headerContainer}>
         <View style={style.headerTitleContainer}>
-          <Ionicons
-            name="chevron-back-sharp"
-            size={30}
-            color="black"
-            onPress={() => navigation.goBack()}
-          />
+          <ButtonBack />
           <View style={style.headerNameAndActiveStatus}>
             <Text style={style.recipientName}>Dream Home</Text>
             <View style={style.activeStatusContainer}>
@@ -129,7 +133,7 @@ const Chat = () => {
         style={{ backgroundColor: Colors.backgroundGray }}
         data={message}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ChatClient {...item} />}
+        renderItem={({ item }) => <ChatItem {...item} />}
         getItemLayout={(data, index) => {
           return {
             length: 120,
@@ -155,6 +159,7 @@ const Chat = () => {
         <View style={style.messageEditorContainer}>
           <TextInput
             style={style.textInput}
+            // autoFocus
             multiline
             placeholder="Type a message..."
           />
@@ -163,11 +168,16 @@ const Chat = () => {
           </View>
         </View>
 
-        <View style={style.sendMessageButtonContainer}>
+        <Pressable
+          style={({ pressed }) => ({
+            ...style.sendMessageButtonContainer,
+            ...pressedOpacity(pressed),
+          })}
+        >
           <Ionicons name="ios-send" size={24} color="black" />
-        </View>
+        </Pressable>
       </View>
-    </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 };
 
