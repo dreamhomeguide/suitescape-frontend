@@ -8,7 +8,14 @@ import ButtonLink from "../ButtonLink/ButtonLink";
 import CouponBadge from "../CouponBadge/CouponBadge";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
-const DetailsTitleView = ({ title, price, rating, reviewsCount, discount }) => {
+const DetailsTitleView = ({
+  title,
+  price,
+  rating,
+  reviewsCount,
+  discount,
+  onSeeAllReviews,
+}) => {
   return (
     <View
       style={{
@@ -30,7 +37,10 @@ const DetailsTitleView = ({ title, price, rating, reviewsCount, discount }) => {
 
             {/* Reviews */}
             {reviewsCount ? (
-              <ButtonLink textStyle={style.ratingText}>
+              <ButtonLink
+                onPress={onSeeAllReviews}
+                textStyle={style.ratingText}
+              >
                 {reviewsCount} {reviewsCount > 1 ? "Reviews" : "Review"}
               </ButtonLink>
             ) : null}
