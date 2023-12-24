@@ -12,7 +12,7 @@ import DashView from "../DashView/DashView";
 import FormInput from "../FormInput/FormInput";
 
 const MINIMUM_PRICE = 0;
-const MAXIMUM_PRICE = 5_000;
+const MAXIMUM_PRICE = 20_000;
 const STEP = 50;
 const RESET_VALUE = -1;
 
