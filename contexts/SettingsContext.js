@@ -6,14 +6,15 @@ const SettingsContext = createContext(undefined);
 const initialState = {
   isLoaded: false,
   onboardingEnabled: true,
+  guestModeEnabled: false,
 };
 
 const reducer = (prevState, action) => {
   switch (action.type) {
-    case "SET_ONBOARDING":
+    case "MODIFY_SETTING":
       return {
         ...prevState,
-        onboardingEnabled: action.onboardingEnabled,
+        [action.setting]: action.value,
       };
     case "RESTORE_SETTINGS":
       return {
@@ -29,19 +30,34 @@ const reducer = (prevState, action) => {
 export const SettingsProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState, undefined);
 
+  const getSetting = async (settingName, defaultValue) => {
+    const storedSetting = await SecureStore.getItemAsync(settingName);
+
+    if (!storedSetting) {
+      await SecureStore.setItemAsync(settingName, String(defaultValue));
+      return defaultValue;
+    }
+
+    // Return the stored setting as a boolean
+    if (storedSetting === "true" || storedSetting === "false") {
+      return storedSetting === "true";
+    }
+
+    // Return the stored setting as a string
+    return storedSetting;
+  };
+
   useEffect(() => {
     const getSettings = async () => {
       const settings = {};
 
+      console.log("Restoring settings...");
       try {
-        const storedOnboardingEnabled =
-          await SecureStore.getItemAsync("onboardingEnabled");
-        if (!storedOnboardingEnabled) {
-          await SecureStore.setItemAsync("onboardingEnabled", "true");
-          settings.onboardingEnabled = true;
-        } else {
-          settings.onboardingEnabled = storedOnboardingEnabled === "true";
-        }
+        settings.onboardingEnabled = await getSetting(
+          "onboardingEnabled",
+          true,
+        );
+        settings.guestModeEnabled = await getSetting("guestModeEnabled", false);
       } catch (err) {
         console.log(err);
       }
@@ -53,20 +69,18 @@ export const SettingsProvider = ({ children }) => {
     getSettings();
   }, []);
 
-  const enableOnboarding = async () => {
-    await SecureStore.setItemAsync("onboardingEnabled", "true");
-    dispatch({ type: "SET_ONBOARDING", onboardingEnabled: true });
-  };
-
-  const disableOnboarding = async () => {
-    await SecureStore.setItemAsync("onboardingEnabled", "false");
-    dispatch({ type: "SET_ONBOARDING", onboardingEnabled: false });
+  const modifySetting = async (setting, value) => {
+    await SecureStore.setItemAsync(setting, String(value));
+    dispatch({
+      type: "MODIFY_SETTING",
+      setting,
+      value,
+    });
   };
 
   const settingsContext = {
     settings: state,
-    enableOnboarding,
-    disableOnboarding,
+    modifySetting,
   };
 
   return (
