@@ -163,6 +163,14 @@ const ListingDetails = ({ route, navigation }) => {
     ).catch(() => Alert.alert("Failed to open Google Maps."));
   };
 
+  const onSeeAllReviews = () => {
+    navigation.push(Routes.LISTING_RATINGS, {
+      listingId,
+      averageRating: details?.average_rating,
+      reviewsCount: details?.reviews_count,
+    });
+  };
+
   return (
     <ModalGalleryProvider>
       {showHeavyComponents && (
@@ -190,6 +198,7 @@ const ListingDetails = ({ route, navigation }) => {
             price={details?.lowest_room_price}
             rating={details?.average_rating}
             reviewsCount={details?.reviews_count}
+            onSeeAllReviews={onSeeAllReviews}
           />
 
           {/* Host Profile */}
@@ -322,13 +331,7 @@ const ListingDetails = ({ route, navigation }) => {
                     gap={1}
                     textStyle={style.seeAllText}
                     label="See All"
-                    onPress={() =>
-                      navigation.push(Routes.LISTING_RATINGS, {
-                        listingId,
-                        averageRating: details?.average_rating,
-                        reviewsCount: details?.reviews_count,
-                      })
-                    }
+                    onPress={onSeeAllReviews}
                   >
                     <Ionicons
                       name="chevron-forward"
