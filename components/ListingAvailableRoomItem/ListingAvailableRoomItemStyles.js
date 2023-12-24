@@ -11,9 +11,8 @@ const style = StyleSheet.create({
   },
   titleContainer: {
     flex: 1,
-    marginRight: 15,
-    marginBottom: 5,
     rowGap: 5,
+    marginRight: 15,
   },
   text: {
     color: "black",
