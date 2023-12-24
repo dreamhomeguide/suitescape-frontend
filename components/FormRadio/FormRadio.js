@@ -1,23 +1,25 @@
-import React, { memo, useLayoutEffect } from "react";
-import { View, LayoutAnimation, Platform, UIManager } from "react-native";
+import React, { memo } from "react";
+import { RadioButton } from "react-native-ui-lib";
 
-import style from "./FormRadioStyles";
+import { Colors } from "../../assets/Colors";
 
-if (Platform.OS === "android") {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
-}
+// Causes bottom sheet to lag
+// if (Platform.OS === "android") {
+//   if (UIManager.setLayoutAnimationEnabledExperimental) {
+//     UIManager.setLayoutAnimationEnabledExperimental(true);
+//   }
+// }
 
 const FormRadio = ({ selected }) => {
-  useLayoutEffect(() => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-  }, [selected]);
+  // useLayoutEffect(() => {
+  //   LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  // }, [selected]);
 
   return (
-    <View style={style.border}>
-      {selected && <View style={style.selected} />}
-    </View>
+    // <View style={style.border}>
+    //   {selected && <View style={style.selected} />}
+    // </View>
+    <RadioButton selected={selected} color={Colors.blue} size={20} />
   );
 };
 
