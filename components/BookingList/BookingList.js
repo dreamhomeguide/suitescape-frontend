@@ -14,27 +14,37 @@ const BookingList = ({ data, type, isFetched, refreshControl }) => {
     return <BookingItem item={item} type={type} />;
   }, []);
 
+  const EmptyListComponent = useCallback(() => {
+    return isFetched ? (
+      <View
+        style={{
+          ...globalStyles.flexCenter,
+          marginTop: 20,
+        }}
+      >
+        <Text style={globalStyles.emptyText}>
+          No {splitTextSpaced(type)} bookings
+        </Text>
+      </View>
+    ) : (
+      <ActivityIndicator style={globalStyles.loadingCircle} />
+    );
+  }, [isFetched]);
+
   return (
     <Tabs.FlatList
       data={data}
       contentInset={{ bottom: insets.bottom }}
       keyExtractor={(item) => item.id.toString()}
       renderItem={renderItem}
-      initialNumToRender={10}
+      initialNumToRender={5}
       windowSize={10}
+      maxToRenderPerBatch={10}
+      updateCellsBatchingPeriod={30}
+      removeClippedSubviews
       refreshControl={refreshControl}
       ItemSeparatorComponent={() => <View style={globalStyles.bottomGap} />}
-      ListEmptyComponent={() =>
-        isFetched ? (
-          <View style={globalStyles.flexCenter}>
-            <Text style={globalStyles.emptyText}>
-              No {splitTextSpaced(type)} bookings
-            </Text>
-          </View>
-        ) : (
-          <ActivityIndicator style={globalStyles.loadingCircle} />
-        )
-      }
+      ListEmptyComponent={EmptyListComponent}
     />
   );
 };
