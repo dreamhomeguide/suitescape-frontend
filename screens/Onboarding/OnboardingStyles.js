@@ -2,8 +2,9 @@ import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
   nextButtonContainer: {
-    marginTop: 30,
+    marginTop: 24,
     marginHorizontal: 24,
+    rowGap: 10,
   },
 });
 
