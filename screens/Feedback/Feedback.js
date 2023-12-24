@@ -53,8 +53,12 @@ const Feedback = ({ navigation, route }) => {
     <Pressable
       style={globalStyles.flexFull}
       onPress={() => {
-        popToTop && navigation.popToTop();
-        screenToNavigate && navigation.navigate(screenToNavigate);
+        if (popToTop) {
+          navigation.popToTop();
+          screenToNavigate && navigation.navigate(screenToNavigate);
+        } else {
+          screenToNavigate && navigation.replace(screenToNavigate);
+        }
       }}
     >
       {({ pressed }) => (
