@@ -70,7 +70,10 @@ const ReadMore = ({
           ? `${children.slice(0, text.length - 15).trim()}...`
           : children}
         {text.isTruncatedText && (
-          <Text style={linkStyle} onPress={() => setReadMore(!readMore)}>
+          <Text
+            style={{ color: "rgba(0,0,0,0.5)", ...linkStyle }}
+            onPress={() => setReadMore(!readMore)}
+          >
             {" "}
             {readMore ? readLessText : readMoreText}
           </Text>
