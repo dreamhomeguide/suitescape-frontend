@@ -22,7 +22,7 @@ import SliderReviews from "../../components/SliderReviews/SliderReviews";
 import { useBookingContext } from "../../contexts/BookingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
 import useFetchAPI from "../../hooks/useFetchAPI";
-import { IoniconsHeaderButton } from "../../navigation/HeaderButtons";
+import { FontelloHeaderButton } from "../../navigation/HeaderButtons";
 import { Routes } from "../../navigation/Routes";
 
 const AMENITIES_IN_VIEW = 6;
@@ -43,12 +43,12 @@ const RoomDetails = ({ navigation, route }) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <HeaderButtons HeaderButtonComponent={IoniconsHeaderButton}>
+        <HeaderButtons HeaderButtonComponent={FontelloHeaderButton}>
           <Item
             title="menu"
-            iconName="menu"
+            iconName="hamburger-regular"
             color={colors.text}
-            onPress={() => console.log("menu")}
+            onPress={() => console.log("Menu pressed")}
           />
         </HeaderButtons>
       ),
@@ -154,11 +154,7 @@ const RoomDetails = ({ navigation, route }) => {
           <Text style={style.headerText}>Room Description</Text>
 
           {roomData?.description ? (
-            <ReadMore
-              numberOfLines={4}
-              textStyle={style.text}
-              linkStyle={style.readMoreText}
-            >
+            <ReadMore numberOfLines={4} textStyle={style.text}>
               {roomData.description}
             </ReadMore>
           ) : (
@@ -171,11 +167,7 @@ const RoomDetails = ({ navigation, route }) => {
           <Text style={style.headerText}>Room Rules</Text>
 
           {roomData?.rules.content ? (
-            <ReadMore
-              numberOfLines={4}
-              textStyle={style.text}
-              linkStyle={style.readMoreText}
-            >
+            <ReadMore numberOfLines={4} textStyle={style.text}>
               {roomData.rules.content}
             </ReadMore>
           ) : (
