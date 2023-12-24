@@ -1,9 +1,9 @@
 import React from "react";
 import { Text, View } from "react-native";
 
-import style from "./ChatClientStyle";
+import style from "./ChatItemStyles";
 
-const ChatClient = ({ type, message }) => {
+const ChatItem = ({ type, message }) => {
   return (
     <View style={style.mainContainer(type)}>
       <View style={style.chatContainer(type)}>
@@ -15,4 +15,4 @@ const ChatClient = ({ type, message }) => {
   );
 };
 
-export default ChatClient;
+export default ChatItem;

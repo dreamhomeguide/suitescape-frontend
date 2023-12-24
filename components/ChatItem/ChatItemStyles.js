@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 
 import { Colors } from "../../assets/Colors";
 
-const ChatClientStyle = StyleSheet.create({
+const ChatItemStyles = StyleSheet.create({
   mainContainer: (type) => ({
     flex: 1,
     paddingHorizontal: 15,
@@ -27,4 +27,4 @@ const ChatClientStyle = StyleSheet.create({
   }),
 });
 
-export default ChatClientStyle;
+export default ChatItemStyles;
