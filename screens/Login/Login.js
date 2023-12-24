@@ -16,6 +16,11 @@ import LineView from "../../components/LineView/LineView";
 import LogoView from "../../components/LogoView/LogoView";
 import { useAuth } from "../../contexts/AuthContext";
 
+const mappings = {
+  email: "email",
+  password: "password",
+};
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,7 +69,7 @@ const Login = () => {
           value={email}
           onChangeText={(value) => {
             setEmail(value);
-            clearErrorWhenNotEmpty(value, "email");
+            clearErrorWhenNotEmpty(value, mappings.email);
           }}
           placeholder="Email Address"
           // Bug: doesn't show cursor when this is on
@@ -85,7 +90,7 @@ const Login = () => {
           value={password}
           onChangeText={(value) => {
             setPassword(value);
-            clearErrorWhenNotEmpty(value, "password");
+            clearErrorWhenNotEmpty(value, mappings.password);
           }}
           placeholder="Password"
           textContentType="none"
