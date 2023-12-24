@@ -197,8 +197,8 @@ const Filter = ({ navigation, route }) => {
   return (
     <>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : null}
-        keyboardVerticalOffset={80}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
         style={globalStyles.flexFull}
       >
         <ScrollView
@@ -421,9 +421,7 @@ const Filter = ({ navigation, route }) => {
 
           <View style={style.container}>
             <Text style={style.headerText}>Facility Rating</Text>
-            <View style={{ marginTop: 5, ...globalStyles.containerGap }}>
-              {renderStarRatings()}
-            </View>
+            <View style={globalStyles.containerGap}>{renderStarRatings()}</View>
           </View>
 
           <View style={style.container}>

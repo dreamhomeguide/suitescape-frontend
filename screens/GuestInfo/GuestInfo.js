@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -54,6 +55,8 @@ const mappings = {
 };
 
 const GuestInfo = ({ navigation }) => {
+  const [isFooterVisible, setIsFooterVisible] = useState(true);
+
   const { bookingState, setBookingData } = useBookingContext();
 
   // Destructure bookingState
@@ -89,6 +92,10 @@ const GuestInfo = ({ navigation }) => {
     if (userData) {
       Object.entries(mappings).forEach(([state, userDataKey]) => {
         if (userData[userDataKey]) {
+          // if (state === "gender") {
+          //   setBookingData({ [state]: userData[userDataKey].toLowerCase() });
+          //   return;
+          // }
           setBookingData({ [state]: userData[userDataKey] });
         }
       });
@@ -106,6 +113,7 @@ const GuestInfo = ({ navigation }) => {
         },
         onSuccess: (res) => {
           console.log(res.message);
+
           if (res.updated) {
             toast.show(res.message, {
               type: "success",
@@ -155,6 +163,11 @@ const GuestInfo = ({ navigation }) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : null}
         keyboardVerticalOffset={80}
+        onLayout={() => {
+          if (Platform.OS === "android") {
+            setIsFooterVisible(!Keyboard.isVisible());
+          }
+        }}
         style={globalStyles.flexFull}
       >
         <ScrollView
@@ -299,9 +312,11 @@ const GuestInfo = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <AppFooter>
-        <ButtonLarge onPress={() => updateProfile()}>Confirm</ButtonLarge>
-      </AppFooter>
+      {isFooterVisible && (
+        <AppFooter>
+          <ButtonLarge onPress={() => updateProfile()}>Confirm</ButtonLarge>
+        </AppFooter>
+      )}
       <DialogLoading visible={isLoading} onCancel={() => abort()} />
     </>
   );
