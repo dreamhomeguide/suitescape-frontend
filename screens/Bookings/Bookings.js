@@ -1,18 +1,28 @@
 import { useScrollToTop } from "@react-navigation/native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { RefreshControl } from "react-native";
 import { Tabs } from "react-native-collapsible-tab-view";
 
 import BookingList from "../../components/BookingList/BookingList";
+import { useSettings } from "../../contexts/SettingsContext";
 import useFetchAPI from "../../hooks/useFetchAPI";
 import { TabBar } from "../../navigation/TopTabs/TopTabs";
 
-const Bookings = ({ route }) => {
+const Bookings = ({ navigation, route }) => {
+  const { settings } = useSettings();
   const {
     data: bookings,
     refetch,
-    isFetchedAfterMount,
-  } = useFetchAPI("/bookings");
+    isFetched,
+  } = useFetchAPI("/bookings", undefined, undefined, {
+    enabled: !settings.guestModeEnabled,
+  });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -28,7 +38,7 @@ const Bookings = ({ route }) => {
       // refetch().then(() => console.log("Bookings refetched"));
 
       // Reset tab params
-      // navigation.setParams({ tab: null });
+      navigation.setParams({ tab: null });
     }
   }, [route.params?.tab]);
 
@@ -65,7 +75,7 @@ const Bookings = ({ route }) => {
     [bookings],
   );
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       await refetch();
@@ -75,11 +85,13 @@ const Bookings = ({ route }) => {
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [refetch]);
 
   const refreshControl = (
     <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
   );
+
+  const bookingsFetched = isFetched || settings.guestModeEnabled;
 
   return (
     <Tabs.Container
@@ -93,7 +105,7 @@ const Bookings = ({ route }) => {
         <BookingList
           data={upcomingBookings}
           type="upcoming"
-          isFetched={isFetchedAfterMount}
+          isFetched={bookingsFetched}
           refreshControl={refreshControl}
         />
       </Tabs.Tab>
@@ -101,7 +113,7 @@ const Bookings = ({ route }) => {
         <BookingList
           data={completedBookings}
           type="completed"
-          isFetched={isFetchedAfterMount}
+          isFetched={bookingsFetched}
           refreshControl={refreshControl}
         />
       </Tabs.Tab>
@@ -109,7 +121,7 @@ const Bookings = ({ route }) => {
         <BookingList
           data={toRateBookings}
           type="to_rate"
-          isFetched={isFetchedAfterMount}
+          isFetched={bookingsFetched}
           refreshControl={refreshControl}
         />
       </Tabs.Tab>
@@ -117,7 +129,7 @@ const Bookings = ({ route }) => {
         <BookingList
           data={cancelledBookings}
           type="cancelled"
-          isFetched={isFetchedAfterMount}
+          isFetched={bookingsFetched}
           refreshControl={refreshControl}
         />
       </Tabs.Tab>
