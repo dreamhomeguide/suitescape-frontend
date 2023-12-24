@@ -33,7 +33,6 @@ const SliderReviews = ({ reviews, size = 5 }) => {
         renderItem={({ item }) => (
           <SliderReviewItem
             item={item}
-            onPress={() => console.log("Review Item ID:", item.id)}
             itemWidth={itemWidth}
             itemMargin={itemMargin}
           />
