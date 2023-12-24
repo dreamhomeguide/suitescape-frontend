@@ -13,6 +13,7 @@ import Chip from "../../components/Chip/Chip";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import { useAuth } from "../../contexts/AuthContext";
+import { useSettings } from "../../contexts/SettingsContext";
 import { useVideoFilter } from "../../contexts/VideoFilterContext";
 import { Routes } from "../../navigation/Routes";
 import capitalizedText from "../../utilities/textCapitalizer";
@@ -24,12 +25,13 @@ const Profile = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { setVideoFilter } = useVideoFilter();
+  const { settings } = useSettings();
 
   const scrollViewRef = useRef(null);
 
   useScrollToTop(scrollViewRef);
 
-  const settings = {
+  const profileSettings = {
     profile: [
       {
         title: "Manage my account",
@@ -37,53 +39,63 @@ const Profile = ({ navigation }) => {
       },
       {
         title: "Change password",
-        onPress: () => {},
+        onPress: () => navigation.navigate(Routes.CHANGE_PASSWORD),
       },
       {
         title: "Saved",
-        onPress: () => {},
+        onPress: () => navigation.navigate(Routes.SAVED),
       },
+      {
+        title: "Liked",
+        onPress: () => navigation.navigate(Routes.LIKED),
+      },
+    ],
+    hosting: [
       {
         title: "Want to be a host?",
         onPress: () => {},
-      },
-      {
-        title: "Change payment method",
-        onPress: () => {},
+        enableOnGuestMode: true,
       },
     ],
     feedback: [
       {
         title: "App Feedback",
         onPress: () => {},
+        enableOnGuestMode: true,
       },
     ],
     legal_information: [
       {
         title: "Terms & Conditions",
         onPress: () => {},
+        enableOnGuestMode: true,
       },
       {
         title: "Privacy Policy",
         onPress: () => {},
+        enableOnGuestMode: true,
       },
       {
         title: "About Us",
         onPress: () => {},
+        enableOnGuestMode: true,
       },
     ],
     support: [
       {
         title: "Help Centre",
         onPress: () => {},
+        enableOnGuestMode: true,
       },
       {
         title: "How Suitescape Works",
         onPress: () => {},
+        enableOnGuestMode: true,
       },
       {
         title: "Report A Problem",
         onPress: () => {},
+        enableOnGuestMode: true,
       },
     ],
   };
@@ -129,49 +141,72 @@ const Profile = ({ navigation }) => {
         })}
       />
 
-      {Object.entries(settings).map(([key, value]) => (
-        <View style={style.settingsKeyContainer} key={key}>
-          <Text style={{ ...style.settingsKey, color: colors.text }}>
-            {capitalizedText(splitTextSpaced(key), true)}
-          </Text>
+      {Object.entries(profileSettings)
+        .filter(
+          ([_, value]) =>
+            !settings.guestModeEnabled ||
+            value.some((profileSetting) => profileSetting.enableOnGuestMode),
+        )
+        .map(([key, value]) => (
+          <View style={style.settingsKeyContainer} key={key}>
+            <Text style={{ ...style.settingsKey, color: colors.text }}>
+              {capitalizedText(splitTextSpaced(key), true)}
+            </Text>
 
-          {value.map(({ title, onPress }) => (
-            <RectButton
-              key={title}
-              // style={{
-              //   ...pressedBgColor(pressed, colors.border),
-              //   ...(pressed && style.settingsValuePressed),
-              // })}
-              style={style.settingsValuePressed}
-              onPress={onPress}
-            >
-              <View
-                style={{
-                  ...style.settingsValueContainer,
-                  borderBottomColor: colors.border,
-                }}
-              >
-                <Text style={{ color: colors.text }}>{title}</Text>
-                <Ionicons
-                  name="chevron-forward"
-                  size={21}
-                  color={Colors.blue}
-                />
-              </View>
-            </RectButton>
-          ))}
-        </View>
-      ))}
+            {value
+              .filter(
+                (profileSetting) =>
+                  !settings.guestModeEnabled ||
+                  profileSetting.enableOnGuestMode,
+              )
+              .map(({ title, onPress }) => (
+                <RectButton
+                  key={title}
+                  // style={{
+                  //   ...pressedBgColor(pressed, colors.border),
+                  //   ...(pressed && style.settingsValuePressed),
+                  // })}
+                  style={style.settingsValuePressed}
+                  onPress={onPress}
+                >
+                  <View
+                    style={{
+                      ...style.settingsValueContainer,
+                      borderBottomColor: colors.border,
+                    }}
+                  >
+                    <Text style={{ color: colors.text }}>{title}</Text>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={21}
+                      color={Colors.blue}
+                    />
+                  </View>
+                </RectButton>
+              ))}
+          </View>
+        ))}
 
-      <Button
-        inverted
-        color={Colors.red}
-        containerStyle={style.logoutButtonContainer}
-        textStyle={style.logoutButton}
-        onPress={() => promptLogout()}
-      >
-        Logout
-      </Button>
+      {settings.guestModeEnabled ? (
+        <Button
+          inverted
+          containerStyle={style.bottomButtonContainer}
+          textStyle={style.loginButton}
+          onPress={() => logOut()}
+        >
+          Login/Signup
+        </Button>
+      ) : (
+        <Button
+          inverted
+          color={Colors.red}
+          containerStyle={style.bottomButtonContainer}
+          textStyle={style.logoutButton}
+          onPress={() => promptLogout()}
+        >
+          Logout
+        </Button>
+      )}
 
       {/*<ButtonLink*/}
       {/*  containerStyle={style.logoutButtonContainer}*/}
@@ -180,7 +215,10 @@ const Profile = ({ navigation }) => {
       {/*>*/}
       {/*  Logout*/}
       {/*</ButtonLink>*/}
-      <DialogLoading visible={authState.isLoading} title="Logging out..." />
+      <DialogLoading
+        visible={authState.isLoading}
+        title={settings.guestModeEnabled ? "Please wait..." : "Logging out..."}
+      />
     </ScrollView>
   );
 };
