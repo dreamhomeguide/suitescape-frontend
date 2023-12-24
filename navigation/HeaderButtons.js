@@ -1,11 +1,12 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import React from "react";
 import { HeaderButton } from "react-navigation-header-buttons";
 
-export const IoniconsHeaderButton = (props) => (
+import Fontello from "../assets/fontello/Fontello";
+
+export const FontelloHeaderButton = (props) => (
   <HeaderButton
-    IconComponent={Ionicons}
-    iconSize={25}
+    IconComponent={Fontello}
+    iconSize={15}
     color="black"
     {...props}
   />
