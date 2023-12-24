@@ -26,6 +26,14 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Routes } from "../../navigation/Routes";
 import convertMMDDYYYY from "../../utilities/dateConverter";
 
+const mappings = {
+  firstName: "firstname",
+  lastName: "lastname",
+  birthday: "date_of_birth",
+  email: "email",
+  password: "password",
+};
+
 const SignUp = ({ navigation }) => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -78,9 +86,10 @@ const SignUp = ({ navigation }) => {
     }
 
     const today = new Date();
-    const eighteenthBirthday = new Date(convertMMDDYYYY(dateFormatResult));
-    eighteenthBirthday.setFullYear(eighteenthBirthday.getFullYear() + 18);
+    const birthday = new Date(convertMMDDYYYY(dateFormatResult));
 
+    const eighteenthBirthday = new Date(birthday);
+    eighteenthBirthday.setFullYear(eighteenthBirthday.getFullYear() + 18);
     if (eighteenthBirthday > today) {
       Alert.alert("You must be 18 years old or above to register.");
       setBirthday("");
@@ -100,7 +109,7 @@ const SignUp = ({ navigation }) => {
       confirmPassword,
     })
       .then(() => {
-        navigation.replace(Routes.FEEDBACK, {
+        navigation.navigate(Routes.FEEDBACK, {
           type: "success",
           title: "Congratulations",
           subtitle: "You account has been created.",
@@ -112,7 +121,7 @@ const SignUp = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : null}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={{ paddingTop: insets.top }}
     >
       <StatusBar animated />
@@ -128,7 +137,7 @@ const SignUp = ({ navigation }) => {
             value={firstName}
             onChangeText={(value) => {
               setFirstName(value);
-              clearErrorWhenNotEmpty(value, "firstname");
+              clearErrorWhenNotEmpty(value, mappings.firstName);
             }}
             placeholder="First Name"
             textContentType="givenName"
@@ -146,7 +155,7 @@ const SignUp = ({ navigation }) => {
             value={lastName}
             onChangeText={(value) => {
               setLastName(value);
-              clearErrorWhenNotEmpty(value, "lastname");
+              clearErrorWhenNotEmpty(value, mappings.lastName);
             }}
             placeholder="Last Name"
             textContentType="familyName"
@@ -165,7 +174,7 @@ const SignUp = ({ navigation }) => {
             value={birthday}
             onChangeText={(value) => {
               setBirthday(value);
-              clearErrorWhenNotEmpty(value, "date_of_birth");
+              clearErrorWhenNotEmpty(value, mappings.birthday);
             }}
             onDateConfirm={(_, text) => {
               if (isBirthdayValid(text)) {
@@ -191,7 +200,7 @@ const SignUp = ({ navigation }) => {
             value={email}
             onChangeText={(value) => {
               setEmail(value);
-              clearErrorWhenNotEmpty(value, "email");
+              clearErrorWhenNotEmpty(value, mappings.email);
             }}
             placeholder="Email Address"
             // Bug: doesn't show cursor when this is on
@@ -212,12 +221,12 @@ const SignUp = ({ navigation }) => {
             value={password}
             onChangeText={(value) => {
               setPassword(value);
-              clearErrorWhenNotEmpty(value, "password");
+              clearErrorWhenNotEmpty(value, mappings.password);
             }}
             placeholder="Password"
             textContentType="password"
             passwordRules="minlength: 20; required: lower; required: upper; required: digit; required: [-];"
-            errorMessage={errors?.password && null}
+            errorMessage={errors?.password}
             returnKeyType="next"
             onSubmitEditing={() => {
               confirmPasswordRef.current.focus();
@@ -228,10 +237,13 @@ const SignUp = ({ navigation }) => {
           <FormInput
             type="password"
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(value) => {
+              setConfirmPassword(value);
+              clearErrorWhenNotEmpty(value, mappings.password);
+            }}
+            errorMessage={errors?.password && []}
             placeholder="Confirm Password"
             textContentType="password"
-            errorMessage={errors?.password}
             returnKeyType="done"
             ref={confirmPasswordRef}
           />
