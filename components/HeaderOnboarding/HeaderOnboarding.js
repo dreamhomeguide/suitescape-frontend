@@ -14,10 +14,10 @@ const HeaderOnboarding = ({
   signInEnabled = false,
 }) => {
   const navigation = useNavigation();
-  const { disableOnboarding } = useSettings();
+  const { modifySetting } = useSettings();
 
   const handleSignInButtonClick = () => {
-    disableOnboarding().then(() => {
+    modifySetting("onboardingEnabled", false).then(() => {
       navigation.replace(Routes.LOGIN);
     });
   };

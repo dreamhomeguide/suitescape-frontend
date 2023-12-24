@@ -10,13 +10,13 @@ import ButtonLink from "../ButtonLink/ButtonLink";
 const AuthSwitchPrompt = ({ isRegistration = false, isOnboarding = false }) => {
   const navigation = useNavigation();
 
-  const { disableOnboarding } = useSettings();
+  const { modifySetting } = useSettings();
 
   const handleNextScreen = async () => {
     const nextScreen = isRegistration ? Routes.SIGNUP : Routes.LOGIN;
 
     if (isOnboarding) {
-      await disableOnboarding();
+      await modifySetting("onboardingEnabled", false);
       navigation.replace(nextScreen);
     } else {
       navigation.navigate(nextScreen);

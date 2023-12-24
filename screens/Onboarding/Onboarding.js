@@ -21,7 +21,7 @@ const Onboarding = ({ navigation }) => {
   const endReached = index === slides.length - 1;
 
   const { width } = useWindowDimensions();
-  const { disableOnboarding, enableGuestMode } = useSettings();
+  const { modifySetting } = useSettings();
 
   const queryClient = useQueryClient();
 
@@ -36,7 +36,7 @@ const Onboarding = ({ navigation }) => {
       return;
     }
 
-    disableOnboarding().then(() => {
+    modifySetting("onboardingEnabled", false).then(() => {
       navigation.replace(Routes.SIGNUP);
     });
   };
@@ -50,8 +50,8 @@ const Onboarding = ({ navigation }) => {
 
   const handleSkipButtonClick = async () => {
     await queryClient.resetQueries();
-    await enableGuestMode();
-    await disableOnboarding();
+    await modifySetting("guestModeEnabled", true);
+    await modifySetting("onboardingEnabled", false);
   };
 
   return (

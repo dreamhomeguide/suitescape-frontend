@@ -62,8 +62,7 @@ export const AuthProvider = ({ children }) => {
 
   const abortControllerRef = useRef(null);
 
-  const { settings, enableOnboarding, disableOnboarding, disableGuestMode } =
-    useSettings();
+  const { settings, modifySetting } = useSettings();
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -159,7 +158,7 @@ export const AuthProvider = ({ children }) => {
       onSuccess: async (res) => {
         setHeaderToken(res.token);
 
-        await disableOnboarding();
+        await modifySetting("onboardingEnabled", false);
         await SecureStore.setItemAsync("userToken", res.token);
 
         queryClient
@@ -242,10 +241,10 @@ export const AuthProvider = ({ children }) => {
     if (settings.guestModeEnabled) {
       dispatch({ type: "FINISH_LOADING" });
 
-      await disableGuestMode();
+      await modifySetting("guestModeEnabled", false);
 
       // Enable onboarding here, so it will be shown again when the user quits the app
-      await enableOnboarding();
+      await modifySetting("onboardingEnabled", true);
       return;
     }
 
@@ -267,7 +266,7 @@ export const AuthProvider = ({ children }) => {
 
       // Enable onboarding so when the user quits the app while not logged in,
       // the onboarding will be shown again
-      await enableOnboarding();
+      await modifySetting("onboardingEnabled", true);
     }
   };
 
