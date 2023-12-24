@@ -41,11 +41,11 @@ const VideoFeedItem = ({
   );
   const { width } = useWindowDimensions();
 
+  // Resets video to beginning when video is no longer in focus
   useEffect(() => {
     if (feedFocused && !videoInFocus && isVideoLoaded) {
-      videoRef.current.video.setPositionAsync(0);
-      videoRef.current.setIsClickPaused(false);
-
+      (async () => videoRef.current?.video.setPositionAsync(0))();
+      videoRef.current?.setIsClickPaused(false);
       setIsSectionShown(false);
     }
   }, [feedFocused, isVideoLoaded, videoInFocus]);
@@ -53,6 +53,7 @@ const VideoFeedItem = ({
   // Destructure listing object to provide for SocialActionsContext
   const {
     id: listingId,
+    host_id: hostId,
     is_liked: isLiked,
     is_saved: isSaved,
     likes_count: likesCount,
@@ -60,6 +61,7 @@ const VideoFeedItem = ({
 
   return (
     <SocialActionsProvider
+      hostId={hostId}
       listingId={listingId}
       currentIsLiked={isLiked}
       currentIsSaved={isSaved}
@@ -86,7 +88,8 @@ const VideoFeedItem = ({
 
         {!clearMode && (
           <VideoListingIconsView
-            listingId={listing.id}
+            hostId={hostId}
+            listingId={listingId}
             onShowModal={() => setIsSectionShown(true)}
             previewMode={previewMode}
           />
@@ -105,13 +108,13 @@ const VideoFeedItem = ({
             progress={currentProgress}
             isVideoSeeking={isSeeking}
             onItemPress={(time) => {
-              videoRef.current.video
+              videoRef.current?.video
                 .setPositionAsync(time, {
                   toleranceMillisBefore: 0,
                   toleranceMillisAfter: 0,
                 })
                 .catch((err) => console.log("Error seeking section:", err));
-              videoRef.current.setIsClickPaused(false);
+              videoRef.current?.setIsClickPaused(false);
             }}
             trackMarks={SAMPLE_MARKS}
           />
