@@ -1,12 +1,12 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { memo } from "react";
-import { Modal, Text, View } from "react-native";
+import { Modal, Pressable, Text, View } from "react-native";
 import Gallery from "react-native-awesome-gallery";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./SliderModalPhotoStyles";
-import globalStyles from "../../assets/styles/globalStyles";
+import Fontello from "../../assets/fontello/Fontello";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import SliderGalleryItemPhoto from "../SliderGalleryItemPhoto/SliderGalleryItemPhoto";
 
@@ -23,13 +23,15 @@ const SliderModalPhoto = ({ imageData }) => {
       statusBarTranslucent
     >
       <View style={style.mainContainer}>
-        <Ionicons
-          name="close"
-          size={30}
-          color="white"
-          style={style.closeButton({ topInsets: insets.top })}
+        <Pressable
           onPress={() => closePhotoGallery()}
-        />
+          style={({ pressed }) => ({
+            ...pressedOpacity(pressed),
+            ...style.closeButton({ topInsets: insets.top }),
+          })}
+        >
+          <Fontello name="x-regular" size={20} color="white" />
+        </Pressable>
 
         {isPhotoGalleryShown && (
           <GestureHandlerRootView style={globalStyles.flexFull}>

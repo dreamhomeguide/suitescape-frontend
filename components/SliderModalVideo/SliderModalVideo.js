@@ -1,9 +1,10 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import React, { memo } from "react";
-import { Modal, View } from "react-native";
+import { Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./SliderModalVideoStyles";
+import Fontello from "../../assets/fontello/Fontello";
+import { pressedOpacity } from "../../assets/styles/globalStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import VideoFeed from "../VideoFeed/VideoFeed";
 
@@ -19,13 +20,15 @@ const SliderModalVideo = ({ videoData, listing }) => {
       statusBarTranslucent
     >
       <View style={style.mainContainer}>
-        <Ionicons
-          name="close"
-          size={30}
-          color="white"
-          style={style.closeButton({ topInsets: insets.top })}
+        <Pressable
           onPress={() => closeVideoGallery()}
-        />
+          style={({ pressed }) => ({
+            ...pressedOpacity(pressed),
+            ...style.closeButton({ topInsets: insets.top }),
+          })}
+        >
+          <Fontello name="x-regular" size={20} color="white" />
+        </Pressable>
 
         {isVideoGalleryShown && (
           <VideoFeed
