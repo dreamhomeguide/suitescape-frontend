@@ -17,7 +17,7 @@ const style = StyleSheet.create({
   },
   titleContentContainer: {
     flex: 1.8,
-    ...globalStyles.containerGap,
+    ...globalStyles.textGap,
   },
   image: {
     flex: 1,
@@ -28,6 +28,7 @@ const style = StyleSheet.create({
     color: "black",
     fontWeight: "bold",
     fontSize: 20,
+    marginBottom: 5,
   },
   headerText: {
     color: "black",
