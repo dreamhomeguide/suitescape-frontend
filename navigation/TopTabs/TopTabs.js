@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   MaterialTabBar,
   MaterialTabItem,
+  useFocusedTab,
 } from "react-native-collapsible-tab-view";
 
 import style from "./TopTabsStyles";
@@ -37,6 +38,7 @@ export const TabBar = ({ defaultProps, ...customProps }) => {
 
   const timeoutRef = useRef(null);
 
+  const focusedTab = useFocusedTab();
   const { colors } = useTheme();
 
   useEffect(() => {
@@ -56,10 +58,20 @@ export const TabBar = ({ defaultProps, ...customProps }) => {
             ...(customProps.fontSize && { fontSize: customProps.fontSize }),
           }}
           onPress={(name) => {
+            // if (isSwitching) {
+            //   return;
+            // }
             setIsSwitching(true);
-            setPressedTab(name);
 
+            // const switchedTab = name !== pressedTab;
+            // setScrolledToTop(!switchedTab);
+            //
+            // if (!scrolledToTop || switchedTab) {
+            //   setPressedTab(name);
+            //   props.onPress(name);
+            // }
             props.onPress(name);
+            setPressedTab(name);
 
             if (timeoutRef.current) {
               clearTimeout(timeoutRef.current);
@@ -72,7 +84,10 @@ export const TabBar = ({ defaultProps, ...customProps }) => {
           // pressColor={Colors.lightblue}
           android_ripple={{ radius: 0 }}
           activeColor={
-            isSwitching && props.name !== pressedTab ? Colors.gray : Colors.blue
+            !isSwitching &&
+            (props.name === pressedTab || props.name === focusedTab)
+              ? Colors.blue
+              : Colors.gray
           }
         />
       )}
