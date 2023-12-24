@@ -10,7 +10,7 @@ const VideoListingIcon = ({
   onPress,
   name,
   color = "white",
-  size = 30,
+  size = 25,
   hapticEnabled = true,
 }) => {
   return (
