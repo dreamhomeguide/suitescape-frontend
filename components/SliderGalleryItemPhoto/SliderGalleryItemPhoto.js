@@ -27,7 +27,7 @@ const SliderGalleryItemPhoto = ({
   const { width } = useWindowDimensions();
 
   const imageResizeMode = modalMode ? "contain" : "cover";
-  const { userToken } = useAuth();
+  const { authState } = useAuth();
 
   return (
     <Pressable
@@ -44,7 +44,7 @@ const SliderGalleryItemPhoto = ({
         source={{
           uri: baseURL + photoUrl,
           headers: {
-            Authorization: "Bearer " + userToken,
+            Authorization: "Bearer " + authState.userToken,
           },
         }}
         contentFit={imageResizeMode}

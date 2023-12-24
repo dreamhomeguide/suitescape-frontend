@@ -47,7 +47,7 @@ const VideoItem = forwardRef(
 
     const videoRef = useRef(null);
 
-    const { userToken } = useAuth();
+    const { authState } = useAuth();
     const toast = useToast();
     const socialActionsContext = useSocialActions();
     const { isLiked, handleLike } = socialActionsContext || {};
@@ -91,9 +91,9 @@ const VideoItem = forwardRef(
       setIsPaused(status.isPlaying);
 
       if (status.isPlaying) {
-        videoRef.current.pauseAsync();
+        videoRef.current?.pauseAsync();
       } else {
-        videoRef.current.playAsync();
+        videoRef.current?.playAsync();
       }
     };
 
@@ -138,7 +138,7 @@ const VideoItem = forwardRef(
           .onEnd(() => {
             runOnJS(likeVideo)();
           }),
-      [isLiked],
+      [handleLike, isLiked],
     );
 
     const longPan = useMemo(
@@ -191,17 +191,18 @@ const VideoItem = forwardRef(
               />
             </View>
           )}
-          {status.isBuffering && !status.isPlaying && (
-            <View style={globalStyles.absoluteCenter}>
-              <ActivityIndicator size="large" style={style.iconOpacity} />
-            </View>
-          )}
+          {!status.isLoaded ||
+            (status.isBuffering && !status.isPlaying && (
+              <View style={globalStyles.absoluteCenter}>
+                <ActivityIndicator size="large" style={style.iconOpacity} />
+              </View>
+            ))}
           <Video
             ref={videoRef}
             source={{
               uri: videoUri,
               headers: {
-                Authorization: "Bearer " + userToken,
+                Authorization: "Bearer " + authState.userToken,
               },
             }}
             progressUpdateIntervalMillis={1000}
