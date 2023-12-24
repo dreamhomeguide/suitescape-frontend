@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import React from "react";
+import React, { memo } from "react";
 import { Text, View } from "react-native";
 
 import style from "./ListingAvailableRoomItemStyles";
@@ -40,6 +40,7 @@ const ListingAvailableRoomItem = ({ item }) => {
           {category.name}
         </Text>
 
+        {/* This is causing virtualized list issues */}
         <StarRatingView rating={average_rating} />
       </View>
 
@@ -124,4 +125,4 @@ const ListingAvailableRoomItem = ({ item }) => {
   );
 };
 
-export default ListingAvailableRoomItem;
+export default memo(ListingAvailableRoomItem);
