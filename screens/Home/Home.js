@@ -1,4 +1,3 @@
-import Entypo from "@expo/vector-icons/Entypo";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useScrollToTop } from "@react-navigation/native";
 import React, { useRef } from "react";
@@ -6,6 +5,7 @@ import { Pressable, RefreshControl, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./HomeStyles";
+import Fontello from "../../assets/fontello/Fontello";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import HeaderIconView from "../../components/HeaderIconView/HeaderIconView";
 import VideoFeed from "../../components/VideoFeed/VideoFeed";
@@ -13,7 +13,7 @@ import useFetchVideos from "../../hooks/useFetchVideos";
 import { Routes } from "../../navigation/Routes";
 
 const Home = ({ navigation }) => {
-  const { videos, isFetching, fetchNextPage, isRefreshing, refresh, refetch } =
+  const { videos, isFetching, fetchNextPage, isRefreshing, refresh } =
     useFetchVideos();
 
   const bottomTabHeight = useBottomTabBarHeight();
@@ -26,7 +26,7 @@ const Home = ({ navigation }) => {
     useRef({
       scrollToTop: () => {
         videoFeedRef.current?.scrollToOffset({ offset: 0 });
-        refetch().then(() => console.log("Videos refetched"));
+        // refetch().then(() => console.log("Videos refetched"));
       },
     }),
   );
@@ -38,9 +38,9 @@ const Home = ({ navigation }) => {
           onPress={() => navigation.navigate(Routes.FILTER)}
           style={({ pressed }) => pressedOpacity(pressed)}
         >
-          <Entypo
-            name="magnifying-glass"
-            size={30}
+          <Fontello
+            name="search-regular"
+            size={25}
             color="white"
             style={globalStyles.iconShadow}
           />
