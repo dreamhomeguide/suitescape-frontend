@@ -8,7 +8,7 @@ import splitTextSpaced from "../../utilities/textSplitSpacer";
 
 const ServiceRating = ({ label, rating }) => {
   return (
-    <View style={style.container}>
+    <View style={style.container} pointerEvents="none">
       <Text style={style.labelText}>
         {capitalizedText(splitTextSpaced(label), true)}
       </Text>
