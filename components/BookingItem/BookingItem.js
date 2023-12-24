@@ -15,11 +15,9 @@ const BookingItem = ({ item, type }) => {
   const {
     room: {
       listing: {
-        name: listingName,
-        location: listingLocation,
-        cover_image: coverImage,
+        images: [coverImage],
+        ...listing
       },
-      average_rating: averageRating,
     },
   } = bookingRooms[0] || {};
 
@@ -58,12 +56,12 @@ const BookingItem = ({ item, type }) => {
       />
       <View style={style.detailsContainer}>
         <Text style={style.listingName} numberOfLines={1}>
-          {listingName}
+          {listing.name}
         </Text>
-        <Text numberOfLines={1}>{listingLocation}</Text>
+        <Text numberOfLines={1}>{listing.location}</Text>
         <Text numberOfLines={1}>Booking ID: {bookingId}</Text>
+        <StarRatingView rating={listing.average_rating} />
       </View>
-      <StarRatingView rating={averageRating} />
       <View style={globalStyles.horizontalDivider} />
       <View style={style.buttonsContainer}>
         <View style={globalStyles.flexFull}>
