@@ -12,7 +12,7 @@ const style = StyleSheet.create({
       height: 12,
     },
     shadowOpacity: 0.75,
-    shadowRadius: 16.0,
+    shadowRadius: 12.0,
     elevation: 24,
   },
   handleIndicator: {
