@@ -164,7 +164,7 @@ const Filter = ({ navigation, route }) => {
               columnGap: 10,
             }}
           >
-            <StarRatingView rating={stars} starSize={25} labelEnabled={false} />
+            <StarRatingView rating={stars} starSize={26} labelEnabled={false} />
             <Text style={{ fontSize: 16 }}>{label}</Text>
           </View>
           <FormRadio selected={selected} />
@@ -421,7 +421,7 @@ const Filter = ({ navigation, route }) => {
 
           <View style={style.container}>
             <Text style={style.headerText}>Facility Rating</Text>
-            <View style={globalStyles.containerGap}>{renderStarRatings()}</View>
+            <View style={globalStyles.textGap}>{renderStarRatings()}</View>
           </View>
 
           <View style={style.container}>
