@@ -13,6 +13,7 @@ const style = StyleSheet.create({
     flex: 1,
     rowGap: 5,
     marginRight: 15,
+    marginBottom: 3,
   },
   text: {
     color: "black",
