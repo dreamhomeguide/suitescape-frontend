@@ -1,3 +1,5 @@
+import "expo-dev-client";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as SplashScreen from "expo-splash-screen";
 import React from "react";
