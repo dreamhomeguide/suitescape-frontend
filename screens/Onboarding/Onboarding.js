@@ -36,9 +36,10 @@ const Onboarding = ({ navigation }) => {
       return;
     }
 
-    modifySetting("onboardingEnabled", false).then(() => {
-      navigation.replace(Routes.SIGNUP);
-    });
+    // modifySetting("onboardingEnabled", false).then(() => {
+    //   navigation.replace(Routes.SIGNUP);
+    // });
+    navigation.replace(Routes.SIGNUP);
   };
 
   const handlePrevButtonClick = () => {
