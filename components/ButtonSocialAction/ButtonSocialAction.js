@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import style from "./ButtonSocialActionStyles";
@@ -23,4 +23,4 @@ const ButtonSocialAction = ({ name, label, color, IconComponent, onPress }) => {
   );
 };
 
-export default ButtonSocialAction;
+export default memo(ButtonSocialAction);

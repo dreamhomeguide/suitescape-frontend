@@ -14,6 +14,7 @@ const OnboardingItem = ({ title, img }) => {
       <Image
         style={style.image}
         contentFit="cover"
+        transition={100}
         source={img}
         // source={assets ? assets[0] : null}
       />

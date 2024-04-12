@@ -1,82 +1,105 @@
 import { useNavigation } from "@react-navigation/native";
-import React, { memo } from "react";
-import { Pressable, Text, View } from "react-native";
+import React, { memo, useCallback, useMemo } from "react";
+import { FlatList, View } from "react-native";
 
 import style from "./VideoListingIconsViewStyles";
 import Fontello from "../../assets/fontello/Fontello";
-import { pressedOpacity } from "../../assets/styles/globalStyles";
-import { useSocialActions } from "../../contexts/SocialActionsContext";
+import useSocialActions from "../../hooks/useSocialActions";
 import { Routes } from "../../navigation/Routes";
+import { baseURL } from "../../services/SuitescapeAPI";
 import ProfileImage from "../ProfileImage/ProfileImage";
 import VideoListingIcon from "../VideoListingIcon/VideoListingIcon";
 
 const VideoListingIconsView = ({
   hostId,
+  hostPictureUrl,
   listingId,
   previewMode,
   onShowModal,
 }) => {
   const navigation = useNavigation();
-  const socialActionsContext = useSocialActions();
-
   const { isLiked, isSaved, likesCount, handleLike, handleSave } =
-    socialActionsContext || {};
+    useSocialActions(listingId, true);
 
-  const iconsConfig = [
-    {
-      IconComponent: Fontello,
-      name: "heart-solid",
-      label: likesCount,
-      color: isLiked ? "red" : "white",
-      onPress: handleLike,
-    },
-    {
-      IconComponent: Fontello,
-      name: "info-solid",
-      label: "View",
-      onPress: () => navigation.navigate(Routes.LISTING_DETAILS, { listingId }),
-      hapticEnabled: false,
-    },
-    {
-      IconComponent: Fontello,
-      name: "save-solid",
-      label: isSaved ? "Saved" : "Save",
-      color: isSaved ? "gold" : "white",
-      onPress: handleSave,
-    },
-    {
-      IconComponent: Fontello,
-      name: "section-solid",
-      label: "Sections",
-      onPress: onShowModal,
-      enableOnPreview: true,
-    },
-  ];
+  const renderProfileImage = useCallback(
+    () => (
+      <ProfileImage
+        source={hostPictureUrl ? { uri: baseURL + hostPictureUrl } : null}
+        fillColor="transparent"
+        borderColor="white"
+        borderWidth={1}
+        size={35}
+      />
+    ),
+    [hostPictureUrl],
+  );
+
+  const iconsConfig = useMemo(
+    () => [
+      {
+        label: "Profile",
+        renderIcon: renderProfileImage,
+        onPress: () => navigation.navigate(Routes.PROFILE_HOST, { hostId }),
+      },
+      {
+        IconComponent: Fontello,
+        name: "heart-solid",
+        label: likesCount,
+        color: isLiked ? "red" : "white",
+        onPress: handleLike,
+      },
+      {
+        IconComponent: Fontello,
+        name: "info-solid",
+        label: "View",
+        onPress: () =>
+          navigation.navigate(Routes.LISTING_DETAILS, { listingId }),
+        hapticEnabled: false,
+      },
+      {
+        IconComponent: Fontello,
+        name: "save-solid",
+        label: isSaved ? "Saved" : "Save",
+        color: isSaved ? "gold" : "white",
+        onPress: handleSave,
+      },
+      {
+        IconComponent: Fontello,
+        name: "section-solid",
+        label: "Sections",
+        onPress: onShowModal,
+        enableOnPreview: true,
+      },
+    ],
+    [
+      hostId,
+      listingId,
+      isLiked,
+      isSaved,
+      likesCount,
+      handleLike,
+      handleSave,
+      navigation,
+      renderProfileImage,
+    ],
+  );
+
+  const filteredIcons = useMemo(() => {
+    return iconsConfig.filter((icon) => !previewMode || icon.enableOnPreview);
+  }, [iconsConfig, previewMode]);
+
+  const renderItem = useCallback(({ item: config }) => {
+    return <VideoListingIcon {...config} />;
+  }, []);
 
   return (
-    <View style={style.mainContainer}>
-      {!previewMode && (
-        <Pressable
-          onPress={() => navigation.navigate(Routes.PROFILE_HOST, { hostId })}
-          style={({ pressed }) => pressedOpacity(pressed, 0.8)}
-        >
-          <ProfileImage borderWidth={1} borderColor="white" size={35}>
-            Profile
-          </ProfileImage>
-          <Text style={style.text}>Profile</Text>
-        </Pressable>
-      )}
-
-      <>
-        {iconsConfig
-          .filter((icon) => !previewMode || icon.enableOnPreview)
-          .map((config, index) => (
-            <View key={index}>
-              <VideoListingIcon {...config} />
-              <Text style={style.text}>{config.label}</Text>
-            </View>
-          ))}
-      </>
+    <View style={style.container}>
+      <FlatList
+        data={filteredIcons}
+        keyExtractor={(_, index) => "listing-icon-" + index}
+        renderItem={renderItem}
+        scrollEnabled={false}
+      />
     </View>
   );
 };

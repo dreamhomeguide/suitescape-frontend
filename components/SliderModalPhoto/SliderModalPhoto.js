@@ -1,5 +1,6 @@
-import React, { memo } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { Image } from "expo-image";
+import React, { memo, useCallback, useState } from "react";
+import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 import Gallery from "react-native-awesome-gallery";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -10,21 +11,86 @@ import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import SliderGalleryItemPhoto from "../SliderGalleryItemPhoto/SliderGalleryItemPhoto";
 
-const SliderModalPhoto = ({ imageData }) => {
+const SliderModalPhoto = ({
+  imageData, // You only need this to use the useModalGallery hook
+  visible,
+  onClose,
+  galleryMode,
+  showIndex,
+}) => {
+  const [isImageLoading, setIsImageLoading] = useState(false);
+
+  const insets = useSafeAreaInsets();
   const { index, setIndex, isPhotoGalleryShown, closePhotoGallery } =
     useModalGallery();
-  const insets = useSafeAreaInsets();
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <>
+        <ActivityIndicator
+          animating={isImageLoading}
+          style={globalStyles.absoluteCenter}
+        />
+        <Image
+          source={item}
+          contentFit="contain"
+          style={globalStyles.flexFull}
+          onLayout={() => setIsImageLoading(true)}
+          onLoadEnd={() => setIsImageLoading(false)}
+        />
+      </>
+    ),
+    [isImageLoading],
+  );
+
+  const renderGalleryItem = useCallback(({ item, setImageDimensions }) => {
+    return (
+      <SliderGalleryItemPhoto
+        modalMode
+        photoId={item.id}
+        photoUrl={item.url}
+        enableLiveTextInteraction
+        onLoad={(e) => {
+          const { width, height } = e.source;
+          setImageDimensions({ width, height });
+        }}
+      />
+    );
+  }, []);
+
+  const onRequestClose = useCallback(() => {
+    onClose && onClose();
+    if (galleryMode) {
+      closePhotoGallery();
+    }
+  }, [galleryMode, onClose]);
+
+  const renderIndex = useCallback(() => {
+    if (!showIndex || !imageData || !Array.isArray(imageData)) {
+      return null;
+    }
+
+    return (
+      <View style={style.indexContainer({ bottomInsets: insets.bottom })}>
+        <Text style={style.text}>
+          {index + 1}/{imageData.length}
+        </Text>
+      </View>
+    );
+  }, [imageData, index, insets]);
+
+  const showModal = visible || isPhotoGalleryShown;
 
   return (
     <Modal
-      visible={isPhotoGalleryShown}
+      visible={showModal}
       animationType="slide"
-      onRequestClose={() => closePhotoGallery()}
+      onRequestClose={onRequestClose}
       statusBarTranslucent
     >
       <View style={style.mainContainer}>
         <Pressable
-          onPress={() => closePhotoGallery()}
+          onPress={onRequestClose}
           style={({ pressed }) => ({
             ...pressedOpacity(pressed),
             ...style.closeButton({ topInsets: insets.top }),
@@ -33,26 +99,15 @@ const SliderModalPhoto = ({ imageData }) => {
           <Fontello name="x-regular" size={20} color="white" />
         </Pressable>
 
-        {isPhotoGalleryShown && (
+        {showModal && (
           <GestureHandlerRootView style={globalStyles.flexFull}>
             <Gallery
               data={imageData}
-              renderItem={({ item, setImageDimensions }) => {
-                return (
-                  <SliderGalleryItemPhoto
-                    photoId={item.id}
-                    photoUrl={item.url}
-                    modalMode
-                    onLoad={(e) => {
-                      const { width, height } = e.source;
-                      setImageDimensions({ width, height });
-                    }}
-                  />
-                );
-              }}
-              initialIndex={index}
-              onIndexChange={setIndex}
-              onSwipeToClose={() => closePhotoGallery()}
+              keyExtractor={(item, index) => item.id ?? index.toString()}
+              initialIndex={galleryMode ? index : 0}
+              onIndexChange={galleryMode ? setIndex : null}
+              renderItem={galleryMode ? renderGalleryItem : renderItem}
+              onSwipeToClose={onRequestClose}
               disableSwipeUp
             />
           </GestureHandlerRootView>
@@ -61,14 +116,7 @@ const SliderModalPhoto = ({ imageData }) => {
         {/*<SliderGallery data={imageData} mediaType="image" modalMode />*/}
       </View>
 
-      {/* Index */}
-      {imageData ? (
-        <View style={style.indexContainer({ bottomInsets: insets.bottom })}>
-          <Text style={style.text}>
-            {index + 1}/{imageData.length}
-          </Text>
-        </View>
-      ) : null}
+      {renderIndex()}
     </Modal>
   );
 };

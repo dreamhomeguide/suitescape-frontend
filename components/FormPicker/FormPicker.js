@@ -6,6 +6,7 @@ import { RectButton } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Checkbox } from "react-native-ui-lib";
 
+import style from "./FormPickerStyles";
 import { Colors } from "../../assets/Colors";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import BottomSheet from "../BottomSheet/BottomSheet";
@@ -20,22 +21,27 @@ const FormPicker = ({
   onSelected,
   multiSelect,
   errorMessage,
+  disabled,
+  onPressDisabled,
 }) => {
   const [pickerVisible, setPickerVisible] = useState(false);
 
   const insets = useSafeAreaInsets();
 
-  const onOptionPress = (option) => {
-    if (multiSelect && value) {
-      if (value.includes(option)) {
-        onSelected(value.filter((item) => item !== option));
+  const onOptionPress = useCallback(
+    (option) => {
+      if (multiSelect && value) {
+        if (value.includes(option)) {
+          onSelected(value.filter((item) => item !== option));
+        } else {
+          onSelected([...value, option]);
+        }
       } else {
-        onSelected([...value, option]);
+        onSelected(option === value ? null : option);
       }
-    } else {
-      onSelected(option === value ? null : option);
-    }
-  };
+    },
+    [multiSelect, onSelected, value],
+  );
 
   const inputValue = useMemo(() => {
     let result;
@@ -50,30 +56,23 @@ const FormPicker = ({
     }
 
     return result;
-  }, [value]);
+  }, [data, value]);
 
   const renderItem = useCallback(
     ({ item }) => {
       return (
         <RectButton
           onPress={() => onOptionPress(item.value)}
-          style={{
-            height: 50,
-            paddingHorizontal: 15,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            ...globalStyles.bottomGapSmall,
-          }}
+          style={style.row}
           // activeOpacity={0.1}
         >
-          <Text style={{ color: "black", fontSize: 15 }}>{item.label}</Text>
+          <Text style={style.label}>{item.label}</Text>
           <View pointerEvents="none">
             {multiSelect ? (
               <Checkbox
                 value={value?.includes(item.value)}
                 color={Colors.blue}
-                style={{ borderColor: "gray" }}
+                style={style.checkbox}
               />
             ) : (
               <FormRadio selected={value === item.value} />
@@ -88,8 +87,17 @@ const FormPicker = ({
   return (
     <>
       <Pressable
-        onPress={() => setPickerVisible(true)}
-        style={({ pressed }) => ({ flex: 1, ...pressedOpacity(pressed) })}
+        onPress={() => {
+          if (disabled) {
+            onPressDisabled();
+          } else {
+            setPickerVisible(true);
+          }
+        }}
+        style={({ pressed }) => ({
+          ...globalStyles.flexFull,
+          ...pressedOpacity(pressed),
+        })}
       >
         <View pointerEvents="none">
           <FormInput
@@ -108,41 +116,36 @@ const FormPicker = ({
         </View>
       </Pressable>
 
-      <BottomSheet
-        visible={pickerVisible}
-        onDismiss={() => setPickerVisible(false)}
-        style={{ paddingTop: 10 }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: 15,
-            columnGap: 2,
-            left: -10,
-          }}
+      {pickerVisible && (
+        <BottomSheet
+          visible={pickerVisible}
+          onDismiss={() => setPickerVisible(false)}
+          style={style.bottomSheet}
         >
-          <Pressable
-            onPress={() => setPickerVisible(false)}
-            style={({ pressed }) => pressedOpacity(pressed)}
-          >
-            <Ionicons name="chevron-back" size={30} color={Colors.black} />
-          </Pressable>
-          <View>
-            {label && (
-              <Text style={{ fontSize: 20, fontWeight: "bold" }}>{label}</Text>
-            )}
+          <View style={style.header}>
+            <Pressable
+              onPress={() => setPickerVisible(false)}
+              style={({ pressed }) => pressedOpacity(pressed)}
+            >
+              <Ionicons name="chevron-back" size={30} color={Colors.black} />
+            </Pressable>
+            <View>
+              {label && <Text style={style.headerLabel}>{label}</Text>}
+            </View>
           </View>
-        </View>
 
-        <BottomSheetFlatList
-          data={data}
-          keyExtractor={(item, index) => index.toString()}
-          contentContainerStyle={{ rowGap: 3, paddingVertical: 15 }}
-          contentInset={{ bottom: insets.bottom }}
-          renderItem={renderItem}
-        />
-      </BottomSheet>
+          <BottomSheetFlatList
+            data={data}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={{
+              ...style.flatList,
+              ...globalStyles.rowGap,
+            }}
+            contentInset={{ bottom: insets.bottom }}
+            renderItem={renderItem}
+          />
+        </BottomSheet>
+      )}
     </>
   );
 };

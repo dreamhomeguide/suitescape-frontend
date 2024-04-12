@@ -5,17 +5,25 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./AppFooterStyles";
 
-const AppFooter = ({ children, enableBottomInset = true }) => {
+const AppFooter = ({
+  children,
+  containerStyle,
+  transparent = false,
+  enableBottomInset = true,
+}) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
   return (
     <View
-      style={style.footerContainer({
-        bottomInsets: enableBottomInset ? insets.bottom : 0,
-        bgColor: colors.background,
-        borderColor: colors.border,
-      })}
+      style={{
+        ...style.mainContainer({
+          enableInsets: enableBottomInset,
+          bottomInsets: insets.bottom,
+        }),
+        ...(transparent ? style.transparentFooter : style.footer({ colors })),
+        ...containerStyle,
+      }}
     >
       {children}
     </View>

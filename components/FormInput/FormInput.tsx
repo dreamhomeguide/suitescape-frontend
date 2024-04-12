@@ -7,7 +7,14 @@ import React, {
   useRef,
   useImperativeHandle,
 } from "react";
-import { Keyboard, Pressable, StyleProp, Text, ViewStyle } from "react-native";
+import {
+  Keyboard,
+  Pressable,
+  StyleProp,
+  Text,
+  TextStyle,
+  ViewStyle,
+} from "react-native";
 import { RectButton } from "react-native-gesture-handler";
 import { Masks, useMaskedInputProps } from "react-native-mask-input";
 import DateTimePickerModal, {
@@ -18,11 +25,11 @@ import { TextField, TextFieldProps, TextFieldRef } from "react-native-ui-lib";
 import style from "./FormInputStyles";
 import { Colors } from "../../assets/Colors";
 import { pressedOpacity } from "../../assets/styles/globalStyles";
-import convertMMDDYYYY from "../../utilities/dateConverter";
+import convertDateFormat from "../../utils/dateConverter";
 import ButtonLink from "../ButtonLink/ButtonLink";
 
 // If you're going to change this, change also the maskedDateProps
-const VALID_DATE = "MM/dd/yyyy";
+export const VALID_INPUT_DATE = "MM/dd/yyyy";
 
 type FormInputProps = TextFieldProps & {
   type?: "text" | "password" | "date" | "textarea" | "editable" | "clearable";
@@ -32,8 +39,11 @@ type FormInputProps = TextFieldProps & {
   onEditPressed?: () => void;
   onEditDone?: () => void;
   onClear?: () => void;
-  label?: string;
+  onChangePasswordVisibility?: () => void;
+  isPasswordVisible?: boolean;
   errorMessage?: string[];
+  label?: string;
+  labelStyle?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<ViewStyle>;
   trailingAccessory?: React.ReactNode;
   dateProps?: DateTimePickerProps;
@@ -49,8 +59,11 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
       onEditPressed = null,
       onEditDone = null,
       onClear = null,
-      label = "",
+      onChangePasswordVisibility = null,
+      isPasswordVisible = false,
       errorMessage = null,
+      label = "",
+      labelStyle,
       containerStyle,
       trailingAccessory,
       dateProps,
@@ -80,7 +93,7 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
       const timeResetDate = new Date(date.toISOString().split("T")[0]);
 
       if (onDateConfirm) {
-        onDateConfirm(timeResetDate, format(date, VALID_DATE));
+        onDateConfirm(timeResetDate, format(date, VALID_INPUT_DATE));
       }
 
       // const confirmed = onDateConfirm && onDateConfirm(date);
@@ -118,10 +131,10 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
           value && (
             <RectButton
               style={style.trailingIcon}
-              onPress={handlePasswordPress}
+              onPress={onChangePasswordVisibility ?? handlePasswordPress}
             >
               <Ionicons
-                name={showPassword ? "eye" : "eye-off"}
+                name={isPasswordVisible || showPassword ? "eye" : "eye-off"}
                 color={Colors.blue}
                 size={20}
               />
@@ -187,9 +200,8 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
           onPress={() => inputRef.current.focus()}
           style={containerStyle}
         >
-          {label && <Text style={style.label}>{label}</Text>}
+          {label && <Text style={[style.label, labelStyle]}>{label}</Text>}
           <TextField
-            // @ts-expect-error
             ref={inputRef}
             value={type === "date" ? maskedDateProps.value : value}
             onChangeText={
@@ -198,7 +210,9 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
             editable={editable}
             cursorColor={Colors.blue}
             textAlignVertical="top"
-            secureTextEntry={type === "password" && !showPassword}
+            secureTextEntry={
+              type === "password" && !(showPassword || isPasswordVisible)
+            }
             multiline={type === "textarea"}
             containerStyle={{ height: type === "textarea" ? 150 : 60 }}
             fieldStyle={style.field}
@@ -229,7 +243,7 @@ const FormInput = forwardRef<TextFieldRef, FormInputProps>(
             mode="date"
             themeVariant="light"
             isVisible={showDatepicker}
-            date={new Date(convertMMDDYYYY(value))}
+            date={new Date(convertDateFormat(value))}
             onConfirm={handleDateConfirm}
             onCancel={() => setShowDatepicker(false)}
             display="spinner"

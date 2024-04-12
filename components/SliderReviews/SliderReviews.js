@@ -1,4 +1,4 @@
-import React, { memo, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { Text, useWindowDimensions, View } from "react-native";
 
 import style from "./SliderReviewsStyles";
@@ -15,12 +15,22 @@ const SliderReviews = ({ reviews, size = 5 }) => {
   const itemWidth = width - 120;
   const itemMargin = 15;
   const slideItemWidth = itemWidth + itemMargin;
+  const data = reviews?.slice(0, size);
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <SliderReviewItem
+        item={item}
+        itemWidth={itemWidth}
+        itemMargin={itemMargin}
+      />
+    ),
+    [],
+  );
 
   if (!reviews || reviews.length === 0) {
     return <Text style={globalStyles.emptyText}>No reviews yet.</Text>;
   }
-
-  const data = reviews?.slice(0, size);
 
   return (
     <View style={style.container}>
@@ -30,13 +40,7 @@ const SliderReviews = ({ reviews, size = 5 }) => {
         data={data}
         keyExtractor={(_, id) => id.toString()}
         contentContainerStyle={style.contentContainer}
-        renderItem={({ item }) => (
-          <SliderReviewItem
-            item={item}
-            itemWidth={itemWidth}
-            itemMargin={itemMargin}
-          />
-        )}
+        renderItem={renderItem}
         width={slideItemWidth}
         snapToInterval={slideItemWidth}
         bounces

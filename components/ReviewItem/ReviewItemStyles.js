@@ -1,14 +1,12 @@
 import { StyleSheet } from "react-native";
 
 import { Colors } from "../../assets/Colors";
-import globalStyles from "../../assets/styles/globalStyles";
 
 const style = StyleSheet.create({
   mainContainer: {
     padding: 15,
     // paddingBottom: 20,
     backgroundColor: "white",
-    ...globalStyles.bottomGap,
   },
   userContainer: {
     flexDirection: "row",
@@ -38,11 +36,11 @@ const style = StyleSheet.create({
     marginHorizontal: 15,
     rowGap: 1,
   },
-  listingName: {
+  listingCategory: {
     fontSize: 15,
     fontWeight: "500",
   },
-  listingCategory: {
+  listingName: {
     fontSize: 13,
   },
   contentContainer: {

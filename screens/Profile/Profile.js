@@ -1,9 +1,7 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useScrollToTop, useTheme } from "@react-navigation/native";
-import React, { useRef } from "react";
-import { Alert, ScrollView, Text, View } from "react-native";
-import { RectButton } from "react-native-gesture-handler";
+import React, { useCallback, useMemo, useRef } from "react";
+import { Alert, Pressable, ScrollView, SectionList, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./ProfileStyles";
@@ -11,96 +9,110 @@ import { Colors } from "../../assets/Colors";
 import Button from "../../components/Button/Button";
 import Chip from "../../components/Chip/Chip";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
+import FocusAwareStatusBar from "../../components/FocusAwareStatusBar/FocusAwareStatusBar";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
+import ProfileSettingHeader from "../../components/ProfileSettingHeader/ProfileSettingHeader";
+import ProfileSettingItem from "../../components/ProfileSettingItem/ProfileSettingItem";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSettings } from "../../contexts/SettingsContext";
-import { useVideoFilter } from "../../contexts/VideoFilterContext";
+import useProfilePicture from "../../hooks/useProfilePicture";
 import { Routes } from "../../navigation/Routes";
-import capitalizedText from "../../utilities/textCapitalizer";
-import splitTextSpaced from "../../utilities/textSplitSpacer";
 
 const Profile = ({ navigation }) => {
   const { authState, signOut } = useAuth();
 
-  const insets = useSafeAreaInsets();
+  const { settings, modifySetting } = useSettings();
   const { colors } = useTheme();
-  const { setVideoFilter } = useVideoFilter();
-  const { settings } = useSettings();
+  const insets = useSafeAreaInsets();
+  const profilePicture = useProfilePicture();
 
   const scrollViewRef = useRef(null);
 
   useScrollToTop(scrollViewRef);
 
-  const profileSettings = {
-    profile: [
+  const profileSettings = useMemo(
+    () => [
       {
-        title: "Manage my account",
-        onPress: () => navigation.navigate(Routes.MANAGE_ACCOUNT),
+        title: "Profile",
+        data: [
+          {
+            title: "Manage my account",
+            onPress: () => navigation.navigate(Routes.MANAGE_ACCOUNT),
+          },
+          {
+            title: "Change password",
+            onPress: () => navigation.navigate(Routes.CHANGE_PASSWORD),
+          },
+          {
+            title: "Saved",
+            onPress: () => navigation.navigate(Routes.SAVED),
+          },
+          {
+            title: "Liked",
+            onPress: () => navigation.navigate(Routes.LIKED),
+          },
+        ],
       },
       {
-        title: "Change password",
-        onPress: () => navigation.navigate(Routes.CHANGE_PASSWORD),
+        title: "Hosting",
+        data: [
+          {
+            title: "Want to be a host?",
+            onPress: () => navigation.navigate(Routes.ONBOARDING_HOST),
+            enableOnGuestMode: true,
+          },
+        ],
       },
       {
-        title: "Saved",
-        onPress: () => navigation.navigate(Routes.SAVED),
+        title: "Feedback",
+        data: [
+          {
+            title: "App Feedback",
+            onPress: () => navigation.navigate(Routes.APP_FEEDBACK),
+            enableOnGuestMode: true,
+          },
+        ],
       },
       {
-        title: "Liked",
-        onPress: () => navigation.navigate(Routes.LIKED),
+        title: "Legal Information",
+        data: [
+          {
+            title: "Terms & Conditions",
+            onPress: () => {},
+            enableOnGuestMode: true,
+          },
+          {
+            title: "Privacy Policy",
+            onPress: () => {},
+            enableOnGuestMode: true,
+          },
+          {
+            title: "About Us",
+            onPress: () => {},
+            enableOnGuestMode: true,
+          },
+        ],
+      },
+      {
+        title: "Support",
+        data: [
+          {
+            title: "Help Centre",
+            onPress: () => {},
+            enableOnGuestMode: true,
+          },
+          {
+            title: "How Suitescape Works",
+            onPress: () => {},
+            enableOnGuestMode: true,
+          },
+        ],
       },
     ],
-    hosting: [
-      {
-        title: "Want to be a host?",
-        onPress: () => {},
-        enableOnGuestMode: true,
-      },
-    ],
-    feedback: [
-      {
-        title: "App Feedback",
-        onPress: () => {},
-        enableOnGuestMode: true,
-      },
-    ],
-    legal_information: [
-      {
-        title: "Terms & Conditions",
-        onPress: () => {},
-        enableOnGuestMode: true,
-      },
-      {
-        title: "Privacy Policy",
-        onPress: () => {},
-        enableOnGuestMode: true,
-      },
-      {
-        title: "About Us",
-        onPress: () => {},
-        enableOnGuestMode: true,
-      },
-    ],
-    support: [
-      {
-        title: "Help Centre",
-        onPress: () => {},
-        enableOnGuestMode: true,
-      },
-      {
-        title: "How Suitescape Works",
-        onPress: () => {},
-        enableOnGuestMode: true,
-      },
-      {
-        title: "Report A Problem",
-        onPress: () => {},
-        enableOnGuestMode: true,
-      },
-    ],
-  };
+    [navigation],
+  );
 
-  const promptLogout = () => {
+  const promptLogout = useCallback(() => {
     Alert.alert("Logout", "Are you sure you want to log out?", [
       {
         text: "Cancel",
@@ -108,31 +120,64 @@ const Profile = ({ navigation }) => {
       },
       {
         text: "Confirm",
-        onPress: logOut,
+        onPress: signOut,
         style: "destructive",
       },
     ]);
-  };
+  }, []);
 
-  const logOut = () => {
-    signOut().then(() => setVideoFilter(null));
-  };
+  const filteredProfileSettings = useMemo(
+    () =>
+      profileSettings.filter(
+        ({ data }) =>
+          !settings.guestModeEnabled ||
+          data.some(
+            (profileSettingItem) => profileSettingItem.enableOnGuestMode,
+          ),
+      ),
+    [settings.guestModeEnabled],
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }) => <ProfileSettingHeader title={section.title} />,
+    [],
+  );
+
+  const renderSectionFooter = useCallback(
+    () => <View style={style.footer} />,
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <ProfileSettingItem title={item.title} onPress={item.onPress} />
+    ),
+    [],
+  );
 
   return (
-    <ScrollView
-      ref={scrollViewRef}
-      contentInset={{ bottom: insets.bottom + 10 }}
-    >
+    <ScrollView ref={scrollViewRef} contentInset={{ bottom: insets.bottom }}>
+      <FocusAwareStatusBar style="dark" animated />
       <View style={style.headerContainer}>
-        <ProfileImage size={100} />
-        <Chip
-          inverted
-          renderIcon={({ size, color }) => (
-            <FontAwesome5 name="check" size={size} color={color} />
-          )}
+        <Pressable
+          onLongPress={() => {
+            modifySetting("onboardingEnabled", true);
+            Alert.alert("Onboarding enabled");
+          }}
         >
-          Verified
-        </Chip>
+          <ProfileImage source={profilePicture} size={100} />
+        </Pressable>
+
+        {!settings.guestModeEnabled && (
+          <Chip
+            inverted
+            renderIcon={({ size, color }) => (
+              <FontAwesome5 name="check" size={size} color={color} />
+            )}
+          >
+            Verified
+          </Chip>
+        )}
       </View>
 
       <View
@@ -141,58 +186,22 @@ const Profile = ({ navigation }) => {
         })}
       />
 
-      {Object.entries(profileSettings)
-        .filter(
-          ([_, value]) =>
-            !settings.guestModeEnabled ||
-            value.some((profileSetting) => profileSetting.enableOnGuestMode),
-        )
-        .map(([key, value]) => (
-          <View style={style.settingsKeyContainer} key={key}>
-            <Text style={{ ...style.settingsKey, color: colors.text }}>
-              {capitalizedText(splitTextSpaced(key), true)}
-            </Text>
-
-            {value
-              .filter(
-                (profileSetting) =>
-                  !settings.guestModeEnabled ||
-                  profileSetting.enableOnGuestMode,
-              )
-              .map(({ title, onPress }) => (
-                <RectButton
-                  key={title}
-                  // style={{
-                  //   ...pressedBgColor(pressed, colors.border),
-                  //   ...(pressed && style.settingsValuePressed),
-                  // })}
-                  style={style.settingsValuePressed}
-                  onPress={onPress}
-                >
-                  <View
-                    style={{
-                      ...style.settingsValueContainer,
-                      borderBottomColor: colors.border,
-                    }}
-                  >
-                    <Text style={{ color: colors.text }}>{title}</Text>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={21}
-                      color={Colors.blue}
-                    />
-                  </View>
-                </RectButton>
-              ))}
-          </View>
-        ))}
+      <SectionList
+        sections={filteredProfileSettings}
+        keyExtractor={(item) => item.title}
+        initialNumToRender={15} // Prevents log out button from being shown
+        renderSectionHeader={renderSectionHeader}
+        renderSectionFooter={renderSectionFooter}
+        renderItem={renderItem}
+        scrollEnabled={false}
+      />
 
       {settings.guestModeEnabled ? (
         <Button
           inverted
           containerStyle={style.bottomButtonContainer}
           textStyle={style.loginButton}
-          onPress={() => logOut()}
+          onPress={signOut}
         >
           Login/Signup
         </Button>
@@ -202,19 +211,12 @@ const Profile = ({ navigation }) => {
           color={Colors.red}
           containerStyle={style.bottomButtonContainer}
           textStyle={style.logoutButton}
-          onPress={() => promptLogout()}
+          onPress={promptLogout}
         >
           Logout
         </Button>
       )}
 
-      {/*<ButtonLink*/}
-      {/*  containerStyle={style.logoutButtonContainer}*/}
-      {/*  textStyle={style.logoutButton}*/}
-      {/*  onPress={() => promptLogout()}*/}
-      {/*>*/}
-      {/*  Logout*/}
-      {/*</ButtonLink>*/}
       <DialogLoading
         visible={authState.isLoading}
         title={settings.guestModeEnabled ? "Please wait..." : "Logging out..."}

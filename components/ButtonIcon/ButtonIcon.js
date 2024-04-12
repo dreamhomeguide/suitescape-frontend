@@ -1,5 +1,5 @@
 import * as Haptics from "expo-haptics";
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { Platform, Pressable } from "react-native";
 
 import style from "./ButtonIconStyles";
@@ -13,6 +13,13 @@ const ButtonIcon = ({
   onPress,
   containerStyle,
 }) => {
+  const handlePress = useCallback(async () => {
+    if (Platform.OS === "ios") {
+      await Haptics.selectionAsync();
+    }
+    onPress && onPress();
+  }, [onPress]);
+
   return (
     // <RectButton
     //   onPress={() => {
@@ -26,12 +33,7 @@ const ButtonIcon = ({
     //   activeOpacity={0.8}
     // >
     <Pressable
-      onPress={() => {
-        if (Platform.OS === "ios") {
-          Haptics.selectionAsync();
-        }
-        onPress && onPress();
-      }}
+      onPress={handlePress}
       style={({ pressed }) => ({
         ...style.button({ bgColor: color }),
         ...containerStyle,
@@ -43,4 +45,4 @@ const ButtonIcon = ({
   );
 };
 
-export default ButtonIcon;
+export default memo(ButtonIcon);

@@ -1,17 +1,25 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import React, { useEffect, useReducer, useState } from "react";
+import * as ImagePicker from "expo-image-picker";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
-  StatusBar,
   View,
 } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
+import style from "./ManageAccountStyles";
 import { Colors } from "../../assets/Colors";
 import globalStyles, {
   pressedBgColor,
@@ -23,10 +31,14 @@ import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import FormInput from "../../components/FormInput/FormInput";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
-import useFetchAPI from "../../hooks/useFetchAPI";
-import SuitescapeAPI from "../../services/SuitescapeAPI";
-import { handleApiError, handleApiResponse } from "../../utilities/apiHelpers";
-import capitalizedText from "../../utilities/textCapitalizer";
+import SliderModalPhoto from "../../components/SliderModalPhoto/SliderModalPhoto";
+import mappingsData from "../../data/mappingsData";
+import useProfilePicture from "../../hooks/useProfilePicture";
+import { baseURL } from "../../services/SuitescapeAPI";
+import { fetchProfile, updateProfile } from "../../services/apiService";
+import { handleApiError, handleApiResponse } from "../../utils/apiHelpers";
+import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
+import capitalizedText from "../../utils/textCapitalizer";
 
 const initialState = {
   firstName: "",
@@ -37,9 +49,12 @@ const initialState = {
   zipcode: "",
   city: "",
   region: "",
-  nationality: "",
+  mobileNumber: "",
   gender: "",
+  nationality: "",
   governmentId: "",
+  image: null,
+  isImageSelected: false,
 };
 
 const reducer = (state, action) => {
@@ -54,37 +69,43 @@ const reducer = (state, action) => {
   }
 };
 
-const mappings = {
-  firstName: "firstname",
-  lastName: "lastname",
-  birthday: "date_of_birth",
-  email: "email",
-  address: "address",
-  zipcode: "zipcode",
-  city: "city",
-  region: "region",
-  nationality: "nationality",
-  gender: "gender",
-  governmentId: "government_id",
-};
-
 const ManageAccount = () => {
   const [state, dispatch] = useReducer(reducer, initialState, undefined);
   const [errors, setErrors] = useState({});
   const [editingCount, setEditingCount] = useState(0);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [isFooterVisible, setIsFooterVisible] = useState(true);
 
-  const { data: userData, isLoading } = useFetchAPI("/profile");
   const queryClient = useQueryClient();
   const toast = useToast();
+  const profilePicture = useProfilePicture();
 
-  const setAccountData = (payload) => {
+  const setAccountData = useCallback((payload) => {
     dispatch({ type: "SET_DATA", payload });
-  };
+  }, []);
+
+  const modalPicture = useMemo(
+    () => [state.image ?? profilePicture],
+    [state.image, profilePicture],
+  );
+
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ["profile"],
+    queryFn: fetchProfile,
+  });
 
   useEffect(() => {
     if (userData) {
-      Object.entries(mappings).forEach(([state, userDataKey]) => {
+      Object.entries(mappingsData).forEach(([state, userDataKey]) => {
         if (!userData[userDataKey]) {
+          return;
+        }
+
+        if (state === "imageUrl") {
+          setAccountData({
+            image: { uri: baseURL + userData[userDataKey] },
+            isImageSelected: false,
+          });
           return;
         }
 
@@ -108,16 +129,14 @@ const ManageAccount = () => {
     }
   }, [userData]);
 
-  const updateProfileMutation = useMutation({
-    mutationFn: ({ profileData }) =>
-      SuitescapeAPI.post("/profile", profileData),
-    onSuccess: (response) =>
+  const handleSuccessUpdateProfile = useCallback(
+    (response) =>
       handleApiResponse({
         response,
         onError: (e) => {
           setErrors(e.errors);
         },
-        onSuccess: (res) => {
+        onSuccess: async (res) => {
           console.log(res);
 
           toast.show(res.message, {
@@ -127,13 +146,17 @@ const ManageAccount = () => {
           });
 
           if (res.updated) {
-            queryClient
-              .invalidateQueries({ queryKey: ["profile"] })
-              .then(() => console.log("Profile info invalidated"));
+            // Invalidate profile info query
+            await queryClient.invalidateQueries({ queryKey: ["profile"] });
+            console.log("Profile info invalidated");
           }
         },
       }),
-    onError: (err) =>
+    [queryClient, toast],
+  );
+
+  const handleErrorUpdateProfile = useCallback(
+    (err) =>
       handleApiError({
         error: err,
         defaultAlert: true,
@@ -141,107 +164,156 @@ const ManageAccount = () => {
           setErrors(e.errors);
         },
       }),
+    [],
+  );
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: handleSuccessUpdateProfile,
+    onError: handleErrorUpdateProfile,
   });
 
-  const updateProfile = () => {
+  const handleUpdateProfile = useCallback(() => {
+    // Create a new FormData instance
+    const formData = new FormData();
+
     // Convert bookingState to backend format
-    const profileData = Object.entries(mappings).reduce(
+    const profileData = Object.entries(mappingsData).reduce(
       (acc, [stateKey, userDataKey]) => {
-        if (stateKey === "gender") {
-          acc[userDataKey] = state[stateKey].toLowerCase();
+        if (stateKey === "imageUrl") {
           return acc;
         }
 
-        acc[userDataKey] = state[stateKey];
+        if (stateKey === "gender") {
+          acc.append(userDataKey, state[stateKey].toLowerCase());
+          return acc;
+        }
+
+        if (stateKey === "image") {
+          if (!state.isImageSelected || !state[stateKey]?.uri) {
+            return acc;
+          }
+          acc.append(userDataKey, {
+            uri: state[stateKey].uri,
+            name: "profile.jpg",
+            type: "image/jpg",
+          });
+          return acc;
+        }
+
+        acc.append(userDataKey, state[stateKey]);
         return acc;
       },
-      {}, // acc - initial value
+      formData, // initial value for acc
     );
 
     if (!updateProfileMutation.isPending) {
       updateProfileMutation.mutate({ profileData });
     }
-  };
+  }, [state, updateProfileMutation.isPending]);
 
-  const clearErrorWhenNotEmpty = (value, key) => {
-    if (value) {
-      setErrors((prevErrors) => ({ ...prevErrors, [key]: "" }));
-    }
-  };
-
-  const onEditPressed = () => {
+  const onEditPressed = useCallback(() => {
     setEditingCount((prev) => prev + 1);
-  };
+  }, []);
 
-  const onEditDone = () => {
+  const onEditDone = useCallback(() => {
     setEditingCount((prev) => prev - 1);
-  };
+  }, []);
+
+  const enableImageModal = useCallback(() => {
+    setShowImageModal(true);
+  }, []);
+
+  const disableImageModal = useCallback(() => {
+    setShowImageModal(false);
+  }, []);
+
+  const removeProfileImage = useCallback(() => {
+    setAccountData({
+      image: profilePicture.uri ?? profilePicture,
+      isImageSelected: false,
+    });
+  }, [profilePicture]);
+
+  const pickProfileImage = useCallback(async () => {
+    // No permissions request is necessary for launching the image library
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setAccountData({
+        image: { uri: result.assets[0].uri },
+        isImageSelected: true,
+      });
+    }
+  }, [state.image]);
 
   return (
     <>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : null}
         keyboardVerticalOffset={80}
+        onLayout={() => {
+          if (Platform.OS === "android") {
+            setIsFooterVisible(!Keyboard.isVisible());
+          }
+        }}
         style={globalStyles.flexFull}
       >
         <ScrollView
           contentInset={{ top: 10, bottom: 35 }}
-          contentContainerStyle={{
-            marginHorizontal: 15,
-            paddingBottom: StatusBar.currentHeight + 5,
-          }}
+          contentContainerStyle={style.mainContainer}
         >
-          <View
-            style={{ alignItems: "center", paddingTop: 15, paddingBottom: 25 }}
-          >
+          <View style={style.profileImageContainer}>
             <View>
-              <Pressable>
-                {({ pressed }) => (
-                  <ProfileImage
-                    size={120}
-                    containerStyle={{ ...pressedOpacity(pressed) }}
-                  />
-                )}
+              <Pressable
+                onPress={enableImageModal}
+                style={({ pressed }) => pressedOpacity(pressed)}
+              >
+                <ProfileImage
+                  size={120}
+                  source={state.image ?? profilePicture}
+                />
               </Pressable>
               <Pressable
+                onPress={
+                  state.isImageSelected ? removeProfileImage : pickProfileImage
+                }
                 style={({ pressed }) => ({
-                  position: "absolute",
-                  backgroundColor: Colors.black,
-                  height: 30,
-                  width: 30,
-                  borderRadius: 50,
-                  bottom: 0,
-                  right: 10,
-                  borderWidth: 1,
-                  borderColor: "white",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  ...style.addButtonContainer,
+                  backgroundColor: state.isImageSelected
+                    ? Colors.red
+                    : Colors.black,
                   ...pressedBgColor(pressed, Colors.gray),
                 })}
               >
                 <Ionicons
-                  name="add"
+                  name={state.isImageSelected ? "close" : "add"}
                   size={25}
                   color="white"
-                  style={{
-                    alignSelf: "center",
-                    left: 1,
-                  }}
+                  style={style.addButton}
                 />
               </Pressable>
             </View>
           </View>
 
-          <View style={{ rowGap: 5 }}>
+          <View style={style.contentContainer}>
             <FormInput
               type="editable"
               value={state.firstName}
               onChangeText={(value) => {
                 setAccountData({ firstName: value });
-                clearErrorWhenNotEmpty(value, mappings.firstName);
+                clearErrorWhenNotEmpty(
+                  value,
+                  mappingsData.firstName,
+                  setErrors,
+                );
               }}
               placeholder="First Name"
-              errorMessage={errors?.firstname}
+              errorMessage={errors?.[mappingsData.firstName]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -250,10 +322,10 @@ const ManageAccount = () => {
               value={state.lastName}
               onChangeText={(value) => {
                 setAccountData({ lastName: value });
-                clearErrorWhenNotEmpty(value, mappings.lastName);
+                clearErrorWhenNotEmpty(value, mappingsData.lastName, setErrors);
               }}
               placeholder="Last Name"
-              errorMessage={errors?.lastname}
+              errorMessage={errors?.[mappingsData.lastName]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -263,13 +335,13 @@ const ManageAccount = () => {
               value={state.birthday}
               onChangeText={(value) => {
                 setAccountData({ birthday: value });
-                clearErrorWhenNotEmpty(value, mappings.birthday);
+                clearErrorWhenNotEmpty(value, mappingsData.birthday, setErrors);
               }}
               // onDateConfirm={(_, text) => {
               //   setAccountData({ birthday: text });
               // }}
               placeholder="Birthday"
-              errorMessage={errors?.date_of_birth}
+              errorMessage={errors?.[mappingsData.birthday]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -278,10 +350,10 @@ const ManageAccount = () => {
               value={state.email}
               onChangeText={(value) => {
                 setAccountData({ email: value });
-                clearErrorWhenNotEmpty(value, mappings.email);
+                clearErrorWhenNotEmpty(value, mappingsData.email, setErrors);
               }}
               placeholder="Email"
-              errorMessage={errors?.email}
+              errorMessage={errors?.[mappingsData.email]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -290,10 +362,10 @@ const ManageAccount = () => {
               value={state.address}
               onChangeText={(value) => {
                 setAccountData({ address: value });
-                clearErrorWhenNotEmpty(value, mappings.address);
+                clearErrorWhenNotEmpty(value, mappingsData.address, setErrors);
               }}
               placeholder="Address"
-              errorMessage={errors?.address}
+              errorMessage={errors?.[mappingsData.address]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -302,10 +374,10 @@ const ManageAccount = () => {
               value={state.zipcode}
               onChangeText={(value) => {
                 setAccountData({ zipcode: value });
-                clearErrorWhenNotEmpty(value, mappings.zipcode);
+                clearErrorWhenNotEmpty(value, mappingsData.zipcode, setErrors);
               }}
               placeholder="Zip code"
-              errorMessage={errors?.zipcode}
+              errorMessage={errors?.[mappingsData.zipcode]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -314,10 +386,10 @@ const ManageAccount = () => {
               value={state.city}
               onChangeText={(value) => {
                 setAccountData({ city: value });
-                clearErrorWhenNotEmpty(value, mappings.city);
+                clearErrorWhenNotEmpty(value, mappingsData.city, setErrors);
               }}
               placeholder="City"
-              errorMessage={errors?.city}
+              errorMessage={errors?.[mappingsData.city]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -326,10 +398,26 @@ const ManageAccount = () => {
               value={state.region}
               onChangeText={(value) => {
                 setAccountData({ region: value });
-                clearErrorWhenNotEmpty(value, mappings.region);
+                clearErrorWhenNotEmpty(value, mappingsData.region, setErrors);
               }}
               placeholder="Region"
-              errorMessage={errors?.region}
+              errorMessage={errors?.[mappingsData.region]}
+              onEditPressed={onEditPressed}
+              onEditDone={onEditDone}
+            />
+            <FormInput
+              type="editable"
+              value={state.mobileNumber}
+              onChangeText={(value) => {
+                setAccountData({ mobileNumber: value });
+                clearErrorWhenNotEmpty(
+                  value,
+                  mappingsData.mobileNumber,
+                  setErrors,
+                );
+              }}
+              placeholder="Mobile Number"
+              errorMessage={errors?.[mappingsData.mobileNumber]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -338,10 +426,10 @@ const ManageAccount = () => {
               value={state.gender}
               onChangeText={(value) => {
                 setAccountData({ gender: value });
-                clearErrorWhenNotEmpty(value, mappings.gender);
+                clearErrorWhenNotEmpty(value, mappingsData.gender, setErrors);
               }}
               placeholder="Gender"
-              errorMessage={errors?.gender}
+              errorMessage={errors?.[mappingsData.gender]}
               onEditPressed={onEditPressed}
               onEditDone={onEditDone}
             />
@@ -350,7 +438,11 @@ const ManageAccount = () => {
               value={state.nationality}
               onChangeText={(value) => {
                 setAccountData({ nationality: value });
-                clearErrorWhenNotEmpty(value, mappings.nationality);
+                clearErrorWhenNotEmpty(
+                  value,
+                  mappingsData.nationality,
+                  setErrors,
+                );
               }}
               placeholder="Nationality"
               onEditPressed={onEditPressed}
@@ -361,7 +453,11 @@ const ManageAccount = () => {
               value={state.governmentId}
               onChangeText={(value) => {
                 setAccountData({ governmentId: value });
-                clearErrorWhenNotEmpty(value, mappings.governmentId);
+                clearErrorWhenNotEmpty(
+                  value,
+                  mappingsData.governmentId,
+                  setErrors,
+                );
               }}
               placeholder="Government ID"
               onEditPressed={onEditPressed}
@@ -370,12 +466,26 @@ const ManageAccount = () => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      <AppFooter>
-        <ButtonLarge disabled={editingCount > 0} onPress={updateProfile}>
-          Save Changes
-        </ButtonLarge>
-      </AppFooter>
-      <DialogLoading visible={isLoading} />
+
+      <SliderModalPhoto
+        imageData={modalPicture}
+        visible={showImageModal}
+        onClose={disableImageModal}
+        showIndex={false}
+      />
+
+      {isFooterVisible && (
+        <AppFooter>
+          <ButtonLarge
+            disabled={editingCount > 0}
+            onPress={handleUpdateProfile}
+          >
+            Save Changes
+          </ButtonLarge>
+        </AppFooter>
+      )}
+
+      <DialogLoading visible={isLoading || updateProfileMutation.isPending} />
     </>
   );
 };

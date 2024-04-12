@@ -8,6 +8,10 @@ const style = StyleSheet.create({
     marginTop: 12,
     marginHorizontal: 23,
   },
+  passwordCheckerContainer: {
+    marginHorizontal: 20,
+    marginVertical: 10,
+  },
   forgotPasswordButtonContainer: {
     alignItems: "flex-end",
     marginHorizontal: 23,
@@ -16,6 +20,15 @@ const style = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
+    fontWeight: "500",
+  },
+  skipButtonContainer: {
+    alignSelf: "flex-end",
+    paddingTop: 20,
+    paddingRight: 30,
+  },
+  skipButtonText: {
+    fontWeight: "500",
   },
 });
 

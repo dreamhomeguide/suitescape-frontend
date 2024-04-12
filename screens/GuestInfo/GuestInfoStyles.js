@@ -6,6 +6,9 @@ const style = StyleSheet.create({
     paddingTop: 15,
     paddingBottom: StatusBar.currentHeight + 5,
   },
+  messageContainer: {
+    marginTop: 5,
+  },
 });
 
 export default style;

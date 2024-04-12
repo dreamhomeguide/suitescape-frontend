@@ -1,9 +1,16 @@
 import { Slider } from "@miblanchard/react-native-slider";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Animated } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import style from "./VideoItemProgressBarStyles";
-import { useVideoScroll } from "../../contexts/VideoScrollContext";
 
 const VideoItemProgressBar = ({
   videoRef,
@@ -22,9 +29,6 @@ const VideoItemProgressBar = ({
   // }, [trackMarks]);
 
   const timeoutRef = useRef(null);
-
-  const { isScrolling } = useVideoScroll();
-
   const trackHeight = useRef(new Animated.Value(3)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -41,36 +45,37 @@ const VideoItemProgressBar = ({
   }, [isSeeking, visible]);
 
   useEffect(() => {
-    return () => timeoutRef.current && clearTimeout(timeoutRef.current);
+    return () => clearTimeout(timeoutRef.current);
   }, []);
 
-  const onValueChange = (val) => {
-    !isSeeking && setIsSeeking(true);
-    onProgressChange && onProgressChange(val[0]);
+  const onValueChange = useCallback(
+    (val) => {
+      !isSeeking && setIsSeeking(true);
+      onProgressChange && onProgressChange(val[0]);
 
-    videoRef.current.video
-      .setPositionAsync(val[0], {
-        toleranceMillisBefore: 0,
-        toleranceMillisAfter: 0,
-      })
-      .catch(() => {}); // Don't show error
-  };
+      videoRef?.current?.video
+        .setPositionAsync(val[0], {
+          toleranceMillisBefore: 0,
+          toleranceMillisAfter: 0,
+        })
+        .catch(() => {}); // Don't show error
+    },
+    [isSeeking, onProgressChange],
+  );
 
-  const onSlidingStart = () => {
+  const onSlidingStart = useCallback(() => {
     // setShouldVideoScroll && setShouldVideoScroll(false);
     setIsSeeking(true);
     onSeekStart && onSeekStart();
 
-    if (!videoRef.current.isClickPaused) {
+    if (!videoRef?.current?.isClickPaused) {
       videoRef.current.video.pauseAsync();
     }
-  };
+  }, [onSeekStart]);
 
-  const onSlidingComplete = () => {
+  const onSlidingComplete = useCallback(() => {
     // Clear timeout if it exists
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    clearTimeout(timeoutRef.current);
 
     // Set timeout to hide progress bar
     timeoutRef.current = setTimeout(() => {
@@ -86,9 +91,29 @@ const VideoItemProgressBar = ({
     // }
 
     // Play video after seeking
-    videoRef.current.video.playAsync();
-    videoRef.current.setIsClickPaused(false);
-  };
+    videoRef?.current?.video.playAsync();
+    videoRef?.current?.setIsClickPaused(false);
+  }, [onSeekEnd]);
+
+  const trackMarkStyle = useMemo(
+    () => ({
+      ...style.trackMark,
+      ...(!isSeeking && { height: trackHeight, left: -13 }),
+    }),
+    [isSeeking],
+  );
+
+  const renderTrackMarkComponent = useCallback(() => {
+    if (!trackMarks || trackMarks.length === 0) {
+      return null;
+    }
+
+    return <Animated.View style={trackMarkStyle} />;
+  }, [trackMarks, trackMarkStyle]);
+
+  const nativeGesture = useMemo(() => Gesture.Native(), []);
+  const panGesture = useMemo(() => Gesture.Pan(), []);
+  const composed = useMemo(() => Gesture.Race(nativeGesture, panGesture), []);
 
   return (
     <Animated.View
@@ -97,44 +122,29 @@ const VideoItemProgressBar = ({
         ...(!visible && !isSeeking && { opacity }),
       }}
     >
-      <Slider
-        value={progress}
-        // animationType="spring"
-        // animateTransitions
-        onValueChange={onValueChange}
-        onSlidingStart={onSlidingStart}
-        onSlidingComplete={onSlidingComplete}
-        disabled={isScrolling}
-        maximumValue={duration}
-        trackStyle={{ height: trackHeight }}
-        maximumTrackStyle={style.track}
-        maximumTrackTintColor="white"
-        minimumTrackTintColor={undefined}
-        thumbStyle={isSeeking ? style.thumb : style.noThumb}
-        containerStyle={style.sliderContainer}
-        // Date time marks like 00:00, 00:30, 01:30, etc. should be done in backend (Laravel)
-        // Thumbnails for these marks should be done in frontend (React native)
-        trackMarks={trackMarks}
-        renderTrackMarkComponent={() => {
-          if (!trackMarks || trackMarks.length === 0) {
-            return null;
-          }
-
-          return (
-            <Animated.View
-              style={{
-                ...style.trackMark,
-                ...(!isSeeking && {
-                  height: trackHeight,
-                  left: -13,
-                }),
-              }}
-            />
-          );
-        }}
-      />
+      <GestureDetector gesture={composed}>
+        <Slider
+          value={progress}
+          animationType="timing"
+          animateTransitions
+          onValueChange={onValueChange}
+          onSlidingStart={onSlidingStart}
+          onSlidingComplete={onSlidingComplete}
+          maximumValue={duration}
+          trackStyle={{ height: trackHeight }}
+          maximumTrackStyle={style.track}
+          maximumTrackTintColor="white"
+          minimumTrackTintColor={undefined}
+          thumbStyle={isSeeking ? style.thumb : style.noThumb}
+          containerStyle={style.sliderContainer}
+          // Date time marks like 00:00, 00:30, 01:30, etc. should be done in backend (Laravel)
+          // Thumbnails for these marks should be done in frontend (React native)
+          trackMarks={trackMarks}
+          renderTrackMarkComponent={renderTrackMarkComponent}
+        />
+      </GestureDetector>
     </Animated.View>
   );
 };
 
-export default VideoItemProgressBar;
+export default memo(VideoItemProgressBar);

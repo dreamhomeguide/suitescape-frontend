@@ -2,9 +2,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import SuitescapeAPI from "../services/SuitescapeAPI";
-import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
+import { handleApiError, handleApiResponse } from "../utils/apiHelpers";
 
-const useFetchAPI = (endpoint, config, initialData, queryOptions) => {
+const useFetchAPI = ({ endpoint, config, initialData, queryOptions }) => {
   const [data, setData] = useState(initialData);
 
   const queryClient = useQueryClient();

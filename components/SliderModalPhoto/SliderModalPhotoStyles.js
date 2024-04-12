@@ -17,7 +17,7 @@ const style = StyleSheet.create({
   }),
   closeButton: ({ topInsets }) => ({
     ...globalStyles.closeModalButton,
-    top: topInsets + 10,
+    top: topInsets + 15,
   }),
   text: {
     color: "white",

@@ -1,31 +1,30 @@
-import { Dimensions, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 import { Colors } from "../../assets/Colors";
 
-const { width } = Dimensions.get("window");
-
-const ITEM_IMAGE_SIZE = width / 6;
-
 const style = StyleSheet.create({
-  mainContainer: ({ isActive }) => ({
+  mainContainer: ({ isActive, width }) => ({
     flex: 1,
     flexDirection: "row",
-    columnGap: 10,
     borderRadius: 10,
-    padding: 5,
+    padding: 8,
     ...(isActive && {
       backgroundColor: Colors.lightgray,
     }),
+    width,
   }),
+  contentContainer: {
+    marginRight: 10,
+  },
   text: {
     fontWeight: "500",
   },
-  image: {
+  image: (imageSize) => ({
     flex: 1,
-    height: ITEM_IMAGE_SIZE,
-    width: ITEM_IMAGE_SIZE,
+    height: imageSize,
+    width: imageSize,
     borderRadius: 10,
-  },
+  }),
 });
 
 export default style;

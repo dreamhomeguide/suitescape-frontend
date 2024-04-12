@@ -1,10 +1,10 @@
 import { useNavigation } from "@react-navigation/native";
-import React from "react";
+import * as Linking from "expo-linking";
+import React, { memo, useCallback } from "react";
 import { Pressable, Share, Text, View } from "react-native";
 
 import style from "./DetailsHostViewStyles";
 import { Colors } from "../../assets/Colors";
-import detailsStyles from "../../assets/styles/detailsStyles";
 import { pressedOpacity } from "../../assets/styles/globalStyles";
 import { useListingContext } from "../../contexts/ListingContext";
 import { Routes } from "../../navigation/Routes";
@@ -13,24 +13,45 @@ import ButtonLink from "../ButtonLink/ButtonLink";
 import ButtonSocialActionsView from "../ButtonSocialActionsView/ButtonSocialActionsView";
 import ProfileImage from "../ProfileImage/ProfileImage";
 
-const DetailsHostView = ({ hostName }) => {
+const DetailsHostView = ({ hostId, hostName, hostPictureUrl }) => {
   const navigation = useNavigation();
   const { listing } = useListingContext();
 
-  const handleHostPress = () => {
-    navigation.navigate(Routes.PROFILE_HOST, {
-      hostId: listing.host.id,
-    });
-  };
+  const handleHostPress = useCallback(() => {
+    if (hostId) {
+      navigation.navigate(Routes.PROFILE_HOST, { hostId });
+    }
+  }, [hostId]);
+
+  const onChatNow = useCallback(() => {
+    if (hostId) {
+      navigation.navigate(Routes.CHAT, { id: hostId });
+    }
+  }, [hostId]);
+
+  const onShare = useCallback(async () => {
+    if (listing?.id) {
+      const url = Linking.createURL("/listings/" + listing.id);
+      await Share.share({
+        title: `Check out this listing on Suitescape: (${listing?.name}`,
+        message: url,
+      });
+    }
+  }, [listing?.id]);
 
   return (
-    <View style={detailsStyles.plainContainer}>
+    <View style={style.container}>
       <View style={style.hostContentContainer}>
         <Pressable
-          onPress={handleHostPress}
+          onPress={hostId && handleHostPress}
           style={({ pressed }) => pressedOpacity(pressed)}
         >
-          <ProfileImage size={60} borderWidth={1} borderColor={Colors.blue} />
+          <ProfileImage
+            source={hostPictureUrl ? { uri: baseURL + hostPictureUrl } : null}
+            size={60}
+            borderWidth={1.5}
+            borderColor={Colors.blue}
+          />
         </Pressable>
 
         <View style={style.hostDetailsContainer}>
@@ -51,16 +72,11 @@ const DetailsHostView = ({ hostName }) => {
 
       {/* Listing Actions */}
       <ButtonSocialActionsView
-        onChatNow={() => navigation.navigate(Routes.CHAT)}
-        onShare={async () =>
-          await Share.share({
-            message:
-              "Check out this listing: " + baseURL + "/listings/" + listing?.id,
-          })
-        }
+        onChatNow={hostId && onChatNow}
+        onShare={listing?.id && onShare}
       />
     </View>
   );
 };
 
-export default DetailsHostView;
+export default memo(DetailsHostView);

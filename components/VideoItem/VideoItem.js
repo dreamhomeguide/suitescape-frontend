@@ -1,9 +1,11 @@
 import Icon from "@expo/vector-icons/FontAwesome5";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { ResizeMode, Video } from "expo-av";
+import * as Haptics from "expo-haptics";
 import React, {
   forwardRef,
   memo,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
@@ -13,12 +15,13 @@ import React, {
 import { ActivityIndicator, AppState, Dimensions, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
-import { useToast } from "react-native-toast-notifications";
+import Toast from "react-native-toast-notifications";
 
 import style from "./VideoItemStyles";
+import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
 import { useAuth } from "../../contexts/AuthContext";
-import { useSocialActions } from "../../contexts/SocialActionsContext";
+import useSocialActions from "../../hooks/useSocialActions";
 
 const { width: WINDOW_WIDTH } = Dimensions.get("window");
 
@@ -33,10 +36,12 @@ const VideoItem = forwardRef(
       initialIsMuted = false,
       onPlaybackUpdate,
       shouldPlay,
+      onError,
       onClearMode,
       clearModeEnabled = true,
       likeEnabled = true,
       pauseEnabled = true,
+      listingId,
     },
     ref,
   ) => {
@@ -46,11 +51,10 @@ const VideoItem = forwardRef(
     const [inBackground, setInBackground] = useState(false);
 
     const videoRef = useRef(null);
+    const toastRef = useRef(null);
 
+    const { isLiked, handleLike } = useSocialActions(listingId, true);
     const { authState } = useAuth();
-    const toast = useToast();
-    const socialActionsContext = useSocialActions();
-    const { isLiked, handleLike } = socialActionsContext || {};
 
     const shouldVideoPlay =
       status.isLoaded && shouldPlay && !isPaused && !inBackground;
@@ -81,7 +85,7 @@ const VideoItem = forwardRef(
       };
     }, []);
 
-    const togglePauseOrUnmute = () => {
+    const togglePauseOrUnmute = useCallback(() => {
       if (status.isMuted) {
         setIsMuted(false);
         return;
@@ -95,19 +99,25 @@ const VideoItem = forwardRef(
       } else {
         videoRef.current?.playAsync();
       }
-    };
+    }, [status.isMuted, status.isPlaying]);
 
-    const likeVideo = () => {
-      if (!isLiked) {
-        handleLike && handleLike();
+    const likeVideo = useCallback(() => {
+      // Prevents running if handleLike is not defined
+      if (!handleLike) {
+        return;
       }
 
-      toast.hideAll();
-      toast.show("", {
+      // Prevents liking the video if the user has already liked it
+      if (!isLiked) {
+        handleLike();
+      }
+
+      toastRef.current.hideAll();
+      toastRef.current.show("", {
         icon: (
           <MaterialCommunityIcons
             name="heart"
-            color="red"
+            color={Colors.lightred}
             size={90}
             style={globalStyles.iconShadow}
           />
@@ -117,7 +127,7 @@ const VideoItem = forwardRef(
         duration: 500,
         placement: "center",
       });
-    };
+    }, [handleLike, isLiked]);
 
     const singleTap = useMemo(
       () =>
@@ -127,7 +137,7 @@ const VideoItem = forwardRef(
           .onEnd(() => {
             runOnJS(togglePauseOrUnmute)();
           }),
-      [status.isMuted, status.isPlaying],
+      [togglePauseOrUnmute],
     );
 
     const doubleTap = useMemo(
@@ -138,7 +148,7 @@ const VideoItem = forwardRef(
           .onEnd(() => {
             runOnJS(likeVideo)();
           }),
-      [handleLike, isLiked],
+      [likeVideo],
     );
 
     const longPan = useMemo(
@@ -146,17 +156,14 @@ const VideoItem = forwardRef(
         Gesture.Pan()
           .enabled(clearModeEnabled)
           .activateAfterLongPress(500)
-          .onUpdate(() => {
-            if (onClearMode) {
-              runOnJS(onClearMode)(true);
-            }
+          .onStart(() => {
+            runOnJS(Haptics.selectionAsync)();
+            runOnJS(onClearMode)(true);
           })
           .onEnd(() => {
-            if (onClearMode) {
-              runOnJS(onClearMode)(false);
-            }
+            runOnJS(onClearMode)(false);
           }),
-      [onClearMode],
+      [],
     );
 
     const composed = useMemo(
@@ -179,6 +186,7 @@ const VideoItem = forwardRef(
               />
             </View>
           )}
+
           {isPaused && (
             <View
               style={{ ...globalStyles.absoluteCenter, ...style.actionButton }}
@@ -191,12 +199,14 @@ const VideoItem = forwardRef(
               />
             </View>
           )}
+
           {!status.isLoaded ||
             (status.isBuffering && !status.isPlaying && (
               <View style={globalStyles.absoluteCenter}>
                 <ActivityIndicator size="large" style={style.iconOpacity} />
               </View>
             ))}
+
           <Video
             ref={videoRef}
             source={{
@@ -210,12 +220,18 @@ const VideoItem = forwardRef(
               setStatus(() => playbackStatus);
               onPlaybackUpdate && onPlaybackUpdate(playbackStatus);
             }}
+            onError={(error) => {
+              console.log("Error loading video:", error);
+              onError && onError(error);
+            }}
             shouldPlay={shouldVideoPlay}
             isMuted={isMuted}
             isLooping
             resizeMode={ResizeMode.COVER}
             style={{ width, height }}
           />
+
+          <Toast ref={toastRef} />
         </View>
       </GestureDetector>
     );

@@ -1,7 +1,10 @@
+// noinspection JSCheckFunctionSignatures
+
+import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { createContext, useContext, useEffect, useReducer } from "react";
 
-const SettingsContext = createContext(undefined);
+import { cleanUpCache } from "../utils/cacheMedia";
 
 const initialState = {
   isLoaded: false,
@@ -27,37 +30,39 @@ const reducer = (prevState, action) => {
   }
 };
 
+const SettingsContext = createContext({
+  settings: initialState,
+  modifySetting: (_setting, _value) => {},
+});
+
 export const SettingsProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState, undefined);
 
-  const getSetting = async (settingName, defaultValue) => {
-    const storedSetting = await SecureStore.getItemAsync(settingName);
-
-    if (!storedSetting) {
-      await SecureStore.setItemAsync(settingName, String(defaultValue));
-      return defaultValue;
-    }
-
-    // Return the stored setting as a boolean
-    if (storedSetting === "true" || storedSetting === "false") {
-      return storedSetting === "true";
-    }
-
-    // Return the stored setting as a string
-    return storedSetting;
-  };
-
   useEffect(() => {
-    const getSettings = async () => {
+    const getSetting = (settingName, defaultValue) => {
+      const storedSetting = SecureStore.getItem(settingName);
+
+      if (!storedSetting) {
+        SecureStore.setItem(settingName, String(defaultValue));
+        return defaultValue;
+      }
+
+      // Return the stored setting as a boolean
+      if (storedSetting === "true" || storedSetting === "false") {
+        return storedSetting === "true";
+      }
+
+      // Return the stored setting as a string
+      return storedSetting;
+    };
+
+    const restoreSettings = () => {
       const settings = {};
 
-      console.log("Restoring settings...");
       try {
-        settings.onboardingEnabled = await getSetting(
-          "onboardingEnabled",
-          true,
-        );
-        settings.guestModeEnabled = await getSetting("guestModeEnabled", false);
+        settings.deviceId = getSetting("deviceId", Crypto.randomUUID());
+        settings.onboardingEnabled = getSetting("onboardingEnabled", true);
+        settings.guestModeEnabled = getSetting("guestModeEnabled", false);
       } catch (err) {
         console.log(err);
       }
@@ -66,16 +71,14 @@ export const SettingsProvider = ({ children }) => {
       dispatch({ type: "RESTORE_SETTINGS", settings });
     };
 
-    getSettings();
+    restoreSettings();
+    cleanUpCache().catch((err) => console.log(err));
   }, []);
 
-  const modifySetting = async (setting, value) => {
-    await SecureStore.setItemAsync(setting, String(value));
-    dispatch({
-      type: "MODIFY_SETTING",
-      setting,
-      value,
-    });
+  const modifySetting = (setting, value) => {
+    SecureStore.setItem(setting, String(value));
+
+    dispatch({ type: "MODIFY_SETTING", setting, value });
   };
 
   const settingsContext = {

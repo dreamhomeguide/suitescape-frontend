@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Pressable, Text } from "react-native";
 
 import style from "./ButtonGalleryModeStyles";
@@ -17,4 +17,4 @@ const ButtonGalleryMode = ({ mode, isPhoto, setGalleryMode }) => {
   );
 };
 
-export default ButtonGalleryMode;
+export default memo(ButtonGalleryMode);

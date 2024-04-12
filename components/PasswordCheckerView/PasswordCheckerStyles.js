@@ -2,8 +2,8 @@ import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
   mainContainer: {
-    marginHorizontal: 30,
-    marginVertical: 10,
+    marginHorizontal: 15,
+    marginTop: 5,
   },
 });
 

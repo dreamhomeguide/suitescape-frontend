@@ -21,7 +21,7 @@ const SliderGalleryItemPhoto = ({
   modalMode,
   ...props
 }) => {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { showPhotoGallery } = useModalGallery();
   const { width } = useWindowDimensions();
@@ -39,7 +39,10 @@ const SliderGalleryItemPhoto = ({
       })}
       onPress={() => showPhotoGallery()}
     >
-      {isLoading && <ActivityIndicator style={globalStyles.absoluteCenter} />}
+      <ActivityIndicator
+        animating={isLoading}
+        style={globalStyles.absoluteCenter}
+      />
       <Image
         source={{
           uri: baseURL + photoUrl,
@@ -47,7 +50,9 @@ const SliderGalleryItemPhoto = ({
             Authorization: "Bearer " + authState.userToken,
           },
         }}
+        transition={100}
         contentFit={imageResizeMode}
+        onLayout={() => setIsLoading(true)}
         onLoadEnd={() => setIsLoading(false)}
         style={globalStyles.flexFull}
         {...props}

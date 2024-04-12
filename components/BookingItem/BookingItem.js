@@ -1,9 +1,11 @@
+import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
-import React, { memo } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { Text, View } from "react-native";
 
 import style from "./BookingItemStyles";
 import globalStyles from "../../assets/styles/globalStyles";
+import { Routes } from "../../navigation/Routes";
 import { baseURL } from "../../services/SuitescapeAPI";
 import Button from "../Button/Button";
 import StarRatingView from "../StarRatingView/StarRatingView";
@@ -31,20 +33,36 @@ const BookingItem = ({ item, type }) => {
   //   [images],
   // );
 
-  const actionButton = {
-    upcoming: {
-      label: "Cancel Booking",
-      onPress: () => {},
-    },
-    completed: {
-      label: "Book Again",
-      onPress: () => {},
-    },
-    to_rate: {
-      label: "Rate Room",
-      onPress: () => {},
-    },
-  };
+  const navigation = useNavigation();
+
+  const onViewDetails = useCallback(() => {
+    navigation.navigate(Routes.LISTING_DETAILS, { listingId: listing.id });
+  }, [navigation, listing.id]);
+
+  const actionButton = useMemo(
+    () => ({
+      upcoming: {
+        label: "Edit Reservation",
+        onPress: () =>
+          navigation.navigate(Routes.BOOKING_DETAILS, { bookingId }),
+      },
+      ongoing: {
+        label: "Message",
+        onPress: () =>
+          navigation.navigate(Routes.CHAT, { id: listing.host.id }),
+      },
+      completed: {
+        label: "Book Again",
+        onPress: () => {},
+      },
+      to_rate: {
+        label: "Rate Room",
+        onPress: () =>
+          navigation.navigate(Routes.RATE_EXPERIENCE, { bookingId }),
+      },
+    }),
+    [],
+  );
 
   return (
     <View style={style.mainContainer}>
@@ -54,26 +72,39 @@ const BookingItem = ({ item, type }) => {
         }}
         style={globalStyles.coverImage}
       />
-      <View style={style.detailsContainer}>
-        <Text style={style.listingName} numberOfLines={1}>
-          {listing.name}
-        </Text>
-        <Text numberOfLines={1}>{listing.location}</Text>
-        <Text numberOfLines={1}>Booking ID: {bookingId}</Text>
-        <StarRatingView rating={listing.average_rating} />
+      <View style={globalStyles.containerGap}>
+        <View style={style.listingNameContainer}>
+          <Text style={style.listingName} numberOfLines={1}>
+            {listing.name}
+          </Text>
+        </View>
+        <View style={style.detailsContainer}>
+          <Text numberOfLines={1}>{listing.location}</Text>
+          <Text numberOfLines={1}>Booking ID: {bookingId}</Text>
+          <StarRatingView rating={listing.average_rating} />
+        </View>
       </View>
+
       <View style={globalStyles.horizontalDivider} />
-      <View style={style.buttonsContainer}>
+
+      <View style={{ ...globalStyles.buttonRow, ...style.buttonsContainer }}>
+        <Button
+          onPress={onViewDetails}
+          outlined
+          containerStyle={globalStyles.flexFull}
+        >
+          View Details
+        </Button>
         <View style={globalStyles.flexFull}>
           {actionButton[type] && (
-            <Button onPress={actionButton[type].onPress}>
+            <Button
+              onPress={actionButton[type].onPress}
+              // containerStyle={globalStyles.flexFull}
+            >
               {actionButton[type].label}
             </Button>
           )}
         </View>
-        <Button outlined containerStyle={globalStyles.flexFull}>
-          View Details
-        </Button>
       </View>
     </View>
   );

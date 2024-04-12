@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/native";
-import React from "react";
+import React, { memo } from "react";
 import { Pressable, View } from "react-native";
 
 import style from "./ButtonBackStyles";
@@ -33,4 +33,4 @@ const ButtonBack = ({ onPress, color = "black" }) => {
   );
 };
 
-export default ButtonBack;
+export default memo(ButtonBack);

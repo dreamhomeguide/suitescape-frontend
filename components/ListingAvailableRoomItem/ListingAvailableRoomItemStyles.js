@@ -19,6 +19,10 @@ const style = StyleSheet.create({
     color: "black",
     fontSize: 14,
   },
+  tagText: {
+    color: Colors.gray,
+    fontSize: 14,
+  },
   boldText: {
     fontWeight: "bold",
     color: Colors.blue,
@@ -38,18 +42,18 @@ const style = StyleSheet.create({
   priceContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 12,
-    marginTop: 15,
+    marginBottom: 8,
+    marginTop: 18,
+    marginHorizontal: 5,
   },
   detailsContainer: {
     flexDirection: "row",
     columnGap: 40,
     marginBottom: 15,
   },
-  buttonsContainer: {
+  buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 4,
+    marginTop: 10,
     columnGap: 20,
   },
 });

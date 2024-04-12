@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import { ImageBackground } from "expo-image";
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import style from "./ListingItemStyles";
@@ -17,13 +17,12 @@ const ListingItem = ({ item }) => {
 
   const navigation = useNavigation();
 
+  const onViewListing = useCallback(() => {
+    navigation.push(Routes.LISTING_DETAILS, { listingId: listing.id });
+  }, [navigation, listing.id]);
+
   return (
-    <Pressable
-      style={globalStyles.flexFull}
-      onPress={() =>
-        navigation.push(Routes.LISTING_DETAILS, { listingId: listing.id })
-      }
-    >
+    <Pressable style={globalStyles.flexFull} onPress={onViewListing}>
       {({ pressed }) => (
         <View style={style.mainContainer}>
           <ImageBackground

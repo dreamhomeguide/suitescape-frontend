@@ -15,13 +15,12 @@ import HeaderText from "../../components/HeaderText/HeaderText";
 import LineView from "../../components/LineView/LineView";
 import LogoView from "../../components/LogoView/LogoView";
 import { useAuth } from "../../contexts/AuthContext";
+import { useSettings } from "../../contexts/SettingsContext";
+import mappingsData from "../../data/mappingsData";
+import { Routes } from "../../navigation/Routes";
+import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
 
-const mappings = {
-  email: "email",
-  password: "password",
-};
-
-const Login = () => {
+const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
@@ -30,7 +29,8 @@ const Login = () => {
   const passwordRef = useRef(null);
 
   const insets = useSafeAreaInsets();
-  const { authState, signIn, abort } = useAuth();
+  const { authState, signIn, enableGuestMode } = useAuth();
+  const { modifySetting } = useSettings();
 
   useFocusEffect(
     useCallback(() => {
@@ -43,15 +43,14 @@ const Login = () => {
     }, []),
   );
 
-  const clearErrorWhenNotEmpty = (value, key) => {
-    if (value) {
-      setErrors((prevErrors) => ({ ...prevErrors, [key]: "" }));
-    }
-  };
-
-  const handleSignIn = () => {
+  const handleSignIn = useCallback(() => {
     signIn({ email, password }).catch((errors) => setErrors(errors));
-  };
+  }, [email, password]);
+
+  const handleSkipButtonClick = useCallback(() => {
+    modifySetting("onboardingEnabled", false);
+    enableGuestMode().catch((err) => console.log(err));
+  }, []);
 
   return (
     <ScrollView
@@ -62,6 +61,13 @@ const Login = () => {
       }}
     >
       <StatusBar animated />
+      <ButtonLink
+        onPress={handleSkipButtonClick}
+        containerStyle={style.skipButtonContainer}
+        textStyle={style.skipButtonText}
+      >
+        Skip
+      </ButtonLink>
       <LogoView />
       <HeaderText>Login</HeaderText>
       <View style={style.inputContainer}>
@@ -69,7 +75,7 @@ const Login = () => {
           value={email}
           onChangeText={(value) => {
             setEmail(value);
-            clearErrorWhenNotEmpty(value, mappings.email);
+            clearErrorWhenNotEmpty(value, mappingsData.email, setErrors);
           }}
           placeholder="Email Address"
           // Bug: doesn't show cursor when this is on
@@ -77,7 +83,7 @@ const Login = () => {
           textContentType="emailAddress"
           autoComplete="email"
           autoCapitalize="none"
-          errorMessage={errors?.email}
+          errorMessage={errors?.[mappingsData.email]}
           returnKeyType="next"
           onSubmitEditing={() => {
             passwordRef.current.focus();
@@ -90,18 +96,18 @@ const Login = () => {
           value={password}
           onChangeText={(value) => {
             setPassword(value);
-            clearErrorWhenNotEmpty(value, mappings.password);
+            clearErrorWhenNotEmpty(value, mappingsData.password, setErrors);
           }}
           placeholder="Password"
           textContentType="none"
-          errorMessage={errors?.password}
+          errorMessage={errors?.[mappingsData.password]}
           returnKeyType="done"
           ref={passwordRef}
         />
       </View>
       <View style={style.forgotPasswordButtonContainer}>
         <ButtonLink
-          onPress={() => console.log("Forgot Password")}
+          onPress={() => navigation.navigate(Routes.FORGOT_PASSWORD)}
           textStyle={style.forgotPasswordText}
         >
           Forgot Password?
@@ -119,7 +125,7 @@ const Login = () => {
       <DialogLoading
         visible={authState.isLoading}
         title="Logging in..."
-        onCancel={() => abort()}
+        // onCancel={() => abort()}
       />
     </ScrollView>
   );

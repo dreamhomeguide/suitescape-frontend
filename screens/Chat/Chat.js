@@ -1,8 +1,11 @@
 import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import React, { useEffect, useRef } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { StatusBar } from "expo-status-bar";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
@@ -12,172 +15,253 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import style from "./ChatStyle";
+import style from "./ChatStyles";
 import { Colors } from "../../assets/Colors";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import ButtonBack from "../../components/ButtonBack/ButtonBack";
 import ChatItem from "../../components/ChatItem/ChatItem";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import StarRatingView from "../../components/StarRatingView/StarRatingView";
+import { useAuth } from "../../contexts/AuthContext";
+import { useSettings } from "../../contexts/SettingsContext";
+import useActiveStatusSubscription from "../../hooks/useActiveStatusSubscription";
+import { Routes } from "../../navigation/Routes";
+import { baseURL } from "../../services/SuitescapeAPI";
+import {
+  fetchAllMessages,
+  fetchHost,
+  sendMessage,
+} from "../../services/apiService";
+import { handleApiError, handleApiResponse } from "../../utils/apiHelpers";
 
-const message = [
-  {
-    id: 1,
-    type: "user",
-    message: "Hi, I would like to ask if the room is still available?",
-  },
-  {
-    id: 2,
-    type: "host",
-    message: "Yes, it is still available. When would you like to move in?",
-  },
-  {
-    id: 3,
-    type: "user",
-    message: "I would like to move in by the end of this month.",
-  },
-  {
-    id: 4,
-    type: "host",
-    message: "Alright, I will send you the contract.",
-  },
-  {
-    id: 5,
-    type: "user",
-    message: "Thank you.",
-  },
-  {
-    id: 6,
-    type: "host",
-    message: "You're welcome.",
-  },
-  {
-    id: 7,
-    type: "user",
-    message: "Hi, I would like to ask if the room is still available?",
-  },
-  {
-    id: 8,
-    type: "host",
-    message: "Yes, it is still available. When would you like to move in?",
-  },
-  {
-    id: 9,
-    type: "user",
-    message: "I would like to move in by the end of this month.",
-  },
-  {
-    id: 10,
-    type: "host",
-    message: "Alright, I will send you the contract.",
-  },
-  {
-    id: 11,
-    type: "user",
-    message: "Thank you.",
-  },
-  {
-    id: 12,
-    type: "host",
-    message: "You're welcome.",
-  },
-];
+const Chat = ({ route, navigation }) => {
+  const [userMessage, setUserMessage] = useState("");
 
-const Chat = () => {
+  const hostId = route.params.id;
+
   const flatListRef = useRef(null);
 
-  const insets = useSafeAreaInsets();
+  const { subscribeToActiveStatus } = useActiveStatusSubscription();
+  const { authState } = useAuth();
+  const { settings } = useSettings();
+  const queryClient = useQueryClient();
+
+  const { data: host } = useQuery({
+    queryKey: ["hosts", hostId],
+    queryFn: () => fetchHost(hostId),
+  });
+
+  const { data: messages, isLoading } = useQuery({
+    queryKey: ["chats", hostId],
+    queryFn: () => fetchAllMessages(hostId),
+    enabled: !settings.guestModeEnabled,
+  });
+
+  // Subscribe to active status when the user is authenticated
+  useEffect(() => {
+    if (authState.userToken) {
+      subscribeToActiveStatus(hostId);
+    }
+  }, [authState.userToken]);
 
   useEffect(() => {
-    flatListRef.current.scrollToEnd({ animated: false });
+    if (messages) {
+      flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+
+      // Invalidate the chat list query to remove the unread message count
+      (async () => {
+        await queryClient.invalidateQueries({
+          queryKey: ["chats"],
+          exact: true,
+        });
+      })();
+    }
+  }, [messages]);
+
+  const sendMessageMutation = useMutation({
+    mutationFn: sendMessage,
+    onSuccess: (response) =>
+      handleApiResponse({
+        response,
+        onSuccess: async (res) => {
+          console.log(res);
+
+          await queryClient.invalidateQueries({
+            queryKey: ["chats"],
+            exact: true,
+          });
+          await queryClient.invalidateQueries({ queryKey: ["chats", hostId] });
+        },
+      }),
+    onError: (err) => {
+      handleApiError({
+        error: err,
+        defaultAlert: true,
+      });
+    },
+  });
+
+  const handleSendMessage = useCallback(() => {
+    setUserMessage("");
+
+    if (!userMessage.trim()) {
+      console.log("No message to send");
+      return;
+    }
+
+    if (!sendMessageMutation.isPending) {
+      queryClient.setQueryData(
+        ["chats", hostId],
+        [
+          {
+            id: messages.length + 1,
+            content: userMessage,
+            is_current_user_sender: true,
+            is_pending: true,
+          },
+          ...messages,
+        ],
+      );
+
+      sendMessageMutation.mutate({
+        hostId,
+        content: userMessage,
+      });
+    }
+  }, [hostId, userMessage, sendMessageMutation.isPending, queryClient]);
+
+  const onLayout = useCallback(() => {
+    if (Platform.OS === "ios") {
+      if (!Keyboard.isVisible()) {
+        flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+      }
+    } else {
+      if (Keyboard.isVisible()) {
+        flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+      }
+    }
   }, []);
 
+  const renderItem = useCallback(
+    ({ item }) => (
+      <ChatItem
+        message={item.content}
+        isSender={item.is_current_user_sender}
+        isPending={item.is_pending}
+      />
+    ),
+    [],
+  );
+
+  const onHostPress = useCallback(() => {
+    if (hostId) {
+      navigation.navigate(Routes.PROFILE_HOST, { hostId });
+    }
+  }, [navigation]);
+
+  const HostDetailsView = (
+    <View style={style.messageHeader}>
+      <Pressable
+        onPress={onHostPress}
+        style={({ pressed }) => pressedOpacity(pressed)}
+      >
+        <ProfileImage
+          source={
+            host?.picture_url ? { uri: baseURL + host?.picture_url } : null
+          }
+          size={100}
+        />
+      </Pressable>
+      <Text style={style.messageHostName}>{host?.fullname}</Text>
+      <StarRatingView
+        starSize={15}
+        rating={4.7}
+        textStyle={{ color: "black" }}
+        containerStyle={{ paddingVertical: 5 }}
+      />
+    </View>
+  );
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{
-        marginTop: insets.top,
-        marginBottom: insets.bottom,
-        ...globalStyles.flexFull,
-      }}
-    >
+    <SafeAreaView style={globalStyles.flexFull}>
+      <StatusBar style="dark" />
+
       <View style={style.headerContainer}>
         <View style={style.headerTitleContainer}>
           <ButtonBack />
           <View style={style.headerNameAndActiveStatus}>
-            <Text style={style.recipientName}>Dream Home</Text>
+            <Pressable
+              onPress={onHostPress}
+              style={({ pressed }) => pressedOpacity(pressed)}
+            >
+              <Text style={style.recipientName}>{host?.fullname}</Text>
+            </Pressable>
             <View style={style.activeStatusContainer}>
-              <Text>Active Now</Text>
-              <View style={style.activeStatusIndicator} />
+              <Text>{host?.active ? "Active Now" : "Offline"}</Text>
+              <View style={style.activeStatusIndicator(host?.active)} />
             </View>
           </View>
         </View>
         <MaterialIcons style={style.materialIconError} name="error" size={25} />
       </View>
 
-      <FlatList
-        ref={flatListRef}
-        onLayout={() => {
-          if (Platform.OS === "ios") {
-            if (!Keyboard.isVisible()) {
-              flatListRef.current.scrollToEnd();
-            }
-          } else {
-            if (Keyboard.isVisible()) {
-              flatListRef.current.scrollToEnd();
-            }
-          }
-        }}
-        style={{ backgroundColor: Colors.backgroundGray }}
-        data={message}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <ChatItem {...item} />}
-        getItemLayout={(data, index) => {
-          return {
-            length: 120,
-            offset: 120 * index,
-            index,
-          };
-        }}
-        ListHeaderComponent={
-          <View style={style.messageHeader}>
-            <ProfileImage size={100} borderWidth={0} />
-            <Text style={style.messageHostName}>Dream Home</Text>
-            <StarRatingView
-              starSize={15}
-              rating={4.7}
-              textStyle={{ color: "black" }}
-              containerStyle={{ paddingVertical: 5 }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={globalStyles.flexFull}
+      >
+        <FlatList
+          ref={flatListRef}
+          onLayout={onLayout}
+          keyExtractor={(item) => item.id.toString()}
+          data={messages}
+          renderItem={renderItem}
+          windowSize={3} // Prevents stuttering when scrolling to the bottom on first launch
+          style={style.messageList}
+          contentContainerStyle={style.messageListContent}
+          ListHeaderComponent={isLoading ? <ActivityIndicator /> : null}
+          ListFooterComponent={HostDetailsView}
+          inverted={messages?.length > 0}
+        />
+
+        <View style={style.sendMessageContainer}>
+          <View style={style.messageEditorContainer}>
+            <TextInput
+              value={userMessage}
+              onChangeText={setUserMessage}
+              style={style.textInput}
+              // autoFocus
+              multiline
+              placeholder="Type a message..."
             />
+            <View style={style.emojiKeyboardContainer}>
+              <Entypo name="emoji-happy" size={24} color="black" />
+            </View>
           </View>
-        }
-      />
 
-      <View style={style.sendMessageContainer}>
-        <View style={style.messageEditorContainer}>
-          <TextInput
-            style={style.textInput}
-            // autoFocus
-            multiline
-            placeholder="Type a message..."
-          />
-          <View style={style.emojiKeyboardContainer}>
-            <Entypo name="emoji-happy" size={24} color="black" />
-          </View>
+          <Pressable
+            onPress={handleSendMessage}
+            disabled={sendMessageMutation.isPending}
+            style={({ pressed }) => ({
+              ...style.sendMessageButtonContainer,
+              ...pressedOpacity(pressed),
+            })}
+          >
+            {/*{sendMessageMutation.isPending ? (*/}
+            {/*  <ActivityIndicator />*/}
+            {/*) : (*/}
+            {/*  <Ionicons name="send" size={24} color="black" />*/}
+            {/*)}*/}
+            <Ionicons
+              name="send"
+              size={24}
+              color={sendMessageMutation.isPending ? "gray" : Colors.blue}
+            />
+          </Pressable>
         </View>
-
-        <Pressable
-          style={({ pressed }) => ({
-            ...style.sendMessageButtonContainer,
-            ...pressedOpacity(pressed),
-          })}
-        >
-          <Ionicons name="ios-send" size={24} color="black" />
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 

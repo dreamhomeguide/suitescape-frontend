@@ -3,8 +3,8 @@ import React, { memo } from "react";
 import { Text, View } from "react-native";
 
 import style from "./ServiceRatingStyles";
-import capitalizedText from "../../utilities/textCapitalizer";
-import splitTextSpaced from "../../utilities/textSplitSpacer";
+import capitalizedText from "../../utils/textCapitalizer";
+import splitTextSpaced from "../../utils/textSplitSpacer";
 
 const ServiceRating = ({ label, rating }) => {
   return (

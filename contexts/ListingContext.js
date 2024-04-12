@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState } from "react";
 
-export const ListingContext = createContext(undefined);
+export const ListingContext = createContext({
+  listing: null,
+  setListing: (_listing) => {},
+});
 
 export const ListingProvider = ({ children }) => {
   const [listing, setListing] = useState(null);

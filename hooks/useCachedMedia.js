@@ -1,14 +1,18 @@
 import * as FileSystem from "expo-file-system";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import { cacheDir, ensureDirExists } from "../utilities/cacheMedia";
+import { cacheDir, ensureDirExists } from "../utils/cacheMedia";
 
-const useCachedMedia = (subDir, fileName, downloadUrl) => {
-  const [cachedUri, setCachedUri] = useState(downloadUrl);
-  const [isCached, setIsCached] = useState(false);
+const MIN_CACHE_SIZE = 1000000; // 1 MB
+
+const useCachedMedia = (subDir, fileName, downloadUrl, options) => {
+  const [cacheState, setCacheState] = useState({
+    cachedUri: downloadUrl,
+    isCached: false,
+  });
 
   useEffect(() => {
-    (async () => {
+    const downloadAndCacheMedia = async () => {
       await ensureDirExists(subDir);
 
       // Get cache file
@@ -18,29 +22,54 @@ const useCachedMedia = (subDir, fileName, downloadUrl) => {
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
 
       if (!fileInfo.exists) {
-        // console.log("Media isn't cached locally. Downloading…");
+        // Download and cache media
+        const { uri } = await FileSystem.downloadAsync(
+          downloadUrl,
+          fileUri,
+          options,
+        );
 
-        FileSystem.downloadAsync(downloadUrl, fileUri)
-          .then(({ uri }) => {
-            console.log("Finished downloading cache to", uri);
-            setCachedUri(uri);
-            setIsCached(true);
-          })
-          .catch(() => {
-            console.log("Cache download aborted");
-          });
+        // Get file size
+        const { size } = await FileSystem.getInfoAsync(uri);
 
-        // Stream the video while cache is downloading
-        // setCachedUri(downloadUrl);
+        // Check if file size is greater than 1 mb
+        if (size < MIN_CACHE_SIZE) {
+          console.log("Downloaded file is less than 1 MB. Aborting cache...");
+          await FileSystem.deleteAsync(uri);
+          return;
+        }
+
+        console.log("Finished downloading cache to", uri);
+        setCacheState({ cachedUri: uri, isCached: true });
       } else {
         console.log(fileName + " is already cached locally");
-        setCachedUri(fileUri);
-        setIsCached(true);
+        setCacheState({ cachedUri: fileUri, isCached: true });
       }
-    })();
+    };
+
+    downloadAndCacheMedia().catch((err) => {
+      console.log("Cache download aborted due to an error: ", err);
+    });
   }, []);
 
-  return { cachedUri, isCached };
+  const clearCache = useCallback(async () => {
+    // Get cache file
+    const fileUri = cacheDir(subDir) + fileName;
+
+    // Check if cache file exists
+    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+    if (!fileInfo.exists) {
+      console.log("Cache file does not exist");
+    }
+
+    // Delete cache file if it exists
+    await FileSystem.deleteAsync(fileUri, { idempotent: true });
+
+    setCacheState({ cachedUri: downloadUrl, isCached: false });
+  }, []);
+
+  return { ...cacheState, clearCache };
 };
 
 export default useCachedMedia;

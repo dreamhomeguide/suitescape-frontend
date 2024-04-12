@@ -1,74 +1,38 @@
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
-import { useVideoFilter } from "../contexts/VideoFilterContext";
-import SuitescapeAPI from "../services/SuitescapeAPI";
-import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
+import { useVideoFilters } from "../contexts/VideoFiltersContext";
+import { fetchVideos } from "../services/apiService";
 
 const useFetchVideos = () => {
-  const [videos, setVideos] = useState([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const queryClient = useQueryClient();
-  const { videoFilter } = useVideoFilter();
-
-  useEffect(() => {
-    // if (filter) {
-    //   queryClient.setQueryData(["videos"], {
-    //     pages: [],
-    //     pageParams: [],
-    //   });
-    // }
-    if (videoFilter) {
-      console.log(videoFilter);
-    } else {
-      console.log("No filters applied");
-    }
-  }, [videoFilter]);
-
-  const fetchVideos = async ({ pageParam = 0 }) => {
-    // const token = getAuthToken();
-    console.log(`Fetching videos... (cursor: ${pageParam})`);
-
-    const res = await SuitescapeAPI.get("/videos/feed?cursor=" + pageParam);
-    console.log("AUTHORIZATION:", res.request._headers.authorization);
-    return res.data;
-  };
+  const { videoFilters } = useVideoFilters();
+  // const queryClient = useQueryClient();
 
   const query = useInfiniteQuery({
-    queryKey: ["videos"],
-    queryFn: fetchVideos,
+    queryKey: ["videos", videoFilters],
+    queryFn: ({ pageParam = "" }) => fetchVideos({ pageParam, videoFilters }),
     getNextPageParam: (lastPage) => lastPage.meta.next_cursor,
+    select: (data) => {
+      return data?.pages.map((page) => page.data).flat();
+    },
+    retry: false,
   });
-
-  useEffect(() => {
-    if (query.isError) {
-      handleApiError({ error: query.error, defaultAlert: true });
-      return;
-    }
-
-    if (query.data) {
-      handleApiResponse({
-        response: query,
-        onSuccess: (result) => {
-          setVideos(result.pages.map((page) => page.data).flat());
-        },
-      });
-    }
-  }, [query.isError, query.data]);
 
   const refresh = async () => {
     setIsRefreshing(true);
-    setVideos([]);
     try {
-      await queryClient.resetQueries({ queryKey: ["videos"] });
-      // await query.refetch();
+      // await queryClient.resetQueries({ queryKey: ["videos"] });
+      await query.refetch();
+    } catch (err) {
+      console.log("Error refreshing videos:", err);
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  return { ...query, videos, isRefreshing, refresh };
+  return { ...query, isRefreshing, refresh };
 };
 
 export default useFetchVideos;

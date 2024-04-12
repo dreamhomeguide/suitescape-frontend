@@ -1,8 +1,9 @@
 import * as Haptics from "expo-haptics";
-import React from "react";
+import React, { memo, useCallback } from "react";
 import { Platform, Pressable, Text } from "react-native";
 
 import style from "./ButtonLargeStyles";
+import { Colors } from "../../assets/Colors";
 import {
   disabledOpacity,
   pressedOpacity,
@@ -13,25 +14,30 @@ const ButtonLarge = ({
   onPress,
   disabled,
   half = false,
+  color = Colors.blue,
   ...props
-}) => (
-  <Pressable
-    onPress={() => {
-      if (Platform.OS === "ios") {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
-      onPress && onPress();
-    }}
-    disabled={disabled}
-    {...props}
-    style={({ pressed }) => ({
-      ...style.button({ half }),
-      ...pressedOpacity(pressed, 0.7),
-      ...disabledOpacity(disabled),
-    })}
-  >
-    <Text style={style.text}>{children}</Text>
-  </Pressable>
-);
+}) => {
+  const handlePress = useCallback(async () => {
+    if (Platform.OS === "ios") {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    onPress && onPress();
+  }, [onPress]);
 
-export default ButtonLarge;
+  return (
+    <Pressable
+      onPress={handlePress}
+      disabled={disabled}
+      {...props}
+      style={({ pressed }) => ({
+        ...style.button({ half, bgColor: color }),
+        ...pressedOpacity(pressed, 0.7),
+        ...disabledOpacity(disabled),
+      })}
+    >
+      <Text style={style.text}>{children}</Text>
+    </Pressable>
+  );
+};
+
+export default memo(ButtonLarge);

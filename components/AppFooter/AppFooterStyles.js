@@ -1,13 +1,21 @@
 import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
-  footerContainer: ({ bottomInsets, bgColor, borderColor }) => ({
-    backgroundColor: bgColor,
-    borderTopWidth: 1,
-    borderTopColor: borderColor,
-    paddingTop: 12,
+  mainContainer: ({ enableInsets, bottomInsets }) => ({
+    paddingTop: 14,
+    paddingBottom: (enableInsets ? bottomInsets : 0) + 14,
     paddingHorizontal: 23,
-    paddingBottom: bottomInsets + 12,
+  }),
+  transparentFooter: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  footer: ({ colors }) => ({
+    borderTopWidth: 1,
+    backgroundColor: colors.background,
+    borderTopColor: colors.border,
   }),
 });
 

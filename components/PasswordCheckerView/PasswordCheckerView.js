@@ -22,7 +22,9 @@ const PasswordCheckerView = ({ password, setIsPasswordValid, onLayout }) => {
   const criteriaMetCount = Object.values(criteria).filter(Boolean).length;
 
   useEffect(() => {
-    setIsPasswordValid(criteriaMetCount === REQUIRED_SIZE);
+    if (setIsPasswordValid) {
+      setIsPasswordValid(criteriaMetCount === REQUIRED_SIZE);
+    }
   }, [criteriaMetCount, setIsPasswordValid]);
 
   return (

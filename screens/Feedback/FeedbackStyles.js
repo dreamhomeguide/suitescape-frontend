@@ -14,16 +14,13 @@ const style = StyleSheet.create({
     marginBottom: 10,
   },
   text: {
-    color: "white",
     fontSize: 16,
   },
   headerText: {
-    color: "white",
     fontSize: 30,
     fontWeight: "bold",
   },
   subHeaderText: {
-    color: "white",
     fontSize: 25,
   },
   continueContainer: {

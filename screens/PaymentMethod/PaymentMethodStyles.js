@@ -2,11 +2,11 @@ import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
   mainContainer: {
-    flex: 1,
-    margin: 20,
+    marginTop: 20,
+    paddingHorizontal: 20,
   },
   contentContainer: {
-    marginVertical: 10,
+    paddingHorizontal: 20,
   },
   paymentMethodContainer: {
     flexDirection: "row",
@@ -17,9 +17,13 @@ const style = StyleSheet.create({
     marginBottom: 20,
   },
   paymentMethodContentContainer: {
-    flexDirection: "row",
     flex: 2,
+    flexDirection: "row",
+    alignItems: "center",
     columnGap: 15,
+  },
+  paymentMethodIconContainer: {
+    width: 50,
     alignItems: "center",
   },
   text: {

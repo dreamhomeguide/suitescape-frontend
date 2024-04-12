@@ -3,9 +3,6 @@ import { StyleSheet } from "react-native";
 import { Colors } from "../../assets/Colors";
 
 const style = StyleSheet.create({
-  mainContainer: {
-    height: 445,
-  },
   coverImageContainer: {
     backgroundColor: Colors.lightgray,
   },
@@ -15,7 +12,7 @@ const style = StyleSheet.create({
     zIndex: 1,
   },
   mainContentContainer: {
-    transform: [{ translateY: -115 }],
+    transform: "translateY(-115deg)",
   },
   contentContainer: {
     borderTopStartRadius: 30,
@@ -34,6 +31,7 @@ const style = StyleSheet.create({
     fontSize: 26,
     color: "black",
     fontWeight: "bold",
+    textAlign: "center",
   },
   userName: {
     color: Colors.gray,

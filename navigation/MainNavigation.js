@@ -1,30 +1,40 @@
 import { useTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
-import { Platform, Text, useColorScheme, View } from "react-native";
+import { Platform, useColorScheme } from "react-native";
 
 import BottomTabs from "./BottomTabs/BottomTabs";
 import { Routes } from "./Routes";
 import { Colors } from "../assets/Colors";
-import ButtonBack from "../components/ButtonBack/ButtonBack";
+import HeaderTitle from "../components/HeaderTitle/HeaderTitle";
 import { useAuth } from "../contexts/AuthContext";
 import { useSettings } from "../contexts/SettingsContext";
+import AvailableRooms from "../screens/AvailableRooms/AvailableRooms";
+import BookingDetails from "../screens/BookingDetails/BookingDetails";
 import BookingSummary from "../screens/BookingSummary/BookingSummary";
+import CancelBooking from "../screens/CancelBooking/CancelBooking";
+import ChangeDates from "../screens/ChangeDates/ChangeDates";
 import ChangePassword from "../screens/ChangePassword/ChangePassword";
 import Chat from "../screens/Chat/Chat";
-import CheckAvailability from "../screens/CheckAvailability/CheckAvailability";
+import ChatSearch from "../screens/ChatSearch/ChatSearch";
+import EmailVerification from "../screens/EmailVerification/EmailVerification";
 import Feedback from "../screens/Feedback/Feedback";
+import FeedbackApp from "../screens/FeedbackApp/FeedbackApp";
+import FeedbackCancellation from "../screens/FeedbackCancellation/FeedbackCancellation";
 import Filter from "../screens/Filter/Filter";
+import ForgotPassword from "../screens/ForgotPassword/ForgotPassword";
 import GuestInfo from "../screens/GuestInfo/GuestInfo";
 import Liked from "../screens/Liked/Liked";
 import ListingDetails from "../screens/ListingDetails/ListingDetails";
-import ListingRatings from "../screens/ListingRatings/ListingRatings";
 import Login from "../screens/Login/Login";
 import ManageAccount from "../screens/ManageAccount/ManageAccount";
-import MessagesSearch from "../screens/MessagesSearch/MessagesSearch";
 import Onboarding from "../screens/Onboarding/Onboarding";
+import OnboardingHost from "../screens/OnboardingHost/OnboardingHost";
 import PaymentMethod from "../screens/PaymentMethod/PaymentMethod";
 import ProfileHost from "../screens/ProfileHost/ProfileHost";
+import RateExperience from "../screens/RateExperience/RateExperience";
+import Ratings from "../screens/Ratings/Ratings";
+import ResetPassword from "../screens/ResetPassword/ResetPassword";
 import RoomDetails from "../screens/RoomDetails/RoomDetails";
 import Saved from "../screens/Saved/Saved";
 import Search from "../screens/Search/Search";
@@ -33,81 +43,87 @@ import SignUp from "../screens/SignUp/SignUp";
 
 const Stack = createNativeStackNavigator();
 
-const MainNavigation = () => {
-  const { settings } = useSettings();
-  const { authState } = useAuth();
+const headerOptions = {
+  headerShown: true,
+  headerStyle: {
+    backgroundColor: Colors.blue,
+  },
+  headerTintColor: "white",
+  headerBackTitleVisible: false,
+  // headerBackVisible: Platform.OS === "ios",
+  // headerLeft:
+  //   Platform.OS === "android"
+  //     ? ({ canGoBack, tintColor }) =>
+  //         canGoBack && (
+  //           <View style={{ marginLeft: -12, marginRight: 5 }}>
+  //             <ButtonBack
+  //               onPress={() => navigation.goBack()}
+  //               color={tintColor}
+  //             />
+  //           </View>
+  //         )
+  //     : null,
+  headerTitle: ({ children }) => <HeaderTitle>{children}</HeaderTitle>,
+};
 
+const SLIDE_RIGHT_WITH_INPUT =
+  Platform.OS === "ios" ? "simple_push" : "slide_from_right";
+
+const feedbackScreenOptions = {
+  gestureEnabled: false,
+  headerShown: false,
+  presentation: "transparentModal",
+  animation: "fade",
+};
+
+const LoggedInStack = () => {
   const theme = useTheme();
   const colorScheme = useColorScheme();
 
-  const slideRightInputAnim =
-    Platform.OS === "ios" ? "simple_push" : "slide_from_right";
+  const whiteBackground = {
+    contentStyle: {
+      backgroundColor: "white",
+    },
+  };
+
+  const darkBackground = {
+    contentStyle: {
+      backgroundColor:
+        colorScheme === "dark"
+          ? theme.colors.background
+          : Colors.backgroundGray,
+    },
+  };
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {settings.onboardingEnabled && (
-        <Stack.Screen name={Routes.ONBOARDING} component={Onboarding} />
-      )}
+    <Stack.Navigator initialRouteName={Routes.HOME}>
+      {/* Stack of screens that has header hidden */}
+      <Stack.Group screenOptions={{ headerShown: false }}>
+        <Stack.Screen name={Routes.HOME} component={BottomTabs} />
+        <Stack.Screen name={Routes.CHAT} component={Chat} />
+      </Stack.Group>
 
-      {authState.userToken || settings.guestModeEnabled ? (
-        <Stack.Screen name={Routes.BOTTOM_TABS} component={BottomTabs} />
-      ) : (
-        <Stack.Group screenOptions={{ animation: "slide_from_bottom" }}>
-          <Stack.Screen name={Routes.LOGIN} component={Login} />
-          <Stack.Screen name={Routes.SIGNUP} component={SignUp} />
-        </Stack.Group>
-      )}
-
-      <Stack.Screen
-        name={Routes.CHAT}
-        component={Chat}
-        options={{
-          animation: slideRightInputAnim,
-          animationDuration: 150,
-        }}
-      />
-
-      <Stack.Group
-        screenOptions={({ navigation }) => ({
-          headerShown: true,
-          headerTintColor: "black",
-          headerBackVisible: Platform.OS === "ios",
-          headerBackTitleVisible: false,
-          headerLeft:
-            Platform.OS === "android"
-              ? ({ canGoBack, tintColor }) =>
-                  canGoBack && (
-                    <View style={{ marginLeft: -12, marginRight: 5 }}>
-                      <ButtonBack
-                        onPress={() => navigation.goBack()}
-                        color={tintColor}
-                      />
-                    </View>
-                  )
-              : null,
-          headerTitle: ({ children }) => (
-            <View style={{ flex: 1, left: Platform.OS === "ios" ? -10 : 0 }}>
-              <Text style={{ fontSize: 16 }}>{children}</Text>
-            </View>
-          ),
-        })}
-      >
+      {/* Stack of screens that has header shown */}
+      <Stack.Group screenOptions={headerOptions}>
+        <Stack.Screen
+          name={Routes.FEEDBACK}
+          component={Feedback}
+          options={feedbackScreenOptions}
+        />
         <Stack.Screen
           name={Routes.SEARCH}
           component={Search}
           options={{
             title: "Search Destination",
-            animation: slideRightInputAnim,
+            animation: SLIDE_RIGHT_WITH_INPUT,
             animationDuration: 250,
           }}
         />
-
         <Stack.Screen
-          name={Routes.SEARCH_MESSAGES}
-          component={MessagesSearch}
+          name={Routes.CHAT_SEARCH}
+          component={ChatSearch}
           options={{ animation: "fade" }}
         />
-
         <Stack.Screen
           name={Routes.SELECT_DATES}
           component={SelectDates}
@@ -116,18 +132,14 @@ const MainNavigation = () => {
             gestureEnabled: false,
           }}
         />
-
         <Stack.Screen
-          name={Routes.FEEDBACK}
-          component={Feedback}
+          name={Routes.ONBOARDING_HOST}
+          component={OnboardingHost}
           options={{
-            gestureEnabled: false,
+            animation: "fade",
             headerShown: false,
-            presentation: "containedModal",
-            animation: "fade_from_bottom",
           }}
         />
-
         <Stack.Screen name={Routes.MANAGE_ACCOUNT} component={ManageAccount} />
         <Stack.Screen
           name={Routes.CHANGE_PASSWORD}
@@ -135,53 +147,106 @@ const MainNavigation = () => {
         />
         <Stack.Screen name={Routes.SAVED} component={Saved} />
         <Stack.Screen name={Routes.LIKED} component={Liked} />
+        <Stack.Screen name={Routes.APP_FEEDBACK} component={FeedbackApp} />
 
-        <Stack.Group
-          screenOptions={{
-            animation: "slide_from_right",
-            contentStyle: {
-              backgroundColor: "white",
-            },
-          }}
-        >
-          <Stack.Screen name={Routes.FILTER} component={Filter} />
-          <Stack.Screen name={Routes.GUEST_INFO} component={GuestInfo} />
-          <Stack.Screen
-            name={Routes.PAYMENT_METHOD}
-            component={PaymentMethod}
-            options={{ title: "Payment" }}
-          />
-          <Stack.Screen
-            name={Routes.LISTING_RATINGS}
-            component={ListingRatings}
-          />
+        {/* Stack of screens that slide from right */}
+        <Stack.Group screenOptions={{ animation: "slide_from_right" }}>
+          <Stack.Group screenOptions={whiteBackground}>
+            <Stack.Screen name={Routes.FILTER} component={Filter} />
+            <Stack.Screen name={Routes.GUEST_INFO} component={GuestInfo} />
+            <Stack.Screen
+              name={Routes.PAYMENT_METHOD}
+              component={PaymentMethod}
+              options={{ title: "Payment" }}
+            />
+            <Stack.Screen name={Routes.RATINGS} component={Ratings} />
+          </Stack.Group>
 
-          <Stack.Group
-            screenOptions={{
-              contentStyle: {
-                backgroundColor:
-                  colorScheme === "dark"
-                    ? theme.colors.background
-                    : Colors.backgroundGray,
-              },
-            }}
-          >
+          <Stack.Group screenOptions={darkBackground}>
             <Stack.Screen
               name={Routes.LISTING_DETAILS}
               component={ListingDetails}
+              options={{
+                headerStyle: {
+                  backgroundColor: "transparent",
+                },
+                // headerTitle: "",
+                // headerShown: false,
+                headerTransparent: true,
+              }}
             />
             <Stack.Screen name={Routes.ROOM_DETAILS} component={RoomDetails} />
             <Stack.Screen
-              name={Routes.CHECK_AVAILABILITY}
-              component={CheckAvailability}
+              name={Routes.AVAILABLE_ROOMS}
+              component={AvailableRooms}
             />
             <Stack.Screen
               name={Routes.BOOKING_SUMMARY}
               component={BookingSummary}
             />
+            <Stack.Screen
+              name={Routes.BOOKING_DETAILS}
+              component={BookingDetails}
+            />
+            <Stack.Screen name={Routes.CHANGE_DATES} component={ChangeDates} />
+            <Stack.Screen
+              name={Routes.CANCEL_BOOKING}
+              component={CancelBooking}
+            />
+            <Stack.Screen
+              name={Routes.CANCELLATION_FEEDBACK}
+              component={FeedbackCancellation}
+            />
+            <Stack.Screen
+              name={Routes.RATE_EXPERIENCE}
+              component={RateExperience}
+            />
             <Stack.Screen name={Routes.PROFILE_HOST} component={ProfileHost} />
           </Stack.Group>
         </Stack.Group>
+      </Stack.Group>
+    </Stack.Navigator>
+  );
+};
+
+const MainNavigation = () => {
+  const { settings } = useSettings();
+  const { authState } = useAuth();
+
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {settings.onboardingEnabled && (
+        <Stack.Screen name={Routes.ONBOARDING} component={Onboarding} />
+      )}
+
+      {authState.userToken || settings.guestModeEnabled ? (
+        <Stack.Screen name={Routes.MAIN} component={LoggedInStack} />
+      ) : (
+        <Stack.Group screenOptions={{ animation: "slide_from_bottom" }}>
+          <Stack.Screen name={Routes.LOGIN} component={Login} />
+          <Stack.Screen name={Routes.SIGNUP} component={SignUp} />
+        </Stack.Group>
+      )}
+
+      {/* Screens that are accessible to both logged-in and logged-out users */}
+      <Stack.Group screenOptions={headerOptions}>
+        <Stack.Screen
+          name={Routes.FORGOT_PASSWORD}
+          component={ForgotPassword}
+        />
+        <Stack.Screen
+          name={Routes.EMAIL_VERIFICATION}
+          component={EmailVerification}
+        />
+        <Stack.Screen name={Routes.RESET_PASSWORD} component={ResetPassword} />
+
+        {!authState.userToken && (
+          <Stack.Screen
+            name={Routes.FEEDBACK}
+            component={Feedback}
+            options={feedbackScreenOptions}
+          />
+        )}
       </Stack.Group>
     </Stack.Navigator>
   );

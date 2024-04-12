@@ -1,22 +1,20 @@
+// noinspection JSCheckFunctionSignatures
+
 import React, { createContext, useContext, useReducer } from "react";
 
-export const BookingContext = createContext(undefined);
-
+// Data for the booking process
 const initialState = {
-  firstName: "",
-  lastName: "",
-  gender: "",
-  email: "",
-  address: "",
-  zipCode: "",
-  city: "",
-  region: "",
-  mobileNumber: "",
-  message: "",
   startDate: "",
   endDate: "",
-  nights: 0,
-  amount: 0,
+  message: "",
+  highlightedDates: [],
+  disabledDates: [
+    "2024-03-15",
+    "2024-03-25",
+    "2024-04-10",
+    "2024-04-20",
+    "2024-05-05",
+  ],
 };
 
 const reducer = (state, action) => {
@@ -38,6 +36,13 @@ const reducer = (state, action) => {
       return state;
   }
 };
+
+export const BookingContext = createContext({
+  bookingState: initialState,
+  setBookingData: (_payload) => {},
+  clearBookingInfo: () => {},
+  clearDates: () => {},
+});
 
 export const BookingProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState, undefined);

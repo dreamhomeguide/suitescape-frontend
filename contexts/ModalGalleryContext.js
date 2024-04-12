@@ -1,41 +1,60 @@
 import { setStatusBarStyle } from "expo-status-bar";
-import React, { createContext, useContext, useState } from "react";
-import { useColorScheme } from "react-native";
+import React, { createContext, useCallback, useContext, useState } from "react";
 
-export const ModalGalleryContext = createContext(undefined);
+const initialState = {
+  index: 0,
+  isPhotoGalleryShown: false,
+  isVideoGalleryShown: false,
+};
+
+export const ModalGalleryContext = createContext({
+  ...initialState,
+  setIndex: (_index) => {},
+  showPhotoGallery: () => {},
+  closePhotoGallery: () => {},
+  showVideoGallery: () => {},
+  closeVideoGallery: () => {},
+});
 
 export const ModalGalleryProvider = ({ children }) => {
-  const [isPhotoGalleryShown, setIsPhotoGalleryShown] = useState(false);
-  const [isVideoGalleryShown, setIsVideoGalleryShown] = useState(false);
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(initialState.index);
+  const [isPhotoGalleryShown, setIsPhotoGalleryShown] = useState(
+    initialState.isPhotoGalleryShown,
+  );
+  const [isVideoGalleryShown, setIsVideoGalleryShown] = useState(
+    initialState.isVideoGalleryShown,
+  );
 
-  const colorScheme = useColorScheme();
+  // const colorScheme = useColorScheme();
 
-  const showPhotoGallery = () => {
-    setStatusBarStyle("dark");
+  const showPhotoGallery = useCallback(() => {
+    setStatusBarStyle("dark", true);
 
     setIsPhotoGalleryShown(true);
-  };
-  const showVideoGallery = () => {
-    setStatusBarStyle("light");
+  }, []);
+
+  const showVideoGallery = useCallback(() => {
+    // setStatusBarStyle("light", true);
 
     setIsVideoGalleryShown(true);
-  };
+  }, []);
 
-  const closePhotoGallery = () => {
-    if (colorScheme === "dark") {
-      setStatusBarStyle("light");
-    }
+  const closePhotoGallery = useCallback(() => {
+    // if (colorScheme === "dark") {
+    //   setStatusBarStyle("light", true);
+    // }
+    setStatusBarStyle("light", true);
 
     setIsPhotoGalleryShown(false);
-  };
-  const closeVideoGallery = () => {
-    if (colorScheme === "light") {
-      setStatusBarStyle("dark");
-    }
+  }, []);
+
+  const closeVideoGallery = useCallback(() => {
+    // if (colorScheme === "light") {
+    //   setStatusBarStyle("dark");
+    // }
 
     setIsVideoGalleryShown(false);
-  };
+  }, []);
 
   const photoGalleryContext = {
     isPhotoGalleryShown,

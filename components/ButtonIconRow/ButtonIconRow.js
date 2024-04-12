@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Pressable, Text } from "react-native";
 
 import style from "./ButtonIconRowStyles";
@@ -26,4 +26,4 @@ const ButtonIconRow = ({
   );
 };
 
-export default ButtonIconRow;
+export default memo(ButtonIconRow);

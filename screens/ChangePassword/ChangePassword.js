@@ -1,41 +1,37 @@
 import { useMutation } from "@tanstack/react-query";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useToast } from "react-native-toast-notifications";
 
+import style from "./ChangePasswordStyles";
 import globalStyles from "../../assets/styles/globalStyles";
-import style from "../../assets/styles/registrationStyles";
 import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import ButtonLink from "../../components/ButtonLink/ButtonLink";
 import FormInput from "../../components/FormInput/FormInput";
-import SuitescapeAPI from "../../services/SuitescapeAPI";
-import { handleApiError, handleApiResponse } from "../../utilities/apiHelpers";
+import PasswordCheckerView from "../../components/PasswordCheckerView/PasswordCheckerView";
+import { Routes } from "../../navigation/Routes";
+import { changePassword } from "../../services/apiService";
+import { handleApiError, handleApiResponse } from "../../utils/apiHelpers";
+import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
 
 const ChangePassword = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const confirmPasswordRef = useRef(null);
+  const newPasswordRef = useRef(null);
+  const confirmNewPasswordRef = useRef(null);
 
   const toast = useToast();
 
-  const changePasswordMutation = useMutation({
-    mutationFn: () =>
-      SuitescapeAPI.post("/profile/update-password", {
-        current_password: currentPassword,
-        new_password: newPassword,
-        new_password_confirmation: confirmNewPassword,
-      }),
-    onSuccess: (response) =>
+  const handleSuccessChangePassword = useCallback(
+    (response) =>
       handleApiResponse({
         response,
-        onError: (e) => {
-          setErrors(e);
-        },
         onSuccess: (res) => {
           console.log(res);
 
@@ -48,34 +44,43 @@ const ChangePassword = ({ navigation }) => {
           navigation.goBack();
         },
       }),
-    onError: (err) =>
+    [navigation, toast],
+  );
+
+  const handleErrorChangePassword = useCallback(
+    (err) =>
       handleApiError({
         error: err,
         defaultAlert: true,
-        handleErrors: (e) => {
-          setErrors(e.errors);
-        },
+        handleErrors: (e) => setErrors(e.errors),
       }),
+    [],
+  );
+
+  const changePasswordMutation = useMutation({
+    mutationFn: changePassword,
+    onSuccess: handleSuccessChangePassword,
+    onError: handleErrorChangePassword,
   });
 
-  const changePassword = () => {
+  const handleChangePassword = useCallback(() => {
     if (!changePasswordMutation.isPending) {
-      changePasswordMutation.mutate();
+      changePasswordMutation.mutate({
+        currentPassword,
+        newPassword,
+        newPasswordConfirmation: confirmNewPassword,
+      });
     }
-  };
-
-  const clearErrorWhenNotEmpty = (value, key) => {
-    if (value) {
-      setErrors((prevErrors) => ({ ...prevErrors, [key]: "" }));
-    }
-  };
+  }, [
+    currentPassword,
+    newPassword,
+    confirmNewPassword,
+    changePasswordMutation.isPending,
+  ]);
 
   return (
     <View style={globalStyles.flexFull}>
-      <ScrollView
-        bounces={false}
-        contentContainerStyle={{ marginHorizontal: 15, paddingVertical: 10 }}
-      >
+      <ScrollView bounces={false} contentContainerStyle={style.mainContainer}>
         <FormInput
           type="password"
           label="Current Password"
@@ -85,12 +90,12 @@ const ChangePassword = ({ navigation }) => {
             setCurrentPassword(value);
             clearErrorWhenNotEmpty(value, "current_password");
           }}
+          onSubmitEditing={() => newPasswordRef.current.focus()}
+          blurOnSubmit={false}
         />
-        <View
-          style={{ alignItems: "flex-end", marginTop: 5, marginHorizontal: 5 }}
-        >
+        <View style={style.forgotPasswordContainer}>
           <ButtonLink
-            onPress={() => console.log("Forgot Password")}
+            onPress={() => navigation.navigate(Routes.FORGOT_PASSWORD)}
             textStyle={style.forgotPasswordText}
           >
             Forgot Password?
@@ -104,13 +109,16 @@ const ChangePassword = ({ navigation }) => {
           errorMessage={errors?.new_password}
           onChangeText={(value) => {
             setNewPassword(value);
-            clearErrorWhenNotEmpty(value, "new_password");
+            clearErrorWhenNotEmpty(value, "new_password", setErrors);
           }}
-          onSubmitEditing={() => {
-            confirmPasswordRef.current.focus();
-          }}
+          isPasswordVisible={isPasswordVisible}
+          onChangePasswordVisibility={() =>
+            setIsPasswordVisible((prev) => !prev)
+          }
+          onSubmitEditing={() => confirmNewPasswordRef.current.focus()}
           blurOnSubmit={false}
           returnKeyType="next"
+          ref={newPasswordRef}
         />
         <FormInput
           type="password"
@@ -119,14 +127,26 @@ const ChangePassword = ({ navigation }) => {
           errorMessage={errors?.new_password && []}
           onChangeText={(value) => {
             setConfirmNewPassword(value);
-            clearErrorWhenNotEmpty(value, "new_password");
+            clearErrorWhenNotEmpty(value, "new_password", setErrors);
           }}
+          isPasswordVisible={isPasswordVisible}
+          onChangePasswordVisibility={() =>
+            setIsPasswordVisible((prev) => !prev)
+          }
           returnKeyType="done"
-          ref={confirmPasswordRef}
+          ref={confirmNewPasswordRef}
         />
+        <View style={style.passwordCheckerContainer}>
+          {newPassword.length > 0 && (
+            <PasswordCheckerView password={newPassword} />
+          )}
+        </View>
       </ScrollView>
+
       <AppFooter>
-        <ButtonLarge onPress={changePassword}>Change Password</ButtonLarge>
+        <ButtonLarge onPress={handleChangePassword}>
+          Change Password
+        </ButtonLarge>
       </AppFooter>
     </View>
   );

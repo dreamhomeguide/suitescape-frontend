@@ -14,6 +14,7 @@ const AppFooterDetails = ({
   buttonLinkOnPress,
   buttonVisible = true,
   buttonLinkVisible = true,
+  children,
 }) => (
   <View style={style.footer}>
     <View style={style.footerContentContainer}>
@@ -24,6 +25,7 @@ const AppFooterDetails = ({
             {buttonLinkLabel}
           </ButtonLink>
         )}
+        {children}
       </View>
     </View>
     {buttonVisible && (

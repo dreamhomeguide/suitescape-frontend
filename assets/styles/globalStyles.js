@@ -23,6 +23,20 @@ const globalStyles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  absoluteTop: {
+    position: "absolute",
+    zIndex: 1,
+    left: 0,
+    right: 0,
+    top: 0,
+  },
+  absoluteBottom: {
+    position: "absolute",
+    zIndex: 1,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   emptyText: {
     marginTop: 0,
     margin: 15,
@@ -30,6 +44,7 @@ const globalStyles = StyleSheet.create({
   emptyTextCenter: {
     textAlign: "center",
     margin: 20,
+    color: Colors.gray,
   },
   headerText: {
     color: "black",
@@ -46,6 +61,9 @@ const globalStyles = StyleSheet.create({
   boldText: {
     fontWeight: "bold",
   },
+  semiBoldText: {
+    fontWeight: "500",
+  },
   uniformGap: {
     gap: 5,
   },
@@ -58,13 +76,11 @@ const globalStyles = StyleSheet.create({
   largeContainerGap: {
     rowGap: 15,
   },
-  bottomGap: {
-    borderBottomWidth: 5,
-    borderBottomColor: Colors.lightgray,
+  rowGap: {
+    rowGap: 3,
   },
-  bottomGapSmall: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.lightgray,
+  rowGapSmall: {
+    rowGap: 1,
   },
   iconShadow: {
     shadowOpacity: 0.6,
@@ -84,6 +100,7 @@ const globalStyles = StyleSheet.create({
     width: "100%",
     backgroundColor: Colors.lightgray,
     borderRadius: 10,
+    overflow: "hidden",
   },
   horizontalDivider: {
     height: 1,
@@ -96,8 +113,13 @@ const globalStyles = StyleSheet.create({
   },
   closeModalButton: {
     position: "absolute",
-    right: 20,
+    right: 25,
     zIndex: 1,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 30,
   },
 });
 

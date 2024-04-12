@@ -1,85 +1,92 @@
-import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
-import React from "react";
-import { Text, useWindowDimensions, View } from "react-native";
+import React, { memo, useMemo, useState } from "react";
+import { Pressable, Text, View } from "react-native";
 
 import style from "./HeaderProfileHostStyles";
-import globalStyles from "../../assets/styles/globalStyles";
-import { Routes } from "../../navigation/Routes";
-import Button from "../Button/Button";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
+import { baseURL } from "../../services/SuitescapeAPI";
 import ProfileImage from "../ProfileImage/ProfileImage";
-
-const MIN_HEIGHT = 700;
+import SliderModalPhoto from "../SliderModalPhoto/SliderModalPhoto";
 
 const HeaderProfileHost = ({
+  height: headerHeight,
   hostName,
+  hostPictureUrl,
   userName,
   listingsCount,
   likesCount,
   reviewsCount,
 }) => {
-  const { height } = useWindowDimensions();
-  const navigation = useNavigation();
+  const [showImageModal, setShowImageModal] = useState(false);
 
-  const heightAdjustment = height > MIN_HEIGHT ? 45 : -10;
-  const coverHeight = height / 4 - heightAdjustment;
+  const coverHeight = headerHeight / 2 - 15;
+
+  const hostPicture = useMemo(
+    () => [{ uri: baseURL + hostPictureUrl }],
+    [hostPictureUrl],
+  );
 
   return (
-    <View style={style.mainContainer} pointerEvents="box-none">
-      <Image
-        source={require("../../assets/images/onboarding/page1.png")}
-        style={{ height: coverHeight, ...style.coverImageContainer }}
-      />
-      <View style={style.mainContentContainer} pointerEvents="box-none">
-        <ProfileImage
-          size={160}
-          fillColor="white"
-          borderColor="white"
-          borderWidth={5}
-          containerStyle={style.profileImageContainer}
+    <>
+      <View style={{ height: headerHeight }} pointerEvents="box-none">
+        <Image
+          source={require("../../assets/images/onboarding/page1.png")}
+          transition={100}
+          style={{ height: coverHeight, ...style.coverImageContainer }}
         />
-        <View style={style.contentContainer} pointerEvents="box-none">
-          <View style={style.nameContainer} pointerEvents="none">
-            <Text style={style.hostName}>{hostName ?? "Loading..."}</Text>
-            <Text style={style.userName}>
-              {"@" + (!userName ? "" : userName.replaceAll(" ", ""))}
-            </Text>
-          </View>
-          <View style={style.overviewContainer} pointerEvents="none">
-            <View style={style.overviewItemContainer}>
-              <Text style={style.overviewItemCount}>{listingsCount}</Text>
-              <Text style={style.overviewItemLabel}>Listings</Text>
+        <View style={style.mainContentContainer} pointerEvents="box-none">
+          <Pressable
+            pointerEvents={showImageModal ? "none" : "box-none"}
+            onPress={() => setShowImageModal(true)}
+            style={({ pressed }) => ({
+              zIndex: 1,
+              ...pressedOpacity(pressed),
+            })}
+          >
+            <ProfileImage
+              source={hostPictureUrl ? { uri: baseURL + hostPictureUrl } : null}
+              size={160}
+              fillColor="white"
+              borderColor="white"
+              borderWidth={5}
+              containerStyle={style.profileImageContainer}
+            />
+          </Pressable>
+          <View style={style.contentContainer} pointerEvents="box-none">
+            <View style={style.nameContainer} pointerEvents="none">
+              <Text style={style.hostName}>{hostName ?? "Loading..."}</Text>
+              <Text style={style.userName}>
+                {"@" + (!userName ? "" : userName.replaceAll(" ", ""))}
+              </Text>
             </View>
-            <View style={globalStyles.verticalDivider} />
-            <View style={style.overviewItemContainer}>
-              <Text style={style.overviewItemCount}>{likesCount}</Text>
-              <Text style={style.overviewItemLabel}>Likes</Text>
+            <View style={style.overviewContainer} pointerEvents="none">
+              <View style={style.overviewItemContainer}>
+                <Text style={style.overviewItemCount}>{listingsCount}</Text>
+                <Text style={style.overviewItemLabel}>Listings</Text>
+              </View>
+              <View style={globalStyles.verticalDivider} />
+              <View style={style.overviewItemContainer}>
+                <Text style={style.overviewItemCount}>{likesCount}</Text>
+                <Text style={style.overviewItemLabel}>Likes</Text>
+              </View>
+              <View style={globalStyles.verticalDivider} />
+              <View style={style.overviewItemContainer}>
+                <Text style={style.overviewItemCount}>{reviewsCount}</Text>
+                <Text style={style.overviewItemLabel}>Reviews</Text>
+              </View>
             </View>
-            <View style={globalStyles.verticalDivider} />
-            <View style={style.overviewItemContainer}>
-              <Text style={style.overviewItemCount}>{reviewsCount}</Text>
-              <Text style={style.overviewItemLabel}>Reviews</Text>
-            </View>
-          </View>
-          <View style={style.actionButtonsContainer} pointerEvents="box-none">
-            <Button
-              onPress={() => navigation.navigate(Routes.CHAT)}
-              containerStyle={style.buttonContainer}
-            >
-              Message
-            </Button>
-            <Button
-              onPress={() => console.log("Host liked")}
-              containerStyle={style.buttonContainer}
-              outlined
-            >
-              Like
-            </Button>
           </View>
         </View>
       </View>
-    </View>
+
+      <SliderModalPhoto
+        imageData={hostPicture}
+        visible={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        showIndex={false}
+      />
+    </>
   );
 };
 
-export default HeaderProfileHost;
+export default memo(HeaderProfileHost);

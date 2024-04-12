@@ -1,5 +1,5 @@
-import React from "react";
-import { Pressable, Text } from "react-native";
+import React, { memo } from "react";
+import { Pressable, Text, View } from "react-native";
 
 import style from "./ButtonLinkStyles";
 import { pressedOpacity } from "../../assets/styles/globalStyles";
@@ -13,20 +13,26 @@ const ButtonLink = ({
   ...textProps
 }) =>
   type === "button" ? (
-    <Pressable onPress={onPress} style={containerStyle} hitSlop={10}>
-      {({ pressed }) => (
-        <Text
-          {...textProps}
-          style={{
-            ...style.link,
-            ...textStyle,
-            ...pressedOpacity(pressed),
-          }}
-        >
-          {children}
-        </Text>
-      )}
-    </Pressable>
+    // Prevents from taking the whole width
+    <View
+      style={{ ...style.button, ...containerStyle }}
+      pointerEvents="box-none"
+    >
+      <Pressable onPress={onPress} hitSlop={10}>
+        {({ pressed }) => (
+          <Text
+            {...textProps}
+            style={{
+              ...style.link,
+              ...textStyle,
+              ...pressedOpacity(pressed),
+            }}
+          >
+            {children}
+          </Text>
+        )}
+      </Pressable>
+    </View>
   ) : type === "text" ? (
     <Text
       {...textProps}
@@ -37,4 +43,4 @@ const ButtonLink = ({
     </Text>
   ) : null;
 
-export default ButtonLink;
+export default memo(ButtonLink);

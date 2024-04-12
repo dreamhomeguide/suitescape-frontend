@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState } from "react";
 
-export const RoomContext = createContext(undefined);
+export const RoomContext = createContext({
+  room: null,
+  setRoom: (_room) => {},
+});
 
 export const RoomProvider = ({ children }) => {
   const [room, setRoom] = useState(null);

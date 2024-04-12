@@ -4,7 +4,7 @@ import { Tabs } from "react-native-collapsible-tab-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import globalStyles from "../../assets/styles/globalStyles";
-import splitTextSpaced from "../../utilities/textSplitSpacer";
+import splitTextSpaced from "../../utils/textSplitSpacer";
 import BookingItem from "../BookingItem/BookingItem";
 
 const BookingList = ({ data, type, isFetched, refreshControl }) => {
@@ -30,15 +30,15 @@ const BookingList = ({ data, type, isFetched, refreshControl }) => {
     <Tabs.FlatList
       data={data}
       contentInset={{ bottom: insets.bottom }}
+      contentContainerStyle={globalStyles.rowGap}
       keyExtractor={(item) => item.id.toString()}
       renderItem={renderItem}
       initialNumToRender={5}
-      windowSize={10}
-      maxToRenderPerBatch={10}
-      updateCellsBatchingPeriod={30}
+      windowSize={5}
+      maxToRenderPerBatch={3}
+      updateCellsBatchingPeriod={100}
       removeClippedSubviews
       refreshControl={refreshControl}
-      ItemSeparatorComponent={() => <View style={globalStyles.bottomGap} />}
       ListEmptyComponent={EmptyListComponent}
     />
   );

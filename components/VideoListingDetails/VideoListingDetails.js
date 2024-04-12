@@ -39,7 +39,7 @@ const VideoListingDetails = ({ listing }) => {
           ...style.priceText,
         }}
       >
-        P{lowest_room_price} Per night
+        P{lowest_room_price?.toLocaleString()} Per night
       </Text>
       <StarRatingView rating={average_rating} textStyle={style.text} />
       <ReadMore

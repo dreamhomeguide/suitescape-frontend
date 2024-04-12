@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -8,20 +8,27 @@ import { pressedOpacity } from "../../assets/styles/globalStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import VideoFeed from "../VideoFeed/VideoFeed";
 
-const SliderModalVideo = ({ videoData, listing }) => {
-  const { isVideoGalleryShown, closeVideoGallery } = useModalGallery();
+const SliderModalVideo = ({ videoData, visible, onClose, listing }) => {
   const insets = useSafeAreaInsets();
+  const { isVideoGalleryShown, closeVideoGallery } = useModalGallery();
+
+  const onRequestClose = useCallback(() => {
+    onClose && onClose();
+    closeVideoGallery();
+  }, [onClose]);
+
+  const showModal = visible || isVideoGalleryShown;
 
   return (
     <Modal
-      visible={isVideoGalleryShown}
+      visible={showModal}
       animationType="slide"
-      onRequestClose={() => closeVideoGallery()}
+      onRequestClose={onRequestClose}
       statusBarTranslucent
     >
       <View style={style.mainContainer}>
         <Pressable
-          onPress={() => closeVideoGallery()}
+          onPress={onRequestClose}
           style={({ pressed }) => ({
             ...pressedOpacity(pressed),
             ...style.closeButton({ topInsets: insets.top }),
@@ -30,7 +37,7 @@ const SliderModalVideo = ({ videoData, listing }) => {
           <Fontello name="x-regular" size={20} color="white" />
         </Pressable>
 
-        {isVideoGalleryShown && (
+        {showModal && (
           <VideoFeed
             videos={videoData}
             currentListing={listing}

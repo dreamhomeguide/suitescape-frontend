@@ -19,6 +19,7 @@ const style = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     textAlign: "center",
+    textTransform: "uppercase",
   },
 });
 

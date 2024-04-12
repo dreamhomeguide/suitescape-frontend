@@ -1,5 +1,5 @@
 import { useTheme } from "@react-navigation/native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { memo, useEffect, useRef, useState } from "react";
 import {
   MaterialTabBar,
   MaterialTabItem,
@@ -32,7 +32,7 @@ const topTabOptions = {
   inactiveColor: Colors.gray,
 };
 
-export const TabBar = ({ defaultProps, ...customProps }) => {
+export const TabBar = memo(({ defaultProps, ...customProps }) => {
   const [isSwitching, setIsSwitching] = useState(false);
   const [pressedTab, setPressedTab] = useState(null);
 
@@ -42,7 +42,7 @@ export const TabBar = ({ defaultProps, ...customProps }) => {
   const { colors } = useTheme();
 
   useEffect(() => {
-    return () => timeoutRef.current && clearTimeout(timeoutRef.current);
+    return () => clearTimeout(timeoutRef.current);
   }, []);
 
   return (
@@ -73,9 +73,8 @@ export const TabBar = ({ defaultProps, ...customProps }) => {
             props.onPress(name);
             setPressedTab(name);
 
-            if (timeoutRef.current) {
-              clearTimeout(timeoutRef.current);
-            }
+            clearTimeout(timeoutRef.current);
+
             timeoutRef.current = setTimeout(() => {
               setIsSwitching(false);
             }, 350);
@@ -94,4 +93,4 @@ export const TabBar = ({ defaultProps, ...customProps }) => {
       {...customProps}
     />
   );
-};
+});

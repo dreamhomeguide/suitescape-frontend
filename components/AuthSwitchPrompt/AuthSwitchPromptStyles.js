@@ -10,6 +10,8 @@ const style = StyleSheet.create({
   },
   text: {
     fontSize: 14,
+  },
+  link: {
     fontWeight: "500",
   },
   hint: {

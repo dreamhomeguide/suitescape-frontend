@@ -17,9 +17,8 @@ const HeaderOnboarding = ({
   const { modifySetting } = useSettings();
 
   const handleSignInButtonClick = () => {
-    modifySetting("onboardingEnabled", false).then(() => {
-      navigation.replace(Routes.LOGIN);
-    });
+    modifySetting("onboardingEnabled", false);
+    navigation.replace(Routes.LOGIN);
   };
 
   return (

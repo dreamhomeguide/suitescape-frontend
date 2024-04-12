@@ -1,7 +1,7 @@
 import { useNavigation } from "@react-navigation/native";
 import { format } from "date-fns";
 import { Image } from "expo-image";
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { Text, View } from "react-native";
 import { RectButton } from "react-native-gesture-handler";
 
@@ -27,29 +27,32 @@ const ReviewItem = ({ item }) => {
 
   const navigation = useNavigation();
 
+  const onViewListing = useCallback(() => {
+    navigation.push(Routes.LISTING_DETAILS, { listingId: listing.id });
+  }, [navigation, listing.id]);
+
   return (
     <View style={style.mainContainer}>
       <View style={style.userContainer}>
-        <ProfileImage size={40} borderWidth={0} />
+        <ProfileImage
+          source={user.picture_url ? { uri: baseURL + user.picture_url } : null}
+          size={40}
+          borderWidth={0}
+        />
         <View style={style.userNameContainer}>
           <Text style={style.userName}>{user.fullname}</Text>
           <StarRatingView rating={rating} starSize={20} />
         </View>
       </View>
-      <RectButton
-        style={style.listingButtonContainer}
-        onPress={() =>
-          navigation.push(Routes.LISTING_DETAILS, { listingId: listing.id })
-        }
-      >
+      <RectButton style={style.listingButtonContainer} onPress={onViewListing}>
         <Image
           source={{ uri: baseURL + coverImage.url }}
           style={style.listingImage}
           contentFit="cover"
         />
         <View style={style.listingDetailsContainer}>
-          <Text style={style.listingName}>{listing.name}</Text>
           <Text style={style.listingCategory}>{room.category.name}</Text>
+          <Text style={style.listingName}>{listing.name}</Text>
         </View>
       </RectButton>
       <View style={style.contentContainer}>

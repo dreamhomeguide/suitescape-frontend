@@ -12,11 +12,11 @@ const AuthSwitchPrompt = ({ isRegistration = false, isOnboarding = false }) => {
 
   const { modifySetting } = useSettings();
 
-  const handleNextScreen = async () => {
+  const handleNextScreen = () => {
     const nextScreen = isRegistration ? Routes.SIGNUP : Routes.LOGIN;
 
     if (isOnboarding) {
-      await modifySetting("onboardingEnabled", false);
+      modifySetting("onboardingEnabled", false);
       navigation.replace(nextScreen);
     } else {
       navigation.navigate(nextScreen);
@@ -33,7 +33,10 @@ const AuthSwitchPrompt = ({ isRegistration = false, isOnboarding = false }) => {
       >
         {isRegistration ? "Don't have an account?" : "Already have an account?"}
       </Text>
-      <ButtonLink onPress={handleNextScreen} textStyle={style.text}>
+      <ButtonLink
+        onPress={handleNextScreen}
+        textStyle={{ ...style.text, ...style.link }}
+      >
         {isRegistration ? "Create Account" : "Sign In"}
       </ButtonLink>
     </View>

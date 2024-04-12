@@ -1,20 +1,18 @@
 import axios from "axios";
 
-// Replace this with your local/private IP Address
+const serverIpAddress = "0.0.0.0";
 // const serverIpAddress = "192.168.100.151";
-// const serverIpAddress = "192.168.1.112";
 
-// export const baseURL = `http://${serverIpAddress}/suitescape-api.test/api`;
+export const baseURL = `http://${serverIpAddress}/suitescape-api.test`;
+// export const baseURL = `https://suitescape.dream-homeseller.com`;
 
-export const baseURL = `https://suitescape.dream-homeseller.com/api`;
+export const baseURLWithAPI = baseURL + "/api";
 
 const SuitescapeAPI = axios.create({
-  baseURL,
+  baseURL: baseURLWithAPI,
+  timeout: 10000,
+  timeoutErrorMessage: "Connection timed out. Please check your network.",
 });
-
-export const getHeaderToken = () => {
-  return SuitescapeAPI.defaults.headers.common["Authorization"];
-};
 
 export const setHeaderToken = (token) => {
   SuitescapeAPI.defaults.headers.common["Authorization"] = `Bearer ${token}`;

@@ -1,14 +1,12 @@
 import { StyleSheet } from "react-native";
 
-import { Colors } from "../../assets/Colors";
-
 const style = StyleSheet.create({
-  button: ({ half }) => ({
+  button: ({ half, bgColor }) => ({
     paddingVertical: 15,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: Colors.blue,
+    backgroundColor: bgColor,
     ...(half && {
       width: "50%",
     }),

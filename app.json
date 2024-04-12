@@ -2,12 +2,12 @@
   "expo": {
     "name": "Suitescape",
     "slug": "Suitescape",
+    "scheme": "suitescape",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -28,9 +28,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/ecf4272b-8973-4883-8565-f5ec28e829bc"
     },
@@ -39,6 +37,10 @@
       "eas": {
         "projectId": "ecf4272b-8973-4883-8565-f5ec28e829bc"
       }
-    }
+    },
+    "plugins": [
+      "expo-font",
+      "expo-secure-store"
+    ]
   }
 }

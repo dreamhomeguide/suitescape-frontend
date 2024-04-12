@@ -3,7 +3,6 @@ import { StyleSheet } from "react-native";
 const style = StyleSheet.create({
   container: {
     backgroundColor: "white",
-    marginBottom: 12,
   },
   hostContentContainer: {
     padding: 20,

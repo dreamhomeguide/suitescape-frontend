@@ -1,17 +1,11 @@
 import { StyleSheet } from "react-native";
 
-import globalStyles from "./globalStyles";
 import { Colors } from "../Colors";
 
 const style = StyleSheet.create({
   container: {
     backgroundColor: "white",
     padding: 15,
-    ...globalStyles.bottomGap,
-  },
-  plainContainer: {
-    backgroundColor: "white",
-    ...globalStyles.bottomGap,
   },
   text: {
     color: "black",
@@ -26,7 +20,7 @@ const style = StyleSheet.create({
     color: Colors.blue,
   },
   emphasizedText: {
-    color: Colors.red,
+    color: Colors.lightred,
     fontSize: 14,
   },
   headerText: {
@@ -52,6 +46,7 @@ const style = StyleSheet.create({
     height: 200,
     borderRadius: 10,
     marginBottom: 15,
+    overflow: "hidden",
   },
   bottomSeeAllContainer: {
     marginBottom: 18,

@@ -3,27 +3,27 @@ import { StyleSheet } from "react-native";
 import { Colors } from "../../assets/Colors";
 
 const ChatItemStyles = StyleSheet.create({
-  mainContainer: (type) => ({
+  mainContainer: (isSender) => ({
     flex: 1,
     paddingHorizontal: 15,
-    alignItems: type === "user" ? "flex-end" : "flex-start",
-    justifyContent: type === "user" ? "flex-end" : "flex-start",
+    alignItems: isSender ? "flex-end" : "flex-start",
+    justifyContent: isSender === "user" ? "flex-end" : "flex-start",
   }),
-  chatContainer: (type) => ({
+  chatContainer: (isSender) => ({
     maxWidth: "80%",
     paddingVertical: 15,
     paddingHorizontal: 20,
-    borderTopLeftRadius: type === "user" ? 20 : 5,
-    borderTopRightRadius: type === "user" ? 5 : 20,
-    borderBottomLeftRadius: type === "user" ? 20 : 15,
-    borderBottomRightRadius: type === "user" ? 15 : 20,
-    backgroundColor: type === "user" ? "white" : Colors.blue,
-    marginVertical: 20,
+    borderTopLeftRadius: isSender ? 20 : 5,
+    borderTopRightRadius: isSender ? 5 : 20,
+    borderBottomLeftRadius: isSender ? 20 : 15,
+    borderBottomRightRadius: isSender ? 15 : 20,
+    backgroundColor: isSender ? Colors.blue : "white",
+    marginVertical: 4,
   }),
 
-  message: (type) => ({
+  message: (isSender) => ({
     fontSize: 15,
-    color: type === "user" ? "black" : "white",
+    color: isSender ? "white" : "black",
   }),
 });
 

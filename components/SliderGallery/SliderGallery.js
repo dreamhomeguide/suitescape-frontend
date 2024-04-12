@@ -41,8 +41,8 @@ const SliderGallery = ({ data, mediaType, height }) => {
       onIndexChange={setIndex}
       data={data}
       width={WINDOW_WIDTH}
-      windowSize={3}
-      initialNumToRender={3}
+      windowSize={5}
+      initialNumToRender={5}
       bounces
       renderItem={renderItem}
       // scrollEnabled={data?.length > 1}

@@ -2,25 +2,25 @@ import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from "expo-av";
 import * as NavigationBar from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
-import React, { forwardRef, memo, useCallback, useRef, useState } from "react";
-import {
-  Dimensions,
-  FlatList,
-  Platform,
-  useColorScheme,
-  View,
-} from "react-native";
+import React, {
+  forwardRef,
+  memo,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import { Dimensions, FlatList, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { VideoScrollContext } from "../../contexts/VideoScrollContext";
 import VideoFeedItem from "../VideoFeedItem/VideoFeedItem";
 
-const VIEWABILITY_CONFIG = {
-  // Adjust this if onViewableItemsChanged is not working properly
-  itemVisiblePercentThreshold: 80,
-
-  minimumViewTime: 100,
-};
+// const VIEWABILITY_CONFIG = {
+//   // Adjust this if onViewableItemsChanged is not working properly
+//   itemVisiblePercentThreshold: 80,
+//
+//   minimumViewTime: 20,
+// };
 
 const { height: WINDOW_HEIGHT } = Dimensions.get("window");
 
@@ -39,9 +39,10 @@ const VideoFeed = forwardRef(
   ) => {
     const [index, setIndex] = useState(null);
     const [lastPlayedIndex, setLastPlayedIndex] = useState(null);
-    const [isScrolling, setIsScrolling] = useState(false);
+    const [flatListKey, setFlatListKey] = useState(Date.now());
 
-    const colorScheme = useColorScheme();
+    const flatListRef = useRef(null);
+
     const insets = useSafeAreaInsets();
     const isFeedFocused = useIsFocused();
 
@@ -55,12 +56,37 @@ const VideoFeed = forwardRef(
     // Adjusts the height of the video to fit the screen
     const videoHeight = height + topInset - bottomInset;
 
+    const resetIndex = useCallback(() => {
+      setLastPlayedIndex(null);
+      setIndex(null);
+    }, []);
+
+    const resetFlatList = useCallback(() => {
+      // Resets the key of the flatList to force a re-render
+      // Also fixes onEndReached not firing (probably other props too)
+      setFlatListKey(Date.now());
+    }, []);
+
+    useImperativeHandle(ref, () => ({
+      list: flatListRef.current,
+      resetIndex,
+      reset: resetFlatList, // Use with caution
+    }));
+
     // Plays the last played video when the feed is focused, and pauses it when it is not
     useFocusEffect(
       useCallback(() => {
+        // If there are no videos, don't do anything
+        if (!videos) {
+          return;
+        }
+
         if (lastPlayedIndex !== null) {
+          // Uses the last played video index to resume playing
           // Also sets the first video to play on initial load
           setIndex(lastPlayedIndex);
+        } else {
+          setIndex(videos[0]?.id);
         }
 
         return () => {
@@ -76,7 +102,7 @@ const VideoFeed = forwardRef(
             playsInSilentModeIOS: true,
             interruptionModeIOS: InterruptionModeIOS.DoNotMix,
             interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-          }).catch((error) => console.log(error));
+          }).catch((error) => console.log("Error setting audio mode:", error));
         })();
 
         // return () => {
@@ -108,29 +134,32 @@ const VideoFeed = forwardRef(
       }, []),
     );
 
-    const handleViewableItemsChanged = useCallback(({ viewableItems }) => {
-      const firstViewableItem = viewableItems[0];
+    // const handleViewableItemsChanged = useCallback(({ viewableItems }) => {
+    //   const firstViewableItem = viewableItems[0];
+    //
+    //   if (firstViewableItem?.isViewable) {
+    //     // Sets the index of the video that is currently in focus
+    //     const newIndex = firstViewableItem.item.id;
+    //     setLastPlayedIndex(newIndex);
+    //     setIndex(newIndex);
+    //   }
+    // }, []);
 
-      if (firstViewableItem?.isViewable) {
-        // Sets the index of the video that is currently in focus
-        const newIndex = firstViewableItem.item.id;
-        setLastPlayedIndex(newIndex);
-        setIndex(newIndex);
-      }
-    }, []);
+    // const viewabilityConfigCallbackPairs = useRef([
+    //   {
+    //     viewabilityConfig: VIEWABILITY_CONFIG,
+    //     onViewableItemsChanged: handleViewableItemsChanged,
+    //   },
+    // ]);
 
-    const viewabilityConfigCallbackPairs = useRef([
-      {
-        viewabilityConfig: VIEWABILITY_CONFIG,
-        onViewableItemsChanged: handleViewableItemsChanged,
-      },
-    ]);
-
-    const getItemLayout = (_, idx) => ({
-      length: videoHeight,
-      offset: videoHeight * idx,
-      index: idx,
-    });
+    const getItemLayout = useCallback(
+      (_, idx) => ({
+        length: videoHeight,
+        offset: videoHeight * idx,
+        index: idx,
+      }),
+      [videoHeight],
+    );
 
     const renderItem = useCallback(
       ({ item }) => (
@@ -145,32 +174,58 @@ const VideoFeed = forwardRef(
           feedFocused={isFeedFocused}
         />
       ),
-      [index],
+      [currentListing, index, isFeedFocused, videoHeight],
     );
 
-    const statusBarStyle =
-      colorScheme === "dark" || isFeedFocused ? "light" : "dark";
+    const onScroll = useCallback(
+      (e) => {
+        if (!videos) {
+          return;
+        }
+
+        const offsetY = e.nativeEvent.contentOffset.y;
+        const newIndex = Math.floor(offsetY / videoHeight + 0.1);
+
+        if (
+          newIndex === index ||
+          newIndex > videos.length - 1 ||
+          newIndex < 0
+        ) {
+          return;
+        }
+
+        setIndex(videos[newIndex].id);
+        setLastPlayedIndex(videos[newIndex].id);
+      },
+      [index, videoHeight, videos],
+    );
+
+    // const statusBarStyle = isFeedFocused ? "light" : "auto";
 
     // Applies to android only
     const statusBarColor = isFeedFocused ? "rgba(0,0,0,0.2)" : "transparent";
 
     return (
-      <VideoScrollContext.Provider value={{ isScrolling }}>
-        <StatusBar
-          animated
-          translucent
-          backgroundColor={statusBarColor}
-          style={statusBarStyle}
-        />
+      <>
+        <StatusBar style="light" backgroundColor={statusBarColor} translucent />
+
+        {/*<LinearGradient*/}
+        {/*  colors={["rgba(0,0,0,0.4)", "transparent"]}*/}
+        {/*  locations={[0, 0.5]}*/}
+        {/*  pointerEvents="none"*/}
+        {/*  style={{ height: 100, ...globalStyles.absoluteTop }}*/}
+        {/*/>*/}
+
         <FlatList
-          ref={ref}
+          key={flatListKey}
+          ref={flatListRef}
           data={videos}
-          contentOffset={{ x: 0, y: 0 }}
           scrollEnabled={scrollEnabled}
           initialNumToRender={5}
-          windowSize={10}
-          maxToRenderPerBatch={10}
+          windowSize={3}
+          maxToRenderPerBatch={3}
           updateCellsBatchingPeriod={30}
+          removeClippedSubviews
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
@@ -178,20 +233,19 @@ const VideoFeed = forwardRef(
           snapToAlignment="center"
           decelerationRate="fast"
           refreshControl={refreshControl}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
           onEndReached={onEndReached}
           onEndReachedThreshold={0.5}
-          onScrollBeginDrag={() => setIsScrolling(true)}
-          onScrollEndDrag={() => setIsScrolling(false)}
-          onMomentumScrollBegin={() => setIsScrolling(true)}
-          onMomentumScrollEnd={() => setIsScrolling(false)}
           disableIntervalMomentum
-          viewabilityConfigCallbackPairs={
-            viewabilityConfigCallbackPairs.current
-          }
+          // viewabilityConfigCallbackPairs={
+          //   viewabilityConfigCallbackPairs.current
+          // }
           getItemLayout={getItemLayout}
         />
+
         {!bottomTabHeight && <View style={{ height: bottomInset }} />}
-      </VideoScrollContext.Provider>
+      </>
     );
   },
 );

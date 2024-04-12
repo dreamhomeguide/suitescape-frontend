@@ -1,29 +1,23 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { useTheme } from "@react-navigation/native";
-import { format } from "date-fns";
-import React, { useEffect, useLayoutEffect } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import React, { useCallback, useEffect, useMemo } from "react";
+import { ScrollView, View } from "react-native";
 import { useToast } from "react-native-toast-notifications";
-import { HeaderButtons, Item } from "react-navigation-header-buttons";
 
-import { Colors } from "../../assets/Colors";
-import style from "../../assets/styles/detailsStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import AppFooterDetails from "../../components/AppFooterDetails/AppFooterDetails";
-import ButtonLink from "../../components/ButtonLink/ButtonLink";
+import DetailsDescriptionView from "../../components/DetailsDescriptionView/DetailsDescriptionView";
+import DetailsFeaturesView from "../../components/DetailsFeaturesView/DetailsFeaturesView";
+import DetailsObjectView from "../../components/DetailsObjectView/DetailsObjectView";
+import DetailsReviewsView from "../../components/DetailsReviewsView/DetailsReviewsView";
 import DetailsTitleView from "../../components/DetailsTitleView/DetailsTitleView";
-import ListingFeaturesView, {
-  FEATURES,
-} from "../../components/ListingFeaturesView/ListingFeaturesView";
-import ReadMore from "../../components/ReadMore/ReadMore";
-import SliderReviews from "../../components/SliderReviews/SliderReviews";
+import { FEATURES } from "../../components/ListingFeaturesView/ListingFeaturesView";
 import { useBookingContext } from "../../contexts/BookingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
-import useFetchAPI from "../../hooks/useFetchAPI";
-import { FontelloHeaderButton } from "../../navigation/HeaderButtons";
 import { Routes } from "../../navigation/Routes";
+import { fetchRoom } from "../../services/apiService";
+import formatRange from "../../utils/rangeFormatter";
 
 const AMENITIES_IN_VIEW = 6;
 const REVIEWS_IN_VIEW = 6;
@@ -31,44 +25,43 @@ const REVIEWS_IN_VIEW = 6;
 const RoomDetails = ({ navigation, route }) => {
   const roomId = route.params.roomId;
 
-  const { bookingState, clearDates } = useBookingContext();
-  const startDate = new Date(bookingState.startDate);
-  const endDate = new Date(bookingState.endDate);
-
-  const { data: roomData } = useFetchAPI(`/rooms/${roomId}`);
   const { setRoom } = useRoomContext();
-  const { colors } = useTheme();
+  const { bookingState, setBookingData } = useBookingContext();
   const toast = useToast();
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <HeaderButtons HeaderButtonComponent={FontelloHeaderButton}>
-          <Item
-            title="menu"
-            iconName="hamburger-regular"
-            color={colors.text}
-            onPress={() => console.log("Menu pressed")}
-          />
-        </HeaderButtons>
-      ),
-    });
-  }, [navigation]);
+  const { data: roomData } = useQuery({
+    queryKey: ["rooms", roomId],
+    queryFn: () => fetchRoom(roomId),
+  });
 
   // Set room to global context
   useEffect(() => {
     setRoom(roomData);
   }, [roomData]);
 
-  // Clear global room and dates on unmount
+  // Clear global room on unmount
   useEffect(() => {
     return () => {
-      clearDates();
       setRoom(null);
     };
   }, []);
 
-  const handleReserveButton = () => {
+  useEffect(() => {
+    if (bookingState.startDate && bookingState.endDate) {
+      setBookingData({
+        highlightedDates: [bookingState.startDate, bookingState.endDate],
+      });
+    }
+  }, [bookingState.startDate, bookingState.endDate]);
+
+  const footerLinkOnPress = useCallback(() => {
+    navigation.navigate({
+      name: Routes.SELECT_DATES,
+      merge: true,
+    });
+  }, [navigation]);
+
+  const handleReserveButton = useCallback(() => {
     if (bookingState.startDate && bookingState.endDate) {
       navigation.navigate(Routes.GUEST_INFO);
     } else {
@@ -76,150 +69,100 @@ const RoomDetails = ({ navigation, route }) => {
         placement: "top",
         style: toastStyles.toastInsetHeader,
       });
-      navigation.navigate({
-        name: Routes.SELECT_DATES,
-        merge: true,
-      });
+      footerLinkOnPress();
 
       // Alert.alert("No date selected", "Please select a date");
     }
-  };
+  }, [
+    bookingState.startDate,
+    bookingState.endDate,
+    footerLinkOnPress,
+    navigation,
+    toast,
+  ]);
 
-  const footerTitle = roomData?.category.price
-    ? `₱${roomData.category.price}/night`
-    : "";
+  const footerTitle = useMemo(() => {
+    if (!roomData?.category.price) {
+      return "";
+    }
+    return `₱${roomData.category.price?.toLocaleString()}/night`;
+  }, [roomData?.category.price]);
 
-  const footerLinkLabel = () => {
+  const footerLinkLabel = useMemo(() => {
     if (!bookingState.startDate && !bookingState.endDate) {
-      return "Date";
+      return "Select Date";
     }
 
-    let year = "";
-    if (new Date().getFullYear() !== endDate.getFullYear()) {
-      year = ", yyyy";
-    }
+    return formatRange(bookingState.startDate, bookingState.endDate);
+  }, [bookingState.startDate, bookingState.endDate]);
 
-    if (bookingState.startDate === bookingState.endDate) {
-      return format(startDate, "MMM d" + year);
-    }
-
-    if (startDate.getMonth() === endDate.getMonth()) {
-      return format(startDate, "MMM d") + " - " + format(endDate, "d" + year);
-    }
-
-    return format(startDate, "MMM d") + " - " + format(endDate, "MMM d" + year);
-  };
-
-  const footerLinkOnPress = () =>
-    navigation.navigate({ name: Routes.SELECT_DATES, merge: true });
+  const onSeeAllReviews = useCallback(
+    () =>
+      navigation.push(Routes.RATINGS, {
+        type: "room",
+        id: roomId,
+        averageRating: roomData?.average_rating,
+        reviewsCount: roomData?.reviews_count,
+      }),
+    [navigation, roomId, roomData?.average_rating, roomData?.reviews_count],
+  );
 
   return (
     <View style={globalStyles.flexFull}>
-      <ScrollView>
+      <ScrollView contentContainerStyle={globalStyles.rowGap}>
         <DetailsTitleView
           title={roomData?.category.name}
           price={roomData?.category.price}
           rating={roomData?.average_rating}
           reviewsCount={roomData?.reviews_count}
+          onSeeAllReviews={onSeeAllReviews}
         />
 
         {/* Room Size */}
-        <View style={style.container}>
-          <Text style={style.headerText}>Room Size</Text>
-
-          <Text style={style.text}>{roomData?.category.size ?? 0} Sqm</Text>
-        </View>
+        <DetailsDescriptionView
+          title="Room Size"
+          description={`${roomData?.category.size} sqm`}
+          emptyText="No room size."
+        />
 
         {/* Available beds */}
-        <View style={style.container}>
-          <Text style={style.headerText}>Available beds</Text>
-
-          <View style={globalStyles.textGap}>
-            {roomData?.category.type_of_beds ? (
-              Object.entries(roomData.category.type_of_beds).map(
-                ([typeOfBed, quantity], index) => (
-                  <Text key={index} style={style.text}>
-                    {quantity} {typeOfBed}
-                  </Text>
-                ),
-              )
-            ) : (
-              <Text style={style.text}>Loading...</Text>
-            )}
-          </View>
-        </View>
+        <DetailsObjectView
+          title="Available beds"
+          object={roomData?.category.type_of_beds}
+        />
 
         {/* Description */}
-        <View style={style.container}>
-          <Text style={style.headerText}>Room Description</Text>
-
-          {roomData?.description ? (
-            <ReadMore numberOfLines={4} textStyle={style.text}>
-              {roomData.description}
-            </ReadMore>
-          ) : (
-            <Text style={style.text}>No room description.</Text>
-          )}
-        </View>
+        <DetailsDescriptionView
+          title="Room Description"
+          description={roomData?.description}
+        />
 
         {/* Rules */}
-        <View style={style.container}>
-          <Text style={style.headerText}>Room Rules</Text>
-
-          {roomData?.rules.content ? (
-            <ReadMore numberOfLines={4} textStyle={style.text}>
-              {roomData.rules.content}
-            </ReadMore>
-          ) : (
-            <Text style={style.text}>No room rules.</Text>
-          )}
-        </View>
+        <DetailsDescriptionView
+          title="Room Rules"
+          description={roomData?.rules.content}
+          emptyText="No room rules."
+        />
 
         {/* Amenities */}
-        <View style={style.plainContainer}>
-          <View style={style.subHeaderContainer}>
-            <Text style={style.headerText}>Property Amenities</Text>
-          </View>
-
-          <ListingFeaturesView
-            feature={FEATURES.amenities}
-            data={roomData?.amenities}
-            size={AMENITIES_IN_VIEW}
-          />
-
-          {roomData?.amenities?.length > AMENITIES_IN_VIEW && (
-            <View style={style.bottomSeeAllContainer}>
-              <ButtonLink textStyle={style.seeAllText}>
-                See All Amenities
-              </ButtonLink>
-            </View>
-          )}
-        </View>
+        <DetailsFeaturesView
+          feature={FEATURES.amenities}
+          data={roomData?.amenities}
+          size={AMENITIES_IN_VIEW}
+        />
 
         {/* Reviews */}
-        <View style={style.plainContainer}>
-          <View style={style.subHeaderContainer}>
-            <Text style={style.headerText}>Reviews</Text>
-
-            {roomData?.reviews?.length > REVIEWS_IN_VIEW && (
-              <View style={style.rightSeeAllContainer}>
-                <ButtonLink textStyle={style.seeAllText}>See All</ButtonLink>
-                <Ionicons
-                  name="chevron-forward"
-                  size={21}
-                  color={Colors.blue}
-                />
-              </View>
-            )}
-          </View>
-
-          <SliderReviews reviews={roomData?.reviews} size={REVIEWS_IN_VIEW} />
-        </View>
+        <DetailsReviewsView
+          reviews={roomData?.reviews}
+          size={REVIEWS_IN_VIEW}
+          onSeeAllReviews={onSeeAllReviews}
+        />
       </ScrollView>
+
       <AppFooter>
         <AppFooterDetails
           title={footerTitle}
-          buttonLinkLabel={footerLinkLabel()}
+          buttonLinkLabel={footerLinkLabel}
           buttonLinkOnPress={footerLinkOnPress}
           buttonLabel="Reserve"
           buttonOnPress={handleReserveButton}

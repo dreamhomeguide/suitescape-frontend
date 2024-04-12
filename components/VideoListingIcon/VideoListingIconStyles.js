@@ -5,6 +5,12 @@ const style = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
   },
+  text: {
+    color: "white",
+    fontSize: 10,
+    marginTop: 3,
+    textAlign: "center",
+  },
 });
 
 export default style;

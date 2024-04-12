@@ -1,14 +1,17 @@
 import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
-  contentContainer: {
-    paddingTop: 4,
+  container: {
+    backgroundColor: "white",
+    paddingVertical: 10,
+    paddingHorizontal: 15,
   },
   titleText: {
+    flex: 1,
     color: "black",
     fontSize: 25,
     fontWeight: "bold",
-    marginRight: 25,
+    marginRight: 20,
   },
   priceText: {
     color: "black",

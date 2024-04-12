@@ -1,4 +1,8 @@
+// noinspection JSCheckFunctionSignatures
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import * as SecureStore from "expo-secure-store";
 import {
   createContext,
@@ -7,21 +11,23 @@ import {
   useReducer,
   useRef,
 } from "react";
+import { Alert, AppState } from "react-native";
 
 import { useSettings } from "./SettingsContext";
+import { Routes } from "../navigation/Routes";
+import { removeBearerToken, setBearerToken } from "../services/PusherEcho";
 import SuitescapeAPI, {
   removeHeaderToken,
   setHeaderToken,
 } from "../services/SuitescapeAPI";
-import { handleApiError, handleApiResponse } from "../utilities/apiHelpers";
-import { clearCacheDir } from "../utilities/cacheMedia";
-
-const AuthContext = createContext(undefined);
+import { updateActiveStatus } from "../services/apiService";
+import { handleApiError, handleApiResponse } from "../utils/apiHelpers";
 
 const initialState = {
   isLoaded: false,
   isLoading: true,
-  userToken: null,
+  userId: "",
+  userToken: "",
 };
 
 const reducer = (prevState, action) => {
@@ -36,6 +42,11 @@ const reducer = (prevState, action) => {
         ...prevState,
         isLoading: false,
       };
+    case "SET_USER_ID":
+      return {
+        ...prevState,
+        userId: action.userId,
+      };
     case "SIGN_IN":
       return {
         ...prevState,
@@ -44,7 +55,8 @@ const reducer = (prevState, action) => {
     case "SIGN_OUT":
       return {
         ...prevState,
-        userToken: null,
+        userId: "",
+        userToken: "",
       };
     case "RESTORE_TOKEN_FINISH":
       return {
@@ -57,66 +69,180 @@ const reducer = (prevState, action) => {
   }
 };
 
+const AuthContext = createContext({
+  authState: initialState,
+  signIn: async (_data) => {},
+  signUp: async (_data, _navigation) => {},
+  signOut: async () => {},
+  enableGuestMode: async () => {},
+  disableGuestMode: () => {},
+  // abort: () => {},
+});
+
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState, undefined);
 
-  const abortControllerRef = useRef(null);
+  // const abortControllerRef = useRef(null);
+  const onActiveStatusListener = useRef(null);
+  const interceptorId = useRef(null);
 
   const { settings, modifySetting } = useSettings();
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    // Fetch the token from storage then navigate to our appropriate place
-    const restoreToken = async () => {
-      let userToken;
-      try {
-        userToken = await SecureStore.getItemAsync("userToken");
-      } catch (e) {
-        console.log("Restoring token failed", e);
-      }
+  // Validate the token and login the user
+  const validateToken = async (userToken) => {
+    let response;
+    try {
+      response = await SuitescapeAPI.get("/user", {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+    } catch (error) {
+      handleApiError({ error, defaultAlert: true });
 
-      if (!userToken) {
-        console.log("No token found");
-        dispatch({ type: "RESTORE_TOKEN_FINISH" });
-        return;
-      }
+      // Set the response to the error response
+      response = error.response;
+    }
 
-      console.log("Restored token", userToken);
+    if (response?.status === 200) {
+      const { id: userId } = response.data;
 
-      let response;
-      try {
-        response = await SuitescapeAPI.get("/user", {
-          timeout: 5000,
-          headers: { Authorization: `Bearer ${userToken}` },
-        });
-        handleApiResponse({ response });
-      } catch (error) {
-        handleApiError({ error });
-      }
+      // Login the user
+      await handleLogin(userToken, userId);
+      console.log("User is logged in");
+    } else if (response?.status === 401) {
+      // Remove the expired token from storage
+      await SecureStore.deleteItemAsync("userToken");
 
-      // This will not wait for the request to finish
-      // SuitescapeAPI.get("/user", {
-      //   timeout: 5000,
-      //   headers: { Authorization: `Bearer ${userToken}` },
-      // })
-      //   .then((res) => {
-      //     response = res;
-      //   })
-      //   .catch((error) => {
-      //     handleApiError({ error });
-      //   });
+      Alert.alert(
+        "Session expired",
+        "Please log in again to continue using Suitescape.",
+        [{ text: "OK" }],
+      );
+    }
+  };
 
-      if (response?.status === 200) {
-        setHeaderToken(userToken);
-        console.log("User is logged in");
-        dispatch({ type: "SIGN_IN", userToken });
-      }
+  // Fetch the token from storage and validate it
+  const restoreToken = async () => {
+    let userToken;
+    try {
+      userToken = SecureStore.getItem("userToken");
+    } catch (e) {
+      console.log("Restoring token failed", e);
+    }
 
+    if (!userToken) {
+      console.log("No token found");
       dispatch({ type: "RESTORE_TOKEN_FINISH" });
-    };
+      return;
+    }
+    console.log("Restored token", userToken);
 
+    await validateToken(userToken);
+
+    dispatch({ type: "RESTORE_TOKEN_FINISH" });
+  };
+
+  useEffect(() => {
     restoreToken();
   }, []);
+
+  const handleLogin = async (userToken, userId) => {
+    // Add the user's id to the state
+    dispatch({ type: "SET_USER_ID", userId });
+
+    // Save the token to storage
+    if (SecureStore.getItem("userToken") !== userToken) {
+      SecureStore.setItem("userToken", userToken);
+    }
+
+    // Set the token to the SuitescapeAPI instance
+    setHeaderToken(userToken);
+
+    // Set the token to the PusherEcho instance
+    setBearerToken(userToken);
+
+    // Add interceptors for the response to check if the token is expired
+    addExpiredTokenInterceptors();
+
+    // Update the user's active status to true
+    try {
+      const { data } = await updateActiveStatus({ isActive: true });
+      console.log("User is active:", data.user.fullname);
+    } catch (error) {
+      console.log("Failed to update active status", error);
+    }
+
+    // Add a listener to update the user's active status when the app is focused
+    addOnFocusActiveStatusListener();
+
+    // Disable onboarding so it won't be shown again
+    modifySetting("onboardingEnabled", false);
+
+    // Reset all queries to refetch all the data
+    try {
+      await queryClient.resetQueries();
+      console.log("Reset queries successful");
+      dispatch({ type: "SIGN_IN", userToken });
+    } catch (error) {
+      console.error("Reset queries failed", error);
+    } finally {
+      dispatch({ type: "FINISH_LOADING" });
+    }
+  };
+
+  const handleSignUp = async (userToken, userId, navigation) => {
+    await handleLogin(userToken, userId);
+
+    // Waits for the login to finish
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    // So that feedback screen can be shown after the signup
+    navigation.navigate(Routes.FEEDBACK, {
+      type: "success",
+      title: "Congratulations",
+      subtitle: "Your account has been created.",
+    });
+  };
+
+  const handleLogOut = async () => {
+    // Remove the token from the SuitescapeAPI instance
+    removeHeaderToken();
+
+    // Remove the token from the PusherEcho instance
+    removeBearerToken();
+
+    // Remove the interceptors for the response
+    removeExpiredTokenInterceptors();
+
+    // Remove the listener to update the user's active status when the app is focused
+    removeOnFocusActiveStatusListener();
+
+    // Clear the token from storage
+    await SecureStore.deleteItemAsync("userToken");
+
+    // Clear all recently searched destinations
+    await AsyncStorage.removeItem("recentSearches");
+
+    // Clear the image cache
+    await Image.clearMemoryCache();
+    await Image.clearDiskCache();
+
+    dispatch({ type: "FINISH_LOADING" });
+    dispatch({ type: "SIGN_OUT" });
+
+    // Enable onboarding so when the user quits the app while not logged in,
+    // the onboarding will be shown again
+    // await modifySetting("onboardingEnabled", true);
+  };
+
+  const enableGuestMode = async () => {
+    await queryClient.resetQueries();
+    modifySetting("guestModeEnabled", true);
+  };
+
+  const disableGuestMode = () => {
+    modifySetting("guestModeEnabled", false);
+  };
 
   const signIn = async (data) => {
     if (state.isLoading) {
@@ -124,68 +250,52 @@ export const AuthProvider = ({ children }) => {
     }
     dispatch({ type: "START_LOADING" });
 
-    const AbortController = window.AbortController;
-    abortControllerRef.current = new AbortController();
+    // Create a new abort controller for this request
+    // const AbortController = window.AbortController;
+    // abortControllerRef.current = new AbortController();
 
     let response;
 
-    // This will wait for the request to finish
     try {
       response = await SuitescapeAPI.post(
         "/login",
         { email: data.email, password: data.password },
-        { signal: abortControllerRef.current.signal },
+        // { signal: abortControllerRef.current.signal },
       );
+
+      // Validate and login the user
+      handleApiResponse({
+        response,
+        onSuccess: async (res) => {
+          console.log("Login response:", res);
+          await handleLogin(res.token, res.user.id);
+        },
+      });
     } catch (error) {
       handleApiError({
         error,
         defaultAlert: true,
-        defaultAlertTitle: "Login failed",
+        defaultAlertTitle: "Login error",
         handleErrors: (e) => {
           dispatch({ type: "FINISH_LOADING" });
           throw e.errors;
         },
       });
     }
-
-    // This will validate the response
-    handleApiResponse({
-      response,
-      onError: (e) => {
-        dispatch({ type: "FINISH_LOADING" });
-        throw e.errors;
-      },
-      onSuccess: async (res) => {
-        setHeaderToken(res.token);
-
-        await modifySetting("onboardingEnabled", false);
-        await SecureStore.setItemAsync("userToken", res.token);
-
-        queryClient
-          .resetQueries()
-          .then(() => {
-            console.log("Reset queries successful");
-            dispatch({ type: "SIGN_IN", userToken: res.token });
-          })
-          .finally(() => {
-            dispatch({ type: "FINISH_LOADING" });
-          });
-      },
-    });
   };
 
-  const signUp = async (data) => {
+  const signUp = async (data, navigation) => {
     if (state.isLoading) {
       return;
     }
     dispatch({ type: "START_LOADING" });
 
-    const AbortController = window.AbortController;
-    abortControllerRef.current = new AbortController();
+    // Create a new abort controller for this request
+    // const AbortController = window.AbortController;
+    // abortControllerRef.current = new AbortController();
 
     let response;
 
-    // This will wait for the request to finish
     try {
       response = await SuitescapeAPI.post(
         "/register",
@@ -198,90 +308,148 @@ export const AuthProvider = ({ children }) => {
           password: data.password,
           password_confirmation: data.confirmPassword,
         },
-        { signal: abortControllerRef.current.signal },
+        // { signal: abortControllerRef.current.signal },
       );
+
+      // Login the user after successful validation and registration
+      handleApiResponse({
+        response,
+        onSuccess: async (res) => {
+          console.log("Signup response:", res);
+          await handleSignUp(res.token, res.user.id, navigation);
+        },
+      });
     } catch (error) {
       handleApiError({
         error,
         defaultAlert: true,
-        defaultAlertTitle: "Registration failed",
+        defaultAlertTitle: "Registration error",
         handleErrors: (e) => {
           dispatch({ type: "FINISH_LOADING" });
           throw e.errors;
         },
       });
     }
-
-    // This will validate the response
-    handleApiResponse({
-      response,
-      onError: (e) => {
-        dispatch({ type: "FINISH_LOADING" });
-        throw e.errors;
-      },
-      onSuccess: (res) => {
-        dispatch({ type: "FINISH_LOADING" });
-        if (res.user) {
-          console.log(res.user);
-        }
-      },
-    });
   };
 
-  const signOut = async () => {
+  const signOut = async (expired = false) => {
+    // If the token is expired, just log out the user
+    if (expired) {
+      await handleLogOut();
+      return;
+    }
+
     if (state.isLoading) {
       return;
     }
     dispatch({ type: "START_LOADING" });
 
-    clearCacheDir("videos/").then(() => {
-      console.log("Cache cleared");
-    });
-
+    // If the user is in guest mode, just disable it
     if (settings.guestModeEnabled) {
       dispatch({ type: "FINISH_LOADING" });
 
-      await modifySetting("guestModeEnabled", false);
+      await disableGuestMode();
 
       // Enable onboarding here, so it will be shown again when the user quits the app
-      await modifySetting("onboardingEnabled", true);
+      // await modifySetting("onboardingEnabled", true);
       return;
     }
 
+    // Update the active status to false
     try {
-      const response = await SuitescapeAPI.post("/logout");
-      handleApiResponse({ response });
+      const { data } = await updateActiveStatus({ isActive: false });
+      console.log("User is inactive:", data.user.fullname);
+    } catch (error) {
+      console.log("Failed to update active status", error);
+    }
+
+    try {
+      // Logout the user from the server,
+      await SuitescapeAPI.post("/logout");
     } catch (error) {
       handleApiError({
         error,
         defaultAlert: true,
       });
     } finally {
-      removeHeaderToken();
-
-      await SecureStore.deleteItemAsync("userToken");
-
-      dispatch({ type: "FINISH_LOADING" });
-      dispatch({ type: "SIGN_OUT" });
-
-      // Enable onboarding so when the user quits the app while not logged in,
-      // the onboarding will be shown again
-      await modifySetting("onboardingEnabled", true);
+      // Logout the user from the app
+      await handleLogOut();
     }
   };
 
-  const abort = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+  const addExpiredTokenInterceptors = () => {
+    if (interceptorId.current) {
+      console.log("Expired token interceptors already added");
+      return;
+    }
+    interceptorId.current = SuitescapeAPI.interceptors.response.use(
+      (response) => {
+        // Just return the response and don't do anything
+        return response;
+      },
+      async (error) => {
+        if (error.response && error.response.status === 401) {
+          // Token is expired, log out the user
+          await signOut(true);
+        }
+        return Promise.reject(error);
+      },
+    );
+  };
+
+  const addOnFocusActiveStatusListener = () => {
+    if (onActiveStatusListener.current) {
+      console.log("On focus active status listener already added");
+      return;
+    }
+    onActiveStatusListener.current = AppState.addEventListener(
+      "change",
+      (nextAppState) => {
+        (async () => {
+          try {
+            if (nextAppState.match(/inactive|background/)) {
+              await updateActiveStatus({ isActive: false });
+              console.log("User left the app and is now inactive");
+            } else {
+              await updateActiveStatus({ isActive: true });
+              console.log("User came back to the app and is now active");
+            }
+          } catch (err) {
+            console.log(err);
+          }
+        })();
+      },
+    );
+  };
+
+  const removeExpiredTokenInterceptors = () => {
+    if (interceptorId.current) {
+      SuitescapeAPI.interceptors.response.eject(interceptorId.current);
+      interceptorId.current = null;
     }
   };
+
+  const removeOnFocusActiveStatusListener = () => {
+    if (onActiveStatusListener.current) {
+      onActiveStatusListener.current.remove();
+      onActiveStatusListener.current = null;
+    }
+  };
+
+  // const abort = () => {
+  //   if (abortControllerRef.current) {
+  //     abortControllerRef.current.abort();
+  //   }
+  // };
 
   const authContext = {
     authState: state,
+    enableGuestMode,
+    disableGuestMode,
     signIn,
     signUp,
     signOut,
-    abort,
+    // abort,
   };
 
   return (

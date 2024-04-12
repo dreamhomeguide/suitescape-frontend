@@ -1,13 +1,14 @@
 import { Slider } from "@miblanchard/react-native-slider";
 import React, { memo, useMemo } from "react";
 import { View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { useToast } from "react-native-toast-notifications";
 
 import style from "./PriceRangeStyles";
 import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
 import toastStyles from "../../assets/styles/toastStyles";
-import extractNumber from "../../utilities/numberExtractor";
+import extractNumber from "../../utils/numberExtractor";
 import DashView from "../DashView/DashView";
 import FormInput from "../FormInput/FormInput";
 
@@ -21,7 +22,6 @@ const PriceRange = ({
   maximumPrice = RESET_VALUE,
   onMinPriceChanged,
   onMaxPriceChanged,
-  disabled,
 }) => {
   // const [previousPriceRange, setPreviousPriceRange] = useState([
   //   MINIMUM_PRICE,
@@ -44,33 +44,38 @@ const PriceRange = ({
     return [minPrice, maxPrice];
   }, [minimumPrice, maximumPrice]);
 
+  const nativeGesture = useMemo(() => Gesture.Native(), []);
+  const panGesture = useMemo(() => Gesture.Pan(), []);
+  const composed = useMemo(() => Gesture.Race(nativeGesture, panGesture), []);
+
   return (
     <>
-      <Slider
-        animateTransitions
-        disabled={disabled}
-        thumbStyle={style.thumb}
-        minimumTrackStyle={{ backgroundColor: Colors.blue }}
-        maximumTrackStyle={{ backgroundColor: Colors.lightgray }}
-        minimumValue={MINIMUM_PRICE}
-        maximumValue={MAXIMUM_PRICE}
-        step={STEP}
-        // value={isTyping ? previousPriceRange : priceRange}
-        value={priceRange}
-        onValueChange={([minimum, maximum]) => {
-          const gap = maximum - minimum;
-          const minimumGap = STEP * 5;
-          if (gap < minimumGap) {
-            if (minimumPrice === minimum) {
-              maximum = minimum + minimumGap;
-            } else {
-              minimum = maximum - minimumGap;
+      <GestureDetector gesture={composed}>
+        <Slider
+          animateTransitions
+          thumbStyle={style.thumb}
+          minimumTrackStyle={{ backgroundColor: Colors.blue }}
+          maximumTrackStyle={{ backgroundColor: Colors.lightgray }}
+          minimumValue={MINIMUM_PRICE}
+          maximumValue={MAXIMUM_PRICE}
+          step={STEP}
+          // value={isTyping ? previousPriceRange : priceRange}
+          value={priceRange}
+          onValueChange={([minimum, maximum]) => {
+            const gap = maximum - minimum;
+            const minimumGap = STEP * 5;
+            if (gap < minimumGap) {
+              if (minimumPrice === minimum) {
+                maximum = minimum + minimumGap;
+              } else {
+                minimum = maximum - minimumGap;
+              }
             }
-          }
-          onMinPriceChanged && onMinPriceChanged(minimum);
-          onMaxPriceChanged && onMaxPriceChanged(maximum);
-        }}
-      />
+            onMinPriceChanged && onMinPriceChanged(minimum);
+            onMaxPriceChanged && onMaxPriceChanged(maximum);
+          }}
+        />
+      </GestureDetector>
       <View style={style.inputContainer}>
         <FormInput
           value={
@@ -113,6 +118,7 @@ const PriceRange = ({
               toast.show("Min price cannot be greater than max price", {
                 placement: "top",
                 style: toastStyles.toastInsetHeader,
+                duration: 2000,
               });
               onMaxPriceChanged && onMaxPriceChanged(RESET_VALUE);
             }
@@ -122,6 +128,7 @@ const PriceRange = ({
               toast.show(`Min price cannot be greater than ₱${MAXIMUM_PRICE}`, {
                 placement: "top",
                 style: toastStyles.toastInsetHeader,
+                duration: 2000,
               });
               onMinPriceChanged && onMinPriceChanged(MAXIMUM_PRICE);
             }
@@ -168,6 +175,7 @@ const PriceRange = ({
               toast.show("Max price cannot be less than min price", {
                 placement: "top",
                 style: toastStyles.toastInsetHeader,
+                duration: 2000,
               });
               onMinPriceChanged && onMinPriceChanged(RESET_VALUE);
             }
@@ -177,6 +185,7 @@ const PriceRange = ({
               toast.show(`Max price cannot be greater than ₱${MAXIMUM_PRICE}`, {
                 placement: "top",
                 style: toastStyles.toastInsetHeader,
+                duration: 2000,
               });
               onMaxPriceChanged && onMaxPriceChanged(MAXIMUM_PRICE);
             }

@@ -1,5 +1,12 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import React, { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import {
   Alert,
   Keyboard,
@@ -19,144 +26,240 @@ import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import FormInput from "../../components/FormInput/FormInput";
 import FormPicker from "../../components/FormPicker/FormPicker";
-import { useBookingContext } from "../../contexts/BookingContext";
-import regionsList from "../../data/regionsData";
-import useFetchAPI from "../../hooks/useFetchAPI";
+import { useSettings } from "../../contexts/SettingsContext";
+import mappingsData from "../../data/mappingsData";
 import { Routes } from "../../navigation/Routes";
-import SuitescapeAPI, { getHeaderToken } from "../../services/SuitescapeAPI";
-import { handleApiError, handleApiResponse } from "../../utilities/apiHelpers";
+import { fetchCities, fetchRegions } from "../../services/PSGCAPI";
+import {
+  fetchProfile,
+  updateProfile,
+  validateInfo,
+} from "../../services/apiService";
+import { handleApiError, handleApiResponse } from "../../utils/apiHelpers";
+import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
 
-const genderList = [
-  {
-    label: "Male",
-    value: "male",
-  },
-  {
-    label: "Female",
-    value: "female",
-  },
-  {
-    label: "Other",
-    value: "other",
-  },
-];
+// const genderList = [
+//   {
+//     label: "Male",
+//     value: "male",
+//   },
+//   {
+//     label: "Female",
+//     value: "female",
+//   },
+//   {
+//     label: "Other",
+//     value: "other",
+//   },
+// ];
 
-const mappings = {
-  firstName: "firstname",
-  lastName: "lastname",
-  gender: "gender",
-  email: "email",
-  address: "address",
-  zipCode: "zipcode",
-  city: "city",
-  region: "region",
-  mobileNumber: "mobile_number",
-  message: "message",
+const initialState = {
+  fullName: "",
+  // firstName: "",
+  // lastName: "",
+  // gender: "",
+  email: "",
+  address: "",
+  zipCode: "",
+  city: "",
+  region: "",
+  mobileNumber: "",
+};
+
+const reducer = (state, action) => {
+  switch (action.type) {
+    case "SET_DATA":
+      return {
+        ...state,
+        ...action.payload,
+      };
+    default:
+      return state;
+  }
 };
 
 const GuestInfo = ({ navigation }) => {
+  const [guestState, dispatch] = useReducer(reducer, initialState, undefined);
   const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const [errors, setErrors] = useState(null);
 
-  const { bookingState, setBookingData } = useBookingContext();
-
-  // Destructure bookingState
+  // Destructure guest state
   const {
-    firstName,
-    lastName,
-    gender,
+    fullName,
+    // firstName,
+    // lastName,
+    // gender,
     email,
     address,
     zipCode,
     city,
     region,
     mobileNumber,
-    message,
-  } = bookingState;
+    // message,
+  } = guestState;
 
-  const [errors, setErrors] = useState(null);
+  // const scrollViewRef = useRef(null);
+  // const lastNameRef = useRef(null);
+  const emailRef = useRef(null);
+  const addressRef = useRef(null);
+  const zipCodeRef = useRef(null);
+  const mobileNumberRef = useRef(null);
 
-  const scrollViewRef = useRef(null);
-
-  const { data: userData, isLoading, abort } = useFetchAPI("/profile");
+  // const { setBookingData } = useBookingContext();
+  const { settings } = useSettings();
   const queryClient = useQueryClient();
   const toast = useToast();
 
-  useEffect(() => {
-    if (!getHeaderToken()) {
-      navigation.goBack();
-      Alert.alert("You are not logged in.");
-    }
-  }, []);
+  const setGuestData = (payload) => {
+    dispatch({ type: "SET_DATA", payload });
+  };
+
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ["profile"],
+    queryFn: fetchProfile,
+    enabled: !settings.guestModeEnabled,
+  });
+
+  const { data: regionData, isFetching: isFetchingRegions } = useQuery({
+    queryKey: ["regions"],
+    queryFn: fetchRegions,
+    select: (data) => {
+      return data.map((region) => {
+        return {
+          label: region.regionName,
+          value: region.regionName,
+          code: region.code,
+        };
+      });
+    },
+  });
+
+  const regionCode = useMemo(
+    () => regionData?.find((data) => data.value === region)?.code,
+    [regionData, region],
+  );
+
+  const {
+    data: citiesData,
+    refetch: refetchCities,
+    isFetching: isFetchingCities,
+  } = useQuery({
+    queryKey: ["cities", region],
+    queryFn: () => fetchCities(regionCode),
+    select: (data) => {
+      return data.map((city) => {
+        return {
+          label: city.name,
+          value: city.name,
+        };
+      });
+    },
+    enabled: !!regionCode,
+  });
 
   useEffect(() => {
+    // Sync user data to guest state
     if (userData) {
-      Object.entries(mappings).forEach(([state, userDataKey]) => {
+      Object.entries(mappingsData).forEach(([state, userDataKey]) => {
         if (userData[userDataKey]) {
           // if (state === "gender") {
           //   setBookingData({ [state]: userData[userDataKey].toLowerCase() });
           //   return;
           // }
-          setBookingData({ [state]: userData[userDataKey] });
+          setGuestData({ [state]: userData[userDataKey] });
         }
       });
     }
   }, [userData]);
 
-  const updateProfileMutation = useMutation({
-    mutationFn: ({ profileData }) =>
-      SuitescapeAPI.post("/profile", profileData),
-    onSuccess: (response) =>
+  const abortProfileFetch = useCallback(() => {
+    queryClient.cancelQueries({ queryKey: ["profile"] }).catch((err) => {
+      console.log(err);
+    });
+  }, [queryClient]);
+
+  const handleSuccessUpdateProfile = useCallback(
+    (response) =>
       handleApiResponse({
         response,
         onError: (e) => {
           setErrors(e.errors);
         },
         onSuccess: (res) => {
-          console.log(res.message);
+          if (settings.guestModeEnabled) {
+            console.log("Profile validated: ", res);
+            navigation.navigate(Routes.BOOKING_SUMMARY);
+            return;
+          }
 
+          console.log(res.message);
           if (res.updated) {
-            toast.show(res.message, {
-              type: "success",
-              placement: "bottom",
-              style: toastStyles.toastInsetFooter,
-            });
             queryClient
               .invalidateQueries({ queryKey: ["profile"] })
               .then(() => console.log("Profile info invalidated"));
-          }
 
+            // Workaround for multiple toasts flickering
+            toast.hideAll();
+
+            toast.show(res.message, {
+              type: "success",
+              style: toastStyles.toastInsetFooter,
+            });
+          }
           navigation.navigate(Routes.BOOKING_SUMMARY);
         },
       }),
-    onError: (err) =>
+    [navigation, queryClient, settings.guestModeEnabled, toast],
+  );
+
+  const handleErrorUpdateProfile = useCallback(
+    (err) =>
       handleApiError({
         error: err,
         handleErrors: (e) => {
           setErrors(e.errors);
         },
       }),
+    [],
+  );
+
+  const updateProfileMutation = useMutation({
+    mutationFn: settings.guestModeEnabled ? validateInfo : updateProfile,
+    onSuccess: handleSuccessUpdateProfile,
+    onError: handleErrorUpdateProfile,
   });
 
-  const updateProfile = () => {
+  const handleUpdateProfile = useCallback(() => {
     // Convert bookingState to backend format
-    const profileData = Object.entries(mappings).reduce(
+    const profileData = Object.entries(mappingsData).reduce(
       (acc, [state, userDataKey]) => {
-        acc[userDataKey] = bookingState[state];
+        acc[userDataKey] = guestState[state];
         return acc;
       },
-      {}, // acc - initial value
+      {}, // initial value
     );
+
+    // Check if the user changed fields
+    // const isSavedUserData = Object.entries(profileData).every(
+    //   ([key, value]) => {
+    //     // If both data are empty regardless of type, return true
+    //     if (!userData[key] && !value) {
+    //       return true;
+    //     }
+    //
+    //     return userData[key] === value;
+    //   },
+    // );
+
+    // if (isSavedUserData) {
+    //   navigation.navigate(Routes.BOOKING_SUMMARY);
+    //   return;
+    // }
 
     if (!updateProfileMutation.isPending) {
       updateProfileMutation.mutate({ profileData });
     }
-  };
-
-  const clearErrorWhenNotEmpty = (value, key) => {
-    if (value) {
-      setErrors((prevErrors) => ({ ...prevErrors, [key]: "" }));
-    }
-  };
+  }, [guestState, updateProfileMutation.isPending]);
 
   return (
     <>
@@ -171,7 +274,7 @@ const GuestInfo = ({ navigation }) => {
         style={globalStyles.flexFull}
       >
         <ScrollView
-          ref={scrollViewRef}
+          // ref={scrollViewRef}
           contentInset={{ top: 10, bottom: 35 }}
           contentContainerStyle={style.contentContainer}
         >
@@ -182,46 +285,65 @@ const GuestInfo = ({ navigation }) => {
             pointerEvents={updateProfileMutation.isPending ? "none" : "auto"}
           >
             <FormInput
-              value={firstName}
+              value={fullName}
               onChangeText={(value) => {
-                setBookingData({ firstName: value });
-                clearErrorWhenNotEmpty(value, mappings.firstName);
+                setGuestData({ fullName: value });
+                clearErrorWhenNotEmpty(value, mappingsData.fullName, setErrors);
               }}
-              placeholder="First Name"
+              placeholder="Full Name"
               textContentType="givenName"
               autoCapitalize="words"
               autoCorrect={false}
               returnKeyType="next"
-              errorMessage={errors?.firstname}
-            />
-            <FormInput
-              value={lastName}
-              onChangeText={(value) => {
-                setBookingData({ lastName: value });
-                clearErrorWhenNotEmpty(value, mappings.lastName);
+              onSubmitEditing={() => {
+                emailRef.current.focus();
               }}
-              placeholder="Last Name"
-              textContentType="familyName"
-              autoCapitalize="words"
-              autoCorrect={false}
-              returnKeyType="next"
-              errorMessage={errors?.lastname}
+              errorMessage={errors?.[mappingsData.fullName]}
             />
-            <FormPicker
-              label="Gender"
-              data={genderList}
-              value={gender}
-              onSelected={(value) => {
-                setBookingData({ gender: value });
-                clearErrorWhenNotEmpty(value, mappings.gender);
-              }}
-              errorMessage={errors?.gender}
-            />
+            {/*<FormInput*/}
+            {/*  value={firstName}*/}
+            {/*  onChangeText={(value) => {*/}
+            {/*    setGuestData({ firstName: value });*/}
+            {/*    clearErrorWhenNotEmpty(value, mappings.firstName, setErrors);*/}
+            {/*  }}*/}
+            {/*  placeholder="First Name"*/}
+            {/*  textContentType="givenName"*/}
+            {/*  autoCapitalize="words"*/}
+            {/*  autoCorrect={false}*/}
+            {/*  returnKeyType="next"*/}
+            {/*  onSubmitEditing={() => {*/}
+            {/*    lastNameRef.current.focus();*/}
+            {/*  }}*/}
+            {/*  errorMessage={errors?.firstname}*/}
+            {/*/>*/}
+            {/*<FormInput*/}
+            {/*  value={lastName}*/}
+            {/*  onChangeText={(value) => {*/}
+            {/*    setGuestData({ lastName: value });*/}
+            {/*    clearErrorWhenNotEmpty(value, mappings.lastName, setErrors);*/}
+            {/*  }}*/}
+            {/*  placeholder="Last Name"*/}
+            {/*  textContentType="familyName"*/}
+            {/*  autoCapitalize="words"*/}
+            {/*  autoCorrect={false}*/}
+            {/*  errorMessage={errors?.lastname}*/}
+            {/*  ref={lastNameRef}*/}
+            {/*/>*/}
+            {/*<FormPicker*/}
+            {/*  label="Gender"*/}
+            {/*  data={genderList}*/}
+            {/*  value={gender}*/}
+            {/*  onSelected={(value) => {*/}
+            {/*    setGuestData({ gender: value });*/}
+            {/*    clearErrorWhenNotEmpty(value, mappings.gender, setErrors);*/}
+            {/*  }}*/}
+            {/*  errorMessage={errors?.gender}*/}
+            {/*/>*/}
             <FormInput
               value={email}
               onChangeText={(value) => {
-                setBookingData({ email: value });
-                clearErrorWhenNotEmpty(value, mappings.email);
+                setGuestData({ email: value });
+                clearErrorWhenNotEmpty(value, mappingsData.email, setErrors);
               }}
               placeholder="Email Address"
               // Bug: doesn't show cursor when this is on
@@ -230,94 +352,126 @@ const GuestInfo = ({ navigation }) => {
               autoCapitalize="none"
               autoCorrect={false}
               returnKeyType="next"
-              errorMessage={errors?.email}
+              onSubmitEditing={() => {
+                addressRef.current.focus();
+              }}
+              errorMessage={errors?.[mappingsData.email]}
+              ref={emailRef}
             />
             <FormInput
               value={address}
               onChangeText={(value) => {
-                setBookingData({ address: value });
-                clearErrorWhenNotEmpty(value, mappings.address);
+                setGuestData({ address: value });
+                clearErrorWhenNotEmpty(value, mappingsData.address, setErrors);
               }}
               placeholder="Address"
               textContentType="fullStreetAddress"
               autoCapitalize="words"
               autoCorrect={false}
               returnKeyType="next"
-              errorMessage={errors?.address}
+              onSubmitEditing={() => {
+                zipCodeRef.current.focus();
+              }}
+              errorMessage={errors?.[mappingsData.address]}
+              ref={addressRef}
+            />
+            <FormPicker
+              label={isFetchingRegions ? "Loading Regions..." : "Region"}
+              data={regionData}
+              value={region}
+              onSelected={(value) => {
+                setGuestData({ region: value, city: "" });
+                clearErrorWhenNotEmpty(value, mappingsData.region, setErrors);
+
+                refetchCities().then(() => {
+                  console.log("Cities refetched");
+                });
+              }}
+              errorMessage={errors?.[mappingsData.region]}
+            />
+            <FormPicker
+              label={
+                isFetchingCities || isFetchingRegions
+                  ? "Loading Cities..."
+                  : "City"
+              }
+              data={citiesData}
+              value={city}
+              onSelected={(value) => {
+                setGuestData({ city: value });
+                clearErrorWhenNotEmpty(value, mappingsData.city, setErrors);
+              }}
+              disabled={!region}
+              onPressDisabled={() => {
+                if (!region) {
+                  Alert.alert("Please select a region first");
+                }
+              }}
+              errorMessage={errors?.[mappingsData.city]}
             />
             <FormInput
               value={zipCode}
               onChangeText={(value) => {
-                setBookingData({ zipCode: value });
-                clearErrorWhenNotEmpty(value, mappings.zipCode);
+                setGuestData({ zipCode: value });
+                clearErrorWhenNotEmpty(value, mappingsData.zipCode, setErrors);
               }}
               placeholder="Zip/Post Code"
               keyboardType="number-pad"
               textContentType="postalCode"
               autoCorrect={false}
-              returnKeyType="next"
-              errorMessage={errors?.zipcode}
-            />
-            <FormInput
-              value={city}
-              onChangeText={(value) => {
-                setBookingData({ city: value });
-                clearErrorWhenNotEmpty(value, mappings.city);
+              onSubmitEditing={() => {
+                mobileNumberRef.current.focus();
               }}
-              placeholder="City"
-              textContentType="addressCity"
-              autoCapitalize="words"
-              autoCorrect={false}
-              returnKeyType="next"
-              errorMessage={errors?.city}
-            />
-            <FormPicker
-              label="Region"
-              data={regionsList}
-              value={region}
-              onSelected={(value) => {
-                setBookingData({ region: value });
-                clearErrorWhenNotEmpty(value, mappings.region);
-              }}
-              errorMessage={errors?.region}
+              errorMessage={errors?.[mappingsData.zipCode]}
+              ref={zipCodeRef}
             />
             <FormInput
               value={mobileNumber}
               onChangeText={(value) => {
-                setBookingData({ mobileNumber: value });
-                clearErrorWhenNotEmpty(value, mappings.mobileNumber);
+                setGuestData({ mobileNumber: value });
+                clearErrorWhenNotEmpty(
+                  value,
+                  mappingsData.mobileNumber,
+                  setErrors,
+                );
               }}
               placeholder="Mobile Number"
               keyboardType="phone-pad"
               textContentType="telephoneNumber"
               autoCorrect={false}
-              returnKeyType="next"
-              errorMessage={errors?.mobile_number}
+              errorMessage={errors?.[mappingsData.mobileNumber]}
+              ref={mobileNumberRef}
             />
-            <FormInput
-              type="textarea"
-              value={message}
-              onChangeText={(value) => {
-                setBookingData({ message: value });
-                clearErrorWhenNotEmpty(value, mappings.message);
-              }}
-              label="Message (Optional)"
-              blurOnSubmit
-              returnKeyType="done"
-              onFocus={() =>
-                setTimeout(() => scrollViewRef.current.scrollToEnd(), 300)
-              }
-              errorMessage={errors?.message}
-            />
+            {/*<FormInput*/}
+            {/*  type="textarea"*/}
+            {/*  value={message}*/}
+            {/*  onChangeText={(value) => {*/}
+            {/*    setBookingData({ message: value });*/}
+            {/*  }}*/}
+            {/*  maxLength={255}*/}
+            {/*  containerStyle={style.messageContainer}*/}
+            {/*  label="Message (Optional)"*/}
+            {/*  blurOnSubmit*/}
+            {/*  returnKeyType="done"*/}
+            {/*  onFocus={() =>*/}
+            {/*    setTimeout(() => scrollViewRef.current.scrollToEnd(), 300)*/}
+            {/*  }*/}
+            {/*  errorMessage={errors?.message}*/}
+            {/*/>*/}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
       {isFooterVisible && (
         <AppFooter>
-          <ButtonLarge onPress={() => updateProfile()}>Confirm</ButtonLarge>
+          <ButtonLarge onPress={handleUpdateProfile}>Confirm</ButtonLarge>
         </AppFooter>
       )}
-      <DialogLoading visible={isLoading} onCancel={() => abort()} />
+
+      <DialogLoading
+        visible={isLoading || updateProfileMutation.isPending}
+        onCancel={isLoading ? abortProfileFetch : null}
+      />
     </>
   );
 };

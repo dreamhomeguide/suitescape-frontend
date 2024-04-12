@@ -4,7 +4,7 @@ import { View } from "react-native";
 
 import style from "./FormStepperStyles";
 import globalStyles from "../../assets/styles/globalStyles";
-import extractNumber from "../../utilities/numberExtractor";
+import extractNumber from "../../utils/numberExtractor";
 import ButtonIcon from "../ButtonIcon/ButtonIcon";
 import DashView from "../DashView/DashView";
 import FormInput from "../FormInput/FormInput";

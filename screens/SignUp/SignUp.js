@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,6 +14,7 @@ import style from "../../assets/styles/registrationStyles";
 import AgreementBox from "../../components/AgreementBox/AgreementBox";
 import AuthSwitchPrompt from "../../components/AuthSwitchPrompt/AuthSwitchPrompt";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
+import ButtonLink from "../../components/ButtonLink/ButtonLink";
 import ButtonSocialLogin from "../../components/ButtonSocialLogin/ButtonSocialLogin";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import FormInput from "../../components/FormInput/FormInput";
@@ -23,16 +23,10 @@ import LineView from "../../components/LineView/LineView";
 import LogoView from "../../components/LogoView/LogoView";
 import PasswordCheckerView from "../../components/PasswordCheckerView/PasswordCheckerView";
 import { useAuth } from "../../contexts/AuthContext";
-import { Routes } from "../../navigation/Routes";
-import convertMMDDYYYY from "../../utilities/dateConverter";
-
-const mappings = {
-  firstName: "firstname",
-  lastName: "lastname",
-  birthday: "date_of_birth",
-  email: "email",
-  password: "password",
-};
+import { useSettings } from "../../contexts/SettingsContext";
+import mappingsData from "../../data/mappingsData";
+import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
+import convertDateFormat from "../../utils/dateConverter";
 
 const SignUp = ({ navigation }) => {
   const [firstName, setFirstName] = useState("");
@@ -42,6 +36,7 @@ const SignUp = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordValid, setIsPasswordValid] = useState(false);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [checked, setChecked] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -54,8 +49,8 @@ const SignUp = ({ navigation }) => {
   const scrollViewRef = useRef(null);
 
   const insets = useSafeAreaInsets();
-  const { authState, signUp, abort } = useAuth();
-  const { height } = useWindowDimensions();
+  const { authState, signUp, enableGuestMode } = useAuth();
+  const { modifySetting } = useSettings();
 
   useFocusEffect(
     useCallback(() => {
@@ -74,20 +69,15 @@ const SignUp = ({ navigation }) => {
     }, []),
   );
 
-  const clearErrorWhenNotEmpty = (value, key) => {
-    if (value) {
-      setErrors((prevErrors) => ({ ...prevErrors, [key]: "" }));
-    }
-  };
-
-  const isBirthdayValid = (dateFormatResult) => {
+  const isBirthdayValid = useCallback((dateFormatResult) => {
     if (!dateFormatResult) {
       return false;
     }
 
     const today = new Date();
-    const birthday = new Date(convertMMDDYYYY(dateFormatResult));
+    const birthday = new Date(convertDateFormat(dateFormatResult));
 
+    // Check if user is in legal age
     const eighteenthBirthday = new Date(birthday);
     eighteenthBirthday.setFullYear(eighteenthBirthday.getFullYear() + 18);
     if (eighteenthBirthday > today) {
@@ -97,27 +87,34 @@ const SignUp = ({ navigation }) => {
     }
 
     return true;
-  };
+  }, []);
 
-  const handleSignUp = () => {
-    signUp({
-      firstName,
-      lastName,
-      birthday,
-      email,
-      password,
-      confirmPassword,
-    })
-      .then(() => {
-        navigation.navigate(Routes.FEEDBACK, {
-          type: "success",
-          title: "Congratulations",
-          subtitle: "You account has been created.",
-          screenToNavigate: Routes.LOGIN,
-        });
-      })
-      .catch((errors) => setErrors(errors));
-  };
+  const handleSignUp = useCallback(() => {
+    signUp(
+      {
+        firstName,
+        lastName,
+        birthday,
+        email,
+        password,
+        confirmPassword,
+      },
+      navigation,
+    ).catch((errors) => setErrors(errors));
+  }, [
+    firstName,
+    lastName,
+    birthday,
+    email,
+    password,
+    confirmPassword,
+    navigation,
+  ]);
+
+  const handleSkipButtonClick = useCallback(() => {
+    modifySetting("onboardingEnabled", false);
+    enableGuestMode().catch((err) => console.log(err));
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -128,8 +125,15 @@ const SignUp = ({ navigation }) => {
       <ScrollView
         ref={scrollViewRef}
         bounces={false}
-        contentInset={{ bottom: 25 }}
+        contentInset={{ bottom: insets.bottom + 15 }}
       >
+        <ButtonLink
+          onPress={handleSkipButtonClick}
+          containerStyle={style.skipButtonContainer}
+          textStyle={style.skipButtonText}
+        >
+          Skip
+        </ButtonLink>
         <LogoView />
         <HeaderText>Create Account</HeaderText>
         <View style={style.inputContainer}>
@@ -137,13 +141,13 @@ const SignUp = ({ navigation }) => {
             value={firstName}
             onChangeText={(value) => {
               setFirstName(value);
-              clearErrorWhenNotEmpty(value, mappings.firstName);
+              clearErrorWhenNotEmpty(value, mappingsData.firstName, setErrors);
             }}
             placeholder="First Name"
             textContentType="givenName"
             autoCapitalize="words"
             autoCorrect={false}
-            errorMessage={errors?.firstname}
+            errorMessage={errors?.[mappingsData.firstName]}
             returnKeyType="next"
             onSubmitEditing={() => {
               lastNameRef.current.focus();
@@ -155,13 +159,13 @@ const SignUp = ({ navigation }) => {
             value={lastName}
             onChangeText={(value) => {
               setLastName(value);
-              clearErrorWhenNotEmpty(value, mappings.lastName);
+              clearErrorWhenNotEmpty(value, mappingsData.lastName, setErrors);
             }}
             placeholder="Last Name"
             textContentType="familyName"
             autoCapitalize="words"
             autoCorrect={false}
-            errorMessage={errors?.lastname}
+            errorMessage={errors?.[mappingsData.lastName]}
             returnKeyType="next"
             onSubmitEditing={() => {
               birthdayRef.current.focus();
@@ -174,7 +178,7 @@ const SignUp = ({ navigation }) => {
             value={birthday}
             onChangeText={(value) => {
               setBirthday(value);
-              clearErrorWhenNotEmpty(value, mappings.birthday);
+              clearErrorWhenNotEmpty(value, mappingsData.birthday, setErrors);
             }}
             onDateConfirm={(_, text) => {
               if (isBirthdayValid(text)) {
@@ -187,7 +191,7 @@ const SignUp = ({ navigation }) => {
             keyboardType="number-pad"
             autoCorrect={false}
             spellCheck={false}
-            errorMessage={errors?.date_of_birth}
+            errorMessage={errors?.[mappingsData.birthday]}
             returnKeyType="next"
             onBlur={() => isBirthdayValid(birthday)}
             onSubmitEditing={() => {
@@ -200,7 +204,7 @@ const SignUp = ({ navigation }) => {
             value={email}
             onChangeText={(value) => {
               setEmail(value);
-              clearErrorWhenNotEmpty(value, mappings.email);
+              clearErrorWhenNotEmpty(value, mappingsData.email, setErrors);
             }}
             placeholder="Email Address"
             // Bug: doesn't show cursor when this is on
@@ -208,7 +212,7 @@ const SignUp = ({ navigation }) => {
             textContentType="emailAddress"
             autoCapitalize="none"
             autoCorrect={false}
-            errorMessage={errors?.email}
+            errorMessage={errors?.[mappingsData.email]}
             returnKeyType="next"
             onSubmitEditing={() => {
               passwordRef.current.focus();
@@ -221,13 +225,17 @@ const SignUp = ({ navigation }) => {
             value={password}
             onChangeText={(value) => {
               setPassword(value);
-              clearErrorWhenNotEmpty(value, mappings.password);
+              clearErrorWhenNotEmpty(value, mappingsData.password, setErrors);
             }}
             placeholder="Password"
             textContentType="password"
             passwordRules="minlength: 20; required: lower; required: upper; required: digit; required: [-];"
-            errorMessage={errors?.password}
+            errorMessage={errors?.[mappingsData.password]}
             returnKeyType="next"
+            isPasswordVisible={isPasswordVisible}
+            onChangePasswordVisibility={() =>
+              setIsPasswordVisible((prev) => !prev)
+            }
             onSubmitEditing={() => {
               confirmPasswordRef.current.focus();
             }}
@@ -239,27 +247,33 @@ const SignUp = ({ navigation }) => {
             value={confirmPassword}
             onChangeText={(value) => {
               setConfirmPassword(value);
-              clearErrorWhenNotEmpty(value, mappings.password);
+              clearErrorWhenNotEmpty(value, mappingsData.password, setErrors);
             }}
-            errorMessage={errors?.password && []}
+            errorMessage={errors?.[mappingsData.password] && []}
             placeholder="Confirm Password"
             textContentType="password"
             returnKeyType="done"
+            isPasswordVisible={isPasswordVisible}
+            onChangePasswordVisibility={() =>
+              setIsPasswordVisible((prev) => !prev)
+            }
             ref={confirmPasswordRef}
           />
         </View>
-        {password.length > 0 && (
-          <PasswordCheckerView
-            password={password}
-            setIsPasswordValid={setIsPasswordValid}
-            onLayout={(event) =>
-              scrollViewRef.current.scrollTo({
-                y: event.nativeEvent.layout.y - height / 2 + 35,
-                animated: true,
-              })
-            }
-          />
-        )}
+        <View style={style.passwordCheckerContainer}>
+          {password.length > 0 && (
+            <PasswordCheckerView
+              password={password}
+              setIsPasswordValid={setIsPasswordValid}
+              onLayout={() => {
+                scrollViewRef.current.scrollTo({
+                  y: 200,
+                  animated: true,
+                });
+              }}
+            />
+          )}
+        </View>
         <AgreementBox checked={checked} setChecked={setChecked} />
         <View style={style.buttonContainer}>
           <ButtonLarge
@@ -279,7 +293,7 @@ const SignUp = ({ navigation }) => {
       <DialogLoading
         visible={authState.isLoading}
         title="Signing up..."
-        onCancel={() => abort()}
+        // onCancel={() => abort()}
       />
     </KeyboardAvoidingView>
   );

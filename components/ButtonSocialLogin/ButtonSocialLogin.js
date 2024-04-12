@@ -1,6 +1,6 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as Haptics from "expo-haptics";
-import React from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
 
 import style from "./ButtonSocialLoginStyles";
@@ -12,32 +12,41 @@ import {
 } from "../../assets/styles/globalStyles";
 
 const ButtonSocialLogin = ({ type }) => {
-  const SocialTypes = {
-    phone: {
-      label: "Continue with Phone",
-      iconComponent: <FontAwesome name="mobile-phone" size={40} color="gray" />,
-      onPress: () => console.log("Phone"),
-    },
-    facebook: {
-      label: "Continue with Facebook",
-      iconComponent: <Facebook width={35} height={35} />,
-      onPress: () => console.log("Facebook"),
-    },
-    google: {
-      label: "Continue with Google",
-      iconComponent: <Google width={32} height={32} />,
-      onPress: () => console.log("Google"),
-    },
-  };
+  const SocialTypes = useMemo(
+    () => ({
+      phone: {
+        label: "Continue with Phone",
+        iconComponent: (
+          <FontAwesome name="mobile-phone" size={40} color="gray" />
+        ),
+        onPress: () => console.log("Phone"),
+      },
+      facebook: {
+        label: "Continue with Facebook",
+        iconComponent: <Facebook width={35} height={35} />,
+        onPress: () => console.log("Facebook"),
+      },
+      google: {
+        label: "Continue with Google",
+        iconComponent: <Google width={32} height={32} />,
+        onPress: () => console.log("Google"),
+      },
+    }),
+    [],
+  );
+
+  const handlePress = useCallback(() => {
+    if (Platform.OS === "ios") {
+      Haptics.selectionAsync().then(() => {
+        console.log("Haptic feedback for", type, "button");
+      });
+    }
+    SocialTypes[type]?.onPress && SocialTypes[type]?.onPress();
+  }, [type]);
 
   return (
     <Pressable
-      onPress={() => {
-        if (Platform.OS === "ios") {
-          Haptics.selectionAsync();
-        }
-        SocialTypes[type]?.onPress && SocialTypes[type]?.onPress();
-      }}
+      onPress={handlePress}
       style={({ pressed }) => ({
         ...style.mainContainer,
         ...pressedBorderColor(pressed, "black"),
@@ -62,4 +71,4 @@ const ButtonSocialLogin = ({ type }) => {
   );
 };
 
-export default ButtonSocialLogin;
+export default memo(ButtonSocialLogin);
