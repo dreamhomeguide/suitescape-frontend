@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { Colors } from "../../assets/Colors";
-import { pressedOpacity } from "../../assets/styles/globalStyles";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import searchStyles from "../../assets/styles/searchStyles";
 
 const SearchResultItem = ({ item, onPress }) => {
@@ -16,6 +16,9 @@ const SearchResultItem = ({ item, onPress }) => {
         onPress={onPress}
       >
         <View style={{ flex: 1, rowGap: 3 }}>
+          <Text style={{ color: Colors.blue, ...globalStyles.boldText }}>
+            {item.name}
+          </Text>
           <Text>{item.location}</Text>
           <Text style={{ color: Colors.gray }}>{item.details}</Text>
         </View>

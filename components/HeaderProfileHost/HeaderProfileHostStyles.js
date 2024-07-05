@@ -7,9 +7,9 @@ const style = StyleSheet.create({
     backgroundColor: Colors.lightgray,
   },
   profileImageContainer: {
+    zIndex: 1,
     position: "absolute",
     alignSelf: "center",
-    zIndex: 1,
   },
   mainContentContainer: {
     transform: "translateY(-115deg)",
@@ -33,11 +33,11 @@ const style = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-  userName: {
-    color: Colors.gray,
-    fontSize: 15,
-    fontWeight: "600",
-  },
+  // userName: {
+  //   color: Colors.gray,
+  //   fontSize: 15,
+  //   fontWeight: "600",
+  // },
   overviewContainer: {
     flexDirection: "row",
     columnGap: 35,

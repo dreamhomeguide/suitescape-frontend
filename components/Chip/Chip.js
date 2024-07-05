@@ -7,21 +7,23 @@ import { Colors } from "../../assets/Colors";
 const Chip = ({
   children,
   textStyle,
-  color = Colors.blue,
+  color = Colors.red,
   inverted = false,
   renderIcon,
 }) => {
   return (
-    <View style={style.container({ inverted, color })}>
-      {renderIcon && renderIcon({ size: 12, color })}
-      <Text
-        style={{
-          ...style.text({ inverted, color }),
-          ...textStyle,
-        }}
-      >
-        {children}
-      </Text>
+    <View style={style.mainContainer}>
+      <View style={style.contentContainer({ inverted, color })}>
+        {renderIcon && renderIcon({ size: 12, color })}
+        <Text
+          style={{
+            ...style.text({ inverted, color }),
+            ...textStyle,
+          }}
+        >
+          {children}
+        </Text>
+      </View>
     </View>
   );
 };

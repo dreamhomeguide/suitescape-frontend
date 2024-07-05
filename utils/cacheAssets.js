@@ -1,13 +1,8 @@
 import { Asset } from "expo-asset";
-import * as Font from "expo-font";
 import { Image } from "react-native";
 
 export const cacheAssetsAsync = ({ images = [], fonts = [], videos = [] }) => {
-  return Promise.all([
-    ...cacheImages(images),
-    ...cacheFonts(fonts),
-    ...cacheVideos(videos),
-  ]);
+  return Promise.all([...cacheImages(images), ...cacheVideos(videos)]);
 };
 
 export const cacheImages = (images) => {
@@ -22,8 +17,4 @@ export const cacheImages = (images) => {
 
 export const cacheVideos = (videos) => {
   return videos.map((video) => Asset.fromModule(video).downloadAsync());
-};
-
-export const cacheFonts = (fonts) => {
-  return fonts.map((font) => Font.loadAsync(font));
 };

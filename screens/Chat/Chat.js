@@ -1,4 +1,3 @@
-import Entypo from "@expo/vector-icons/Entypo";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -6,13 +5,13 @@ import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,6 +21,7 @@ import { Colors } from "../../assets/Colors";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import ButtonBack from "../../components/ButtonBack/ButtonBack";
 import ChatItem from "../../components/ChatItem/ChatItem";
+import FormInput from "../../components/FormInput/FormInput";
 import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import StarRatingView from "../../components/StarRatingView/StarRatingView";
 import { useAuth } from "../../contexts/AuthContext";
@@ -98,6 +98,13 @@ const Chat = ({ route, navigation }) => {
     onError: (err) => {
       handleApiError({
         error: err,
+        handleErrors: (error) => {
+          if (error.message === "You cannot send a message to yourself.") {
+            // Remove the pending message from the list
+            const newChats = messages.filter((message) => !message.is_pending);
+            queryClient.setQueryData(["chats", hostId], newChats);
+          }
+        },
         defaultAlert: true,
       });
     },
@@ -105,6 +112,11 @@ const Chat = ({ route, navigation }) => {
 
   const handleSendMessage = useCallback(() => {
     setUserMessage("");
+
+    if (settings.guestModeEnabled) {
+      Alert.alert("Guest Mode", "Please log in to send messages.");
+      return;
+    }
 
     if (!userMessage.trim()) {
       console.log("No message to send");
@@ -169,28 +181,32 @@ const Chat = ({ route, navigation }) => {
       >
         <ProfileImage
           source={
-            host?.picture_url ? { uri: baseURL + host?.picture_url } : null
+            host?.profile_image_url
+              ? { uri: baseURL + host?.profile_image_url }
+              : null
           }
           size={100}
         />
       </Pressable>
+
       <Text style={style.messageHostName}>{host?.fullname}</Text>
+
       <StarRatingView
         starSize={15}
-        rating={4.7}
-        textStyle={{ color: "black" }}
-        containerStyle={{ paddingVertical: 5 }}
+        rating={host?.listings_avg_rating}
+        containerStyle={style.ratingContainer}
       />
     </View>
   );
 
   return (
     <SafeAreaView style={globalStyles.flexFull}>
-      <StatusBar style="dark" />
+      <StatusBar style="dark" animated />
 
       <View style={style.headerContainer}>
         <View style={style.headerTitleContainer}>
           <ButtonBack />
+
           <View style={style.headerNameAndActiveStatus}>
             <Pressable
               onPress={onHostPress}
@@ -204,7 +220,14 @@ const Chat = ({ route, navigation }) => {
             </View>
           </View>
         </View>
-        <MaterialIcons style={style.materialIconError} name="error" size={25} />
+
+        <Pressable style={({ pressed }) => pressedOpacity(pressed)}>
+          <MaterialIcons
+            style={style.materialIconError}
+            name="error"
+            size={25}
+          />
+        </Pressable>
       </View>
 
       <KeyboardAvoidingView
@@ -226,33 +249,28 @@ const Chat = ({ route, navigation }) => {
         />
 
         <View style={style.sendMessageContainer}>
-          <View style={style.messageEditorContainer}>
-            <TextInput
-              value={userMessage}
-              onChangeText={setUserMessage}
-              style={style.textInput}
-              // autoFocus
-              multiline
-              placeholder="Type a message..."
-            />
-            <View style={style.emojiKeyboardContainer}>
-              <Entypo name="emoji-happy" size={24} color="black" />
-            </View>
-          </View>
+          <FormInput
+            value={userMessage}
+            onChangeText={setUserMessage}
+            placeholder="Type a message..."
+            multiline
+            autoFocus
+            useDefaultHeight={false}
+            useDefaultStyle={false}
+            bordersEnabled={false}
+            containerStyle={style.inputContainer}
+            fieldStyle={style.inputField}
+            labelStyle={style.inputText}
+          />
 
           <Pressable
             onPress={handleSendMessage}
             disabled={sendMessageMutation.isPending}
             style={({ pressed }) => ({
-              ...style.sendMessageButtonContainer,
+              ...style.sendButton,
               ...pressedOpacity(pressed),
             })}
           >
-            {/*{sendMessageMutation.isPending ? (*/}
-            {/*  <ActivityIndicator />*/}
-            {/*) : (*/}
-            {/*  <Ionicons name="send" size={24} color="black" />*/}
-            {/*)}*/}
             <Ionicons
               name="send"
               size={24}

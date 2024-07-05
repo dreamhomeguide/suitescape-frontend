@@ -9,7 +9,12 @@ const style = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
+  contentContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   sliderContainer: {
+    flex: 1,
     height: 25,
   },
   thumb: {
@@ -35,6 +40,10 @@ const style = StyleSheet.create({
   },
   track: {
     height: 3,
+  },
+  timeStamp: {
+    color: "white",
+    padding: 10,
   },
 });
 

@@ -1,5 +1,6 @@
 import * as Device from "expo-device";
 import * as SecureStore from "expo-secure-store";
+import _ from "lodash";
 import { Alert } from "react-native";
 
 import SuitescapeAPI from "./SuitescapeAPI";
@@ -17,7 +18,7 @@ export const fetchVideos = async ({ pageParam = "", videoFilters }) => {
   );
 
   if (videoFilters) {
-    console.log("Video Filters: ", videoFilters);
+    console.log("Video Filters:", videoFilters);
   }
 
   try {
@@ -27,7 +28,15 @@ export const fetchVideos = async ({ pageParam = "", videoFilters }) => {
         ...videoFilters,
       },
     });
+    console.log("Feed Order:", data.order);
     console.log("AUTHORIZATION:", request._headers.authorization);
+
+    if (data.order === "default") {
+      return {
+        ...data,
+        data: _.shuffle(data.data),
+      };
+    }
 
     return data;
   } catch (error) {
@@ -36,6 +45,16 @@ export const fetchVideos = async ({ pageParam = "", videoFilters }) => {
 
     throw error;
   }
+};
+
+export const fetchAllPackages = async () => {
+  const { data } = await fetchFromAPI({ endpoint: "/packages" });
+  return data;
+};
+
+export const fetchPackage = async (packageId) => {
+  const { data } = await fetchFromAPI({ endpoint: `/packages/${packageId}` });
+  return data;
 };
 
 export const fetchProfile = async ({ signal }) => {
@@ -48,13 +67,18 @@ export const fetchAllChats = async () => {
   return data;
 };
 
-export const fetchAllMessages = async (hostId) => {
-  const { data } = await fetchFromAPI({ endpoint: `/messages/${hostId}` });
+export const fetchAllMessages = async (userId) => {
+  const { data } = await fetchFromAPI({ endpoint: `/messages/${userId}` });
   return data;
 };
 
-export const fetchAllBookings = async () => {
-  const { data } = await fetchFromAPI({ endpoint: "/bookings" });
+export const fetchHostBookings = async () => {
+  const { data } = await fetchFromAPI({ endpoint: "/bookings/host" });
+  return data;
+};
+
+export const fetchUserBookings = async () => {
+  const { data } = await fetchFromAPI({ endpoint: "/bookings/user" });
   return data;
 };
 
@@ -82,26 +106,52 @@ export const fetchHost = async (hostId) => {
   return data;
 };
 
-export const fetchListing = async (listingId) => {
+export const fetchHostListings = async () => {
+  const { data } = await fetchFromAPI({ endpoint: `/listings/host` });
+  return data;
+};
+
+export const fetchListing = async ({ listingId, startDate, endDate }) => {
+  const params = {};
+  if (startDate && endDate) {
+    params.start_date = startDate;
+    params.end_date = endDate;
+  }
+
   const { data } = await fetchFromAPI({
     endpoint: `/listings/${listingId}`,
+    config: {
+      params,
+    },
   });
   return data;
 };
 
-export const fetchRoom = async (roomId) => {
-  const { data } = await fetchFromAPI({ endpoint: `/rooms/${roomId}` });
+export const fetchRoom = async ({ roomId, startDate, endDate }) => {
+  const params = {};
+  if (startDate && endDate) {
+    params.start_date = startDate;
+    params.end_date = endDate;
+  }
+
+  const { data } = await fetchFromAPI({
+    endpoint: `/rooms/${roomId}`,
+    config: { params },
+  });
   return data;
 };
 
-export const fetchListingRooms = async (listingId, startDate, endDate) => {
+export const fetchListingRooms = async ({ listingId, startDate, endDate }) => {
+  const params = {};
+  if (startDate && endDate) {
+    params.start_date = startDate;
+    params.end_date = endDate;
+  }
+
   const { data } = await fetchFromAPI({
     endpoint: `/listings/${listingId}/rooms`,
     config: {
-      params: {
-        start_date: startDate,
-        end_date: endDate,
-      },
+      params,
     },
   });
   return data;
@@ -114,8 +164,58 @@ export const fetchListingReviews = async (listingId) => {
   return data;
 };
 
-export const fetchRoomReviews = async (roomId) => {
-  const { data } = await fetchFromAPI({ endpoint: `/rooms/${roomId}/reviews` });
+// export const fetchListingUnavailableDatesFromRange = async ({
+//   listingId,
+//   startDate,
+//   endDate,
+// }) => {
+//   const { data } = await fetchFromAPI({
+//     endpoint: `/listings/${listingId}/unavailable-dates`,
+//     config: {
+//       params: {
+//         start_date: startDate,
+//         end_date: endDate,
+//       },
+//     },
+//   });
+//   return data;
+// };
+//
+// export const fetchRoomUnavailableDatesFromRange = async ({
+//   roomId,
+//   startDate,
+//   endDate,
+// }) => {
+//   const { data } = await fetchFromAPI({
+//     endpoint: `/rooms/${roomId}/unavailable-dates`,
+//     config: {
+//       params: {
+//         start_date: startDate,
+//         end_date: endDate,
+//       },
+//     },
+//   });
+//   return data;
+// };
+
+export const fetchYearlyEarnings = async ({ year, hostId, listingId }) => {
+  const { data } = await fetchFromAPI({
+    endpoint: `/earnings/${year}`,
+    config: {
+      params: {
+        host_id: hostId,
+        listing_id: listingId,
+      },
+    },
+  });
+  return data;
+};
+
+export const fetchAvailableEarningsYears = async (hostId) => {
+  const { data } = await fetchFromAPI({
+    endpoint: `/earnings/years`,
+    config: { params: { hostId } },
+  });
   return data;
 };
 
@@ -145,6 +245,110 @@ export const saveListing = async ({ listingId }) => {
   return await SuitescapeAPI.post(`/listings/${listingId}/save`);
 };
 
+export const incrementViewCount = async ({ listingId }) => {
+  return await SuitescapeAPI.post(`/listings/${listingId}/view`);
+};
+
+export const addListingSpecialRate = async ({
+  listingId,
+  title,
+  price,
+  startDate,
+  endDate,
+}) => {
+  return await SuitescapeAPI.post(`/listings/${listingId}/add-special-rate`, {
+    title,
+    price,
+    start_date: startDate,
+    end_date: endDate,
+  });
+};
+
+export const removeListingSpecialRate = async ({
+  listingId,
+  specialRateId,
+}) => {
+  return await SuitescapeAPI.post(
+    `/listings/${listingId}/remove-special-rate`,
+    { special_rate_id: specialRateId },
+  );
+};
+
+export const blockListingDates = async ({ listingId, startDate, endDate }) => {
+  return await SuitescapeAPI.post(`/listings/${listingId}/block-dates`, {
+    start_date: startDate,
+    end_date: endDate,
+  });
+};
+
+export const unblockListingDates = async ({
+  listingId,
+  startDate,
+  endDate,
+}) => {
+  return await SuitescapeAPI.post(`/listings/${listingId}/unblock-dates`, {
+    start_date: startDate,
+    end_date: endDate,
+  });
+};
+
+export const updateListingPrices = async ({
+  listingId,
+  weekdayPrice,
+  weekendPrice,
+}) => {
+  return await SuitescapeAPI.post(`/listings/${listingId}/update-prices`, {
+    entire_place_weekday_price: weekdayPrice,
+    entire_place_weekend_price: weekendPrice,
+  });
+};
+
+export const addRoomSpecialRate = async ({
+  roomId,
+  title,
+  price,
+  startDate,
+  endDate,
+}) => {
+  return await SuitescapeAPI.post(`/rooms/${roomId}/add-special-rate`, {
+    title,
+    price,
+    start_date: startDate,
+    end_date: endDate,
+  });
+};
+
+export const removeRoomSpecialRate = async ({ roomId, specialRateId }) => {
+  return await SuitescapeAPI.post(`/rooms/${roomId}/remove-special-rate`, {
+    special_rate_id: specialRateId,
+  });
+};
+
+export const blockRoomDates = async ({ roomId, startDate, endDate }) => {
+  return await SuitescapeAPI.post(`/rooms/${roomId}/block-dates`, {
+    start_date: startDate,
+    end_date: endDate,
+  });
+};
+
+export const unblockRoomDates = async ({ roomId, startDate, endDate }) => {
+  return await SuitescapeAPI.post(`/rooms/${roomId}/unblock-dates`, {
+    start_date: startDate,
+    end_date: endDate,
+  });
+};
+
+export const updateRoomPrices = async ({
+  roomId,
+  weekdayPrice,
+  weekendPrice,
+}) => {
+  return await SuitescapeAPI.post(`/rooms/${roomId}/update-prices`, {
+    weekday_price: weekdayPrice,
+    weekend_price: weekendPrice,
+  });
+};
+
 export const searchListings = async ({ query, signal }) => {
   return await fetchFromAPI({
     endpoint: "/listings/search",
@@ -155,10 +359,6 @@ export const searchListings = async ({ query, signal }) => {
     },
     signal,
   });
-};
-
-export const incrementViewCount = async ({ listingId }) => {
-  return await SuitescapeAPI.post(`/listings/${listingId}/view`);
 };
 
 export const createBooking = async ({ bookingData }) => {
@@ -187,24 +387,56 @@ export const updateBookingPaymentStatus = async ({ bookingId, status }) => {
   );
 };
 
+export const createListing = async ({ listingData, config = {} }) => {
+  return await SuitescapeAPI.post("/listings", listingData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    timeout: 300000,
+    ...config,
+  });
+};
+
+export const updateListing = async ({
+  listingId,
+  listingData,
+  config = {},
+}) => {
+  return await SuitescapeAPI.post(`/listings/${listingId}`, listingData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    timeout: 300000,
+    ...config,
+  });
+};
+
+export const deleteListing = async ({ listingId }) => {
+  return await SuitescapeAPI.delete(`/listings/${listingId}`);
+};
+
 export const createReview = async ({
   listingId,
-  roomId,
   feedback,
   overallRating,
   serviceRatings,
 }) => {
   return await SuitescapeAPI.post(`/reviews`, {
     listing_id: listingId,
-    room_id: roomId,
     feedback,
     overall_rating: overallRating,
     ...serviceRatings,
   });
 };
 
-export const updateProfile = async ({ profileData }) => {
-  return await SuitescapeAPI.post("/profile/update", profileData);
+export const updateProfile = async ({ profileData, config = {} }) => {
+  return await SuitescapeAPI.post("/profile/update", profileData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+    timeout: 300000,
+    ...config,
+  });
 };
 
 export const validateInfo = async ({ profileData }) => {

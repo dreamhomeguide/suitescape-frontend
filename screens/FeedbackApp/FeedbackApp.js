@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import React, { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import StarRating from "react-native-star-rating-widget";
@@ -21,7 +22,10 @@ const FeedbackApp = () => {
           <Text style={style.headerText}>Please Rate Your Experience</Text>
           <StarRating
             rating={rating}
-            onChange={setRating}
+            onChange={(rating) => {
+              Haptics.selectionAsync();
+              setRating(rating);
+            }}
             starSize={50}
             // animationConfig={{ scale: 1.1 }}
             starStyle={style.starRating}

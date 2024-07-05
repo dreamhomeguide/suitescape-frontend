@@ -9,6 +9,12 @@ const style = StyleSheet.create({
     padding: 5,
     backgroundColor: "rgba(0,0,0,0.5)",
   },
+  transcodingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    rowGap: 10,
+  },
 });
 
 export default style;

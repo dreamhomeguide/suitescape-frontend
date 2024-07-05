@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -55,6 +55,11 @@ const Onboarding = ({ navigation }) => {
     });
   };
 
+  const renderItem = useCallback(
+    ({ item }) => <OnboardingItem {...item} />,
+    [],
+  );
+
   return (
     <SafeAreaView style={globalStyles.flexFull}>
       <StatusBar style="light" />
@@ -70,7 +75,7 @@ const Onboarding = ({ navigation }) => {
         index={index}
         onIndexChange={setIndex}
         width={width}
-        renderItem={({ item }) => <OnboardingItem {...item} />}
+        renderItem={renderItem}
       />
       <DotsView
         index={index}

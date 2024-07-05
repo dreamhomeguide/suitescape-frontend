@@ -1,19 +1,49 @@
-export default {
+const user = {
   fullName: "fullname",
   firstName: "firstname",
   lastName: "lastname",
   birthday: "date_of_birth",
   email: "email",
   address: "address",
-  zipCode: "zipcode",
+  zipcode: "zipcode",
   city: "city",
   region: "region",
   mobileNumber: "mobile_number",
   gender: "gender",
   nationality: "nationality",
   governmentId: "government_id",
-  image: "picture",
-  imageUrl: "picture_url",
+  profileImage: "profile_image",
+  coverImage: "cover_image",
+  profileImageUrl: "profile_image_url",
+  coverImageUrl: "cover_image_url",
   password: "password",
   newPassword: "new_password",
+};
+
+const listing = {
+  name: "name",
+  location: "location",
+  description: "description",
+  facilityType: "facility_type",
+  checkInTime: "check_in_time",
+  checkOutTime: "check_out_time",
+  isCheckInOutSameDay: "is_check_in_out_same_day",
+  totalHours: "total_hours",
+  adultCapacity: "adult_capacity",
+  childCapacity: "child_capacity",
+  isPetAllowed: "is_pet_allowed",
+  parkingLot: "parking_lot",
+  isEntirePlace: "is_entire_place",
+  entirePlaceWeekdayPrice: "entire_place_weekday_price",
+  entirePlaceWeekendPrice: "entire_place_weekend_price",
+  rooms: "rooms",
+  images: "images",
+  videos: "videos",
+  addons: "addons",
+  nearbyPlaces: "nearby_places",
+};
+
+export default {
+  ...user,
+  ...listing,
 };

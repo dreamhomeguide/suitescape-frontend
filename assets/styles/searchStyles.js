@@ -39,9 +39,6 @@ const style = StyleSheet.create({
     padding: 5,
     borderRadius: 5,
   },
-  searchButton: {
-    borderRadius: 10,
-  },
   deleteButton: {
     paddingVertical: 10,
     paddingHorizontal: 5,
@@ -51,7 +48,7 @@ const style = StyleSheet.create({
   },
   searchItemContentContainer: {
     flex: 1,
-    paddingVertical: 15,
+    paddingVertical: 10,
     paddingHorizontal: 5,
     borderRadius: 5,
   },
@@ -69,7 +66,6 @@ const style = StyleSheet.create({
   },
   recentItemContentContainer: {
     flex: 1,
-    rowGap: 3,
   },
 });
 

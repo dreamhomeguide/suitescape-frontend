@@ -1,3 +1,4 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation } from "@react-navigation/native";
 import React, { memo, useCallback, useMemo } from "react";
 import { FlatList, View } from "react-native";
@@ -49,9 +50,16 @@ const VideoListingIconsView = ({
         onPress: handleLike,
       },
       {
+        IconComponent: Ionicons,
+        name: "chatbubble",
+        label: "Chat",
+        size: 28,
+        onPress: () => navigation.navigate(Routes.CHAT, { id: hostId }),
+      },
+      {
         IconComponent: Fontello,
         name: "info-solid",
-        label: "View",
+        label: "Reserve",
         onPress: () =>
           navigation.navigate(Routes.LISTING_DETAILS, { listingId }),
         hapticEnabled: false,

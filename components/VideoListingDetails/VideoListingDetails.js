@@ -5,6 +5,7 @@ import { Text, View } from "react-native";
 import style from "./VideoListingDetailsStyles";
 import { Routes } from "../../navigation/Routes";
 import ButtonLink from "../ButtonLink/ButtonLink";
+import Chip from "../Chip/Chip";
 import ReadMore from "../ReadMore/ReadMore";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
@@ -15,9 +16,13 @@ const VideoListingDetails = ({ listing }) => {
     average_rating,
     location,
     lowest_room_price,
+    is_entire_place,
+    entire_place_price,
   } = listing;
 
   const navigation = useNavigation();
+
+  const price = is_entire_place ? entire_place_price : lowest_room_price;
 
   return (
     <View style={style.container}>
@@ -33,13 +38,14 @@ const VideoListingDetails = ({ listing }) => {
       >
         {name}
       </ButtonLink>
+      {is_entire_place ? <Chip>Entire Place</Chip> : null}
       <Text
         style={{
           ...style.text,
           ...style.priceText,
         }}
       >
-        P{lowest_room_price?.toLocaleString()} Per night
+        P{price?.toLocaleString()} Per night
       </Text>
       <StarRatingView rating={average_rating} textStyle={style.text} />
       <ReadMore

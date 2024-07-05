@@ -18,35 +18,34 @@ import selectBookingData from "../../utils/selectBookingData";
 const CancelBooking = ({ navigation, route }) => {
   const bookingId = route.params.bookingId;
 
-  const { data: bookingData, isFetching } = useQuery({
+  const { data: booking, isFetching } = useQuery({
     queryKey: ["bookings", bookingId],
     queryFn: () => fetchBooking(bookingId),
     select: selectBookingData,
   });
 
   const datesDetails = getDateDetails({
-    startDate: bookingData?.startDate,
-    endDate: bookingData?.endDate,
-    listing: bookingData?.listing,
+    startDate: booking?.startDate,
+    endDate: booking?.endDate,
+    listing: booking?.listing,
   });
 
   const cancellationDetails = {
     label: "Booking Cancellation",
     data: [
       {
-        label: `${bookingData?.listing.name} Cancellation Fee`,
+        label: `${booking?.listing.name} Cancellation Fee`,
         value:
-          bookingData?.cancellationFee > 0
+          booking?.cancellationFee > 0
             ? "₱" +
-              (bookingData?.cancellationFee -
-                bookingData?.suitescapeCancellationFee)
+              (booking?.cancellationFee - booking?.suitescapeCancellationFee)
             : "Free",
       },
       {
         label: "Suitescape Canellation Fee",
         value:
-          bookingData?.cancellationFee > 0
-            ? "₱" + bookingData?.suitescapeCancellationFee
+          booking?.cancellationFee > 0
+            ? "₱" + booking?.suitescapeCancellationFee
             : "Free",
       },
     ],
@@ -91,7 +90,7 @@ const CancelBooking = ({ navigation, route }) => {
 
         <SummaryFooter
           label="Cancellation Fee"
-          value={"₱" + bookingData?.cancellationFee}
+          value={"₱" + booking?.cancellationFee}
         />
       </ScrollView>
 

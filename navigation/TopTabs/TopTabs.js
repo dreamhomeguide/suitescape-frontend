@@ -1,10 +1,10 @@
 import { useTheme } from "@react-navigation/native";
-import React, { memo, useEffect, useRef, useState } from "react";
+import React, { memo } from "react";
 import {
   MaterialTabBar,
   MaterialTabItem,
-  useFocusedTab,
 } from "react-native-collapsible-tab-view";
+import { useAnimatedStyle } from "react-native-reanimated";
 
 import style from "./TopTabsStyles";
 import { Colors } from "../../assets/Colors";
@@ -22,7 +22,7 @@ import { Colors } from "../../assets/Colors";
 //   tabBarGap: 10,
 // };
 
-const topTabOptions = {
+export const topTabOptions = {
   scrollEnabled: false,
   keepActiveTabCentered: true,
   labelStyle: style.label,
@@ -32,18 +32,33 @@ const topTabOptions = {
   inactiveColor: Colors.gray,
 };
 
+export const TabItem = memo(({ defaultProps, ...customProps }) => {
+  const animatedLabelStyle = useAnimatedStyle(() => {
+    if (defaultProps.indexDecimal.value % 1 !== 0) {
+      return {
+        color: Colors.gray,
+      };
+    }
+    return {};
+  });
+
+  return (
+    <MaterialTabItem
+      {...defaultProps}
+      labelStyle={[
+        animatedLabelStyle,
+        topTabOptions.labelStyle,
+        customProps.fontSize && { fontSize: customProps.fontSize },
+      ]}
+      activeColor={Colors.blue}
+      pressOpacity={0.5}
+      android_ripple={{ radius: 0 }}
+    />
+  );
+});
+
 export const TabBar = memo(({ defaultProps, ...customProps }) => {
-  const [isSwitching, setIsSwitching] = useState(false);
-  const [pressedTab, setPressedTab] = useState(null);
-
-  const timeoutRef = useRef(null);
-
-  const focusedTab = useFocusedTab();
   const { colors } = useTheme();
-
-  useEffect(() => {
-    return () => clearTimeout(timeoutRef.current);
-  }, []);
 
   return (
     <MaterialTabBar
@@ -51,44 +66,7 @@ export const TabBar = memo(({ defaultProps, ...customProps }) => {
       {...topTabOptions}
       contentContainerStyle={{ backgroundColor: colors.background }}
       TabItemComponent={(props) => (
-        <MaterialTabItem
-          {...props}
-          labelStyle={{
-            ...topTabOptions.labelStyle,
-            ...(customProps.fontSize && { fontSize: customProps.fontSize }),
-          }}
-          onPress={(name) => {
-            // if (isSwitching) {
-            //   return;
-            // }
-            setIsSwitching(true);
-
-            // const switchedTab = name !== pressedTab;
-            // setScrolledToTop(!switchedTab);
-            //
-            // if (!scrolledToTop || switchedTab) {
-            //   setPressedTab(name);
-            //   props.onPress(name);
-            // }
-            props.onPress(name);
-            setPressedTab(name);
-
-            clearTimeout(timeoutRef.current);
-
-            timeoutRef.current = setTimeout(() => {
-              setIsSwitching(false);
-            }, 350);
-          }}
-          pressOpacity={0.5}
-          // pressColor={Colors.lightblue}
-          android_ripple={{ radius: 0 }}
-          activeColor={
-            !isSwitching &&
-            (props.name === pressedTab || props.name === focusedTab)
-              ? Colors.blue
-              : Colors.gray
-          }
-        />
+        <TabItem defaultProps={props} {...customProps} />
       )}
       {...customProps}
     />

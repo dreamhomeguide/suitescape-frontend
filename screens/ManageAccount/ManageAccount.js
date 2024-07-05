@@ -1,20 +1,16 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 import {
-  Keyboard,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
+  Text,
   View,
 } from "react-native";
 import { useToast } from "react-native-toast-notifications";
@@ -38,6 +34,7 @@ import { baseURL } from "../../services/SuitescapeAPI";
 import { fetchProfile, updateProfile } from "../../services/apiService";
 import { handleApiError, handleApiResponse } from "../../utils/apiHelpers";
 import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
+import reducerSetter from "../../utils/reducerSetter";
 import capitalizedText from "../../utils/textCapitalizer";
 
 const initialState = {
@@ -53,41 +50,26 @@ const initialState = {
   gender: "",
   nationality: "",
   governmentId: "",
-  image: null,
-  isImageSelected: false,
-};
-
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "SET_DATA":
-      return {
-        ...state,
-        ...action.payload,
-      };
-    default:
-      return state;
-  }
+  profileImage: null,
+  coverImage: null,
+  isProfileImageSelected: false,
+  isCoverImageSelected: false,
 };
 
 const ManageAccount = () => {
-  const [state, dispatch] = useReducer(reducer, initialState, undefined);
+  const [state, setAccountData] = useReducer(
+    reducerSetter,
+    initialState,
+    undefined,
+  );
   const [errors, setErrors] = useState({});
   const [editingCount, setEditingCount] = useState(0);
-  const [showImageModal, setShowImageModal] = useState(false);
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const [modalImage, setModalImage] = useState(null);
+  const [isImageModalShown, setIsImageModalShown] = useState(false);
 
   const queryClient = useQueryClient();
   const toast = useToast();
   const profilePicture = useProfilePicture();
-
-  const setAccountData = useCallback((payload) => {
-    dispatch({ type: "SET_DATA", payload });
-  }, []);
-
-  const modalPicture = useMemo(
-    () => [state.image ?? profilePicture],
-    [state.image, profilePicture],
-  );
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ["profile"],
@@ -101,10 +83,18 @@ const ManageAccount = () => {
           return;
         }
 
-        if (state === "imageUrl") {
+        if (state === "profileImageUrl") {
           setAccountData({
-            image: { uri: baseURL + userData[userDataKey] },
-            isImageSelected: false,
+            profileImage: { uri: baseURL + userData[userDataKey] },
+            isProfileImageSelected: false,
+          });
+          return;
+        }
+
+        if (state === "coverImageUrl") {
+          setAccountData({
+            coverImage: { uri: baseURL + userData[userDataKey] },
+            isCoverImageSelected: false,
           });
           return;
         }
@@ -148,11 +138,15 @@ const ManageAccount = () => {
           if (res.updated) {
             // Invalidate profile info query
             await queryClient.invalidateQueries({ queryKey: ["profile"] });
-            console.log("Profile info invalidated");
+
+            // Invalidate host info query
+            await queryClient.invalidateQueries({
+              queryKey: ["hosts", userData.id],
+            });
           }
         },
       }),
-    [queryClient, toast],
+    [queryClient, toast, userData?.id],
   );
 
   const handleErrorUpdateProfile = useCallback(
@@ -180,7 +174,11 @@ const ManageAccount = () => {
     // Convert bookingState to backend format
     const profileData = Object.entries(mappingsData).reduce(
       (acc, [stateKey, userDataKey]) => {
-        if (stateKey === "imageUrl") {
+        if (stateKey === "profileImageUrl") {
+          return acc;
+        }
+
+        if (stateKey === "coverImageUrl") {
           return acc;
         }
 
@@ -189,13 +187,28 @@ const ManageAccount = () => {
           return acc;
         }
 
-        if (stateKey === "image") {
-          if (!state.isImageSelected || !state[stateKey]?.uri) {
+        if (stateKey === "profileImage") {
+          // Check if the profile image is selected and has an uri
+          if (!state.isProfileImageSelected || !state[stateKey]?.uri) {
+            return acc;
+          }
+
+          acc.append(userDataKey, {
+            uri: state[stateKey].uri,
+            name: "profileImage.jpg",
+            type: "image/jpg",
+          });
+          return acc;
+        }
+
+        if (stateKey === "coverImage") {
+          // Check if the cover image is selected and has an uri
+          if (!state.isCoverImageSelected || !state[stateKey]?.uri) {
             return acc;
           }
           acc.append(userDataKey, {
             uri: state[stateKey].uri,
-            name: "profile.jpg",
+            name: "coverImage.jpg",
             type: "image/jpg",
           });
           return acc;
@@ -220,20 +233,37 @@ const ManageAccount = () => {
     setEditingCount((prev) => prev - 1);
   }, []);
 
-  const enableImageModal = useCallback(() => {
-    setShowImageModal(true);
+  const showProfileImage = useCallback(() => {
+    setModalImage(state.profileImage ?? profilePicture);
+    setIsImageModalShown(true);
+  }, [profilePicture, state.profileImage]);
+
+  const showCoverImage = useCallback(() => {
+    setModalImage(state.coverImage);
+    setIsImageModalShown(true);
+  }, [state.coverImage]);
+
+  const hideImageModal = useCallback(() => {
+    setIsImageModalShown(false);
   }, []);
 
-  const disableImageModal = useCallback(() => {
-    setShowImageModal(false);
-  }, []);
-
-  const removeProfileImage = useCallback(() => {
+  const resetProfileImage = useCallback(() => {
     setAccountData({
-      image: profilePicture.uri ?? profilePicture,
-      isImageSelected: false,
+      profileImage: userData.profile_image_url
+        ? baseURL + userData.profile_image_url
+        : profilePicture,
+      isProfileImageSelected: false,
     });
-  }, [profilePicture]);
+  }, [userData?.profile_image_url]);
+
+  const resetCoverImage = useCallback(() => {
+    setAccountData({
+      coverImage: userData.cover_image_url
+        ? baseURL + userData.cover_image_url
+        : null,
+      isCoverImageSelected: false,
+    });
+  }, [userData?.cover_image_url]);
 
   const pickProfileImage = useCallback(async () => {
     // No permissions request is necessary for launching the image library
@@ -245,57 +275,124 @@ const ManageAccount = () => {
 
     if (!result.canceled) {
       setAccountData({
-        image: { uri: result.assets[0].uri },
-        isImageSelected: true,
+        profileImage: { uri: result.assets[0].uri },
+        isProfileImageSelected: true,
       });
     }
-  }, [state.image]);
+  }, []);
+
+  const pickCoverImage = useCallback(async () => {
+    // No permissions request is necessary for launching the image library
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setAccountData({
+        coverImage: { uri: result.assets[0].uri },
+        isCoverImageSelected: true,
+      });
+    }
+  }, []);
+
+  const onCoverImagePress = useCallback(async () => {
+    if (!state.coverImage) {
+      await pickCoverImage();
+      return;
+    }
+
+    Alert.alert("Cover Image", "What do you want to do?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "View",
+        onPress: showCoverImage,
+      },
+      {
+        text: "Change",
+        onPress: pickCoverImage,
+      },
+      {
+        text: "Reset",
+        onPress: resetCoverImage,
+      },
+    ]);
+  }, [pickCoverImage, resetCoverImage, showCoverImage, state.coverImage]);
 
   return (
     <>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : null}
         keyboardVerticalOffset={80}
-        onLayout={() => {
-          if (Platform.OS === "android") {
-            setIsFooterVisible(!Keyboard.isVisible());
-          }
-        }}
         style={globalStyles.flexFull}
       >
         <ScrollView
           contentInset={{ top: 10, bottom: 35 }}
           contentContainerStyle={style.mainContainer}
         >
-          <View style={style.profileImageContainer}>
-            <View>
+          <View style={style.imagesContainer}>
+            <View style={globalStyles.containerGap}>
+              <Text style={style.labelCenter}>Profile Image</Text>
+
               <Pressable
-                onPress={enableImageModal}
+                onPress={showProfileImage}
                 style={({ pressed }) => pressedOpacity(pressed)}
               >
                 <ProfileImage
                   size={120}
-                  source={state.image ?? profilePicture}
+                  source={state.profileImage ?? profilePicture}
                 />
               </Pressable>
+
               <Pressable
                 onPress={
-                  state.isImageSelected ? removeProfileImage : pickProfileImage
+                  state.isProfileImageSelected
+                    ? resetProfileImage
+                    : pickProfileImage
                 }
                 style={({ pressed }) => ({
                   ...style.addButtonContainer,
-                  backgroundColor: state.isImageSelected
+                  backgroundColor: state.isProfileImageSelected
                     ? Colors.red
                     : Colors.black,
                   ...pressedBgColor(pressed, Colors.gray),
                 })}
               >
                 <Ionicons
-                  name={state.isImageSelected ? "close" : "add"}
+                  name={state.isProfileImageSelected ? "close" : "add"}
                   size={25}
                   color="white"
                   style={style.addButton}
                 />
+              </Pressable>
+            </View>
+
+            <View style={style.coverImageContainer}>
+              <Text style={style.label}>Cover Image</Text>
+
+              <Pressable
+                onPress={onCoverImagePress}
+                style={({ pressed }) => ({
+                  ...style.coverImage,
+                  ...pressedOpacity(pressed),
+                })}
+              >
+                {state.coverImage ? (
+                  <Image
+                    source={state.coverImage}
+                    style={globalStyles.flexFull}
+                    contentFit="cover"
+                  />
+                ) : (
+                  <View style={style.addCoverImageContainer}>
+                    <Ionicons name="add" size={25} color="black" />
+                    <Text>Add Cover Image</Text>
+                  </View>
+                )}
               </Pressable>
             </View>
           </View>
@@ -468,22 +565,17 @@ const ManageAccount = () => {
       </KeyboardAvoidingView>
 
       <SliderModalPhoto
-        imageData={modalPicture}
-        visible={showImageModal}
-        onClose={disableImageModal}
+        imageData={[modalImage]} // Wrap the image in an array
+        visible={isImageModalShown}
+        onClose={hideImageModal}
         showIndex={false}
       />
 
-      {isFooterVisible && (
-        <AppFooter>
-          <ButtonLarge
-            disabled={editingCount > 0}
-            onPress={handleUpdateProfile}
-          >
-            Save Changes
-          </ButtonLarge>
-        </AppFooter>
-      )}
+      <AppFooter>
+        <ButtonLarge disabled={editingCount > 0} onPress={handleUpdateProfile}>
+          Save Changes
+        </ButtonLarge>
+      </AppFooter>
 
       <DialogLoading visible={isLoading || updateProfileMutation.isPending} />
     </>

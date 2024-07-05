@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import { Colors } from "../../assets/Colors";
 const style = StyleSheet.create({
@@ -33,7 +33,6 @@ const style = StyleSheet.create({
     marginHorizontal: 5,
     backgroundColor: isActive ? "#8DCE59" : "gray",
   }),
-
   messageHeader: {
     flex: 1,
     justifyContent: "center",
@@ -53,36 +52,31 @@ const style = StyleSheet.create({
     paddingTop: 10,
     textAlign: "center",
   },
+  ratingContainer: {
+    paddingVertical: 5,
+  },
   sendMessageContainer: {
-    paddingHorizontal: 20,
     maxHeight: "30%",
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    alignItems: "center",
+    paddingHorizontal: 15,
   },
-
-  messageEditorContainer: {
+  inputContainer: {
+    flex: 1,
+    backgroundColor: Colors.lightgray,
     marginVertical: 15,
-    borderRadius: 15,
-    backgroundColor: Colors.backgroundGray,
-    flexDirection: "row",
-    justifyContent: "space-evenly",
+    borderRadius: 20,
   },
-  textInput: {
-    fontSize: 15,
-    marginVertical: 10,
-    marginLeft: 0,
-    width: "83%",
+  inputField: {
+    padding: 15,
+    paddingBottom: Platform.OS === "android" ? 10 : 15,
   },
-  emojiKeyboardContainer: {
-    marginVertical: 10,
-    flexDirection: "column",
-    justifyContent: "flex-end",
+  inputText: {
+    fontSize: 16,
   },
-  sendMessageButtonContainer: {
-    flexDirection: "column",
-    justifyContent: "flex-end",
-    marginVertical: 25,
-    marginLeft: 5,
+  sendButton: {
+    padding: 15,
+    paddingRight: 5,
   },
 });
 export default style;

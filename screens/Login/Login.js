@@ -1,6 +1,7 @@
 import { useFocusEffect } from "@react-navigation/native";
+import * as SecureStore from "expo-secure-store";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -32,6 +33,20 @@ const Login = ({ navigation }) => {
   const { authState, signIn, enableGuestMode } = useAuth();
   const { modifySetting } = useSettings();
 
+  useEffect(() => {
+    // Get last email logged in from SecureStore
+    const lastEmail = SecureStore.getItem("lastEmailLoggedIn");
+
+    if (lastEmail) {
+      setEmail(lastEmail);
+
+      // Remove email once its shown
+      SecureStore.deleteItemAsync("lastEmailLoggedIn").then(() => {
+        console.log("Last email logged in:", lastEmail);
+      });
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       return () => {
@@ -49,6 +64,7 @@ const Login = ({ navigation }) => {
 
   const handleSkipButtonClick = useCallback(() => {
     modifySetting("onboardingEnabled", false);
+    modifySetting("hostModeEnabled", false);
     enableGuestMode().catch((err) => console.log(err));
   }, []);
 
@@ -117,7 +133,6 @@ const Login = ({ navigation }) => {
         <ButtonLarge onPress={handleSignIn}>Login</ButtonLarge>
       </View>
       <LineView>Or</LineView>
-      <ButtonSocialLogin type="phone" />
       <ButtonSocialLogin type="facebook" />
       <ButtonSocialLogin type="google" />
       <AuthSwitchPrompt isRegistration />

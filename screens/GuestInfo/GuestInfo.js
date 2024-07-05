@@ -9,7 +9,6 @@ import React, {
 } from "react";
 import {
   Alert,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -26,6 +25,8 @@ import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import FormInput from "../../components/FormInput/FormInput";
 import FormPicker from "../../components/FormPicker/FormPicker";
+import { useBookingContext } from "../../contexts/BookingContext";
+import { useListingContext } from "../../contexts/ListingContext";
 import { useSettings } from "../../contexts/SettingsContext";
 import mappingsData from "../../data/mappingsData";
 import { Routes } from "../../navigation/Routes";
@@ -37,6 +38,7 @@ import {
 } from "../../services/apiService";
 import { handleApiError, handleApiResponse } from "../../utils/apiHelpers";
 import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
+import reducerSetter from "../../utils/reducerSetter";
 
 // const genderList = [
 //   {
@@ -54,65 +56,51 @@ import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
 // ];
 
 const initialState = {
-  fullName: "",
-  // firstName: "",
-  // lastName: "",
+  firstName: "",
+  lastName: "",
   // gender: "",
   email: "",
   address: "",
-  zipCode: "",
+  // zipcode: "",
   city: "",
   region: "",
   mobileNumber: "",
 };
 
-const reducer = (state, action) => {
-  switch (action.type) {
-    case "SET_DATA":
-      return {
-        ...state,
-        ...action.payload,
-      };
-    default:
-      return state;
-  }
-};
-
 const GuestInfo = ({ navigation }) => {
-  const [guestState, dispatch] = useReducer(reducer, initialState, undefined);
-  const [isFooterVisible, setIsFooterVisible] = useState(true);
+  const [guestState, setGuestData] = useReducer(
+    reducerSetter,
+    initialState,
+    undefined,
+  );
   const [errors, setErrors] = useState(null);
 
   // Destructure guest state
   const {
-    fullName,
-    // firstName,
-    // lastName,
+    firstName,
+    lastName,
     // gender,
     email,
     address,
-    zipCode,
+    // zipcode,
     city,
     region,
     mobileNumber,
-    // message,
+    message,
   } = guestState;
 
-  // const scrollViewRef = useRef(null);
-  // const lastNameRef = useRef(null);
+  const scrollViewRef = useRef(null);
+  const lastNameRef = useRef(null);
   const emailRef = useRef(null);
   const addressRef = useRef(null);
-  const zipCodeRef = useRef(null);
+  // const zipcodeRef = useRef(null);
   const mobileNumberRef = useRef(null);
 
-  // const { setBookingData } = useBookingContext();
+  const { listing } = useListingContext();
+  const { setBookingData } = useBookingContext();
   const { settings } = useSettings();
   const queryClient = useQueryClient();
   const toast = useToast();
-
-  const setGuestData = (payload) => {
-    dispatch({ type: "SET_DATA", payload });
-  };
 
   const { data: userData, isLoading } = useQuery({
     queryKey: ["profile"],
@@ -161,16 +149,27 @@ const GuestInfo = ({ navigation }) => {
     // Sync user data to guest state
     if (userData) {
       Object.entries(mappingsData).forEach(([state, userDataKey]) => {
-        if (userData[userDataKey]) {
+        if (
+          userData[userDataKey] !== undefined &&
+          userData[userDataKey] !== null
+        ) {
           // if (state === "gender") {
           //   setBookingData({ [state]: userData[userDataKey].toLowerCase() });
           //   return;
           // }
+
           setGuestData({ [state]: userData[userDataKey] });
         }
       });
     }
   }, [userData]);
+
+  // Redirect to booking summary if guest mode is enabled
+  useEffect(() => {
+    if (settings.guestModeEnabled) {
+      navigation.replace(Routes.BOOKING_SUMMARY);
+    }
+  }, [navigation, settings.guestModeEnabled]);
 
   const abortProfileFetch = useCallback(() => {
     queryClient.cancelQueries({ queryKey: ["profile"] }).catch((err) => {
@@ -266,15 +265,10 @@ const GuestInfo = ({ navigation }) => {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : null}
         keyboardVerticalOffset={80}
-        onLayout={() => {
-          if (Platform.OS === "android") {
-            setIsFooterVisible(!Keyboard.isVisible());
-          }
-        }}
         style={globalStyles.flexFull}
       >
         <ScrollView
-          // ref={scrollViewRef}
+          ref={scrollViewRef}
           contentInset={{ top: 10, bottom: 35 }}
           contentContainerStyle={style.contentContainer}
         >
@@ -285,57 +279,45 @@ const GuestInfo = ({ navigation }) => {
             pointerEvents={updateProfileMutation.isPending ? "none" : "auto"}
           >
             <FormInput
-              value={fullName}
+              value={firstName}
               onChangeText={(value) => {
-                setGuestData({ fullName: value });
-                clearErrorWhenNotEmpty(value, mappingsData.fullName, setErrors);
+                setGuestData({ firstName: value });
+                clearErrorWhenNotEmpty(
+                  value,
+                  mappingsData.firstName,
+                  setErrors,
+                );
               }}
-              placeholder="Full Name"
+              placeholder="First Name"
               textContentType="givenName"
               autoCapitalize="words"
               autoCorrect={false}
               returnKeyType="next"
               onSubmitEditing={() => {
-                emailRef.current.focus();
+                lastNameRef.current.focus();
               }}
-              errorMessage={errors?.[mappingsData.fullName]}
+              errorMessage={errors?.firstname}
             />
-            {/*<FormInput*/}
-            {/*  value={firstName}*/}
-            {/*  onChangeText={(value) => {*/}
-            {/*    setGuestData({ firstName: value });*/}
-            {/*    clearErrorWhenNotEmpty(value, mappings.firstName, setErrors);*/}
-            {/*  }}*/}
-            {/*  placeholder="First Name"*/}
-            {/*  textContentType="givenName"*/}
-            {/*  autoCapitalize="words"*/}
-            {/*  autoCorrect={false}*/}
-            {/*  returnKeyType="next"*/}
-            {/*  onSubmitEditing={() => {*/}
-            {/*    lastNameRef.current.focus();*/}
-            {/*  }}*/}
-            {/*  errorMessage={errors?.firstname}*/}
-            {/*/>*/}
-            {/*<FormInput*/}
-            {/*  value={lastName}*/}
-            {/*  onChangeText={(value) => {*/}
-            {/*    setGuestData({ lastName: value });*/}
-            {/*    clearErrorWhenNotEmpty(value, mappings.lastName, setErrors);*/}
-            {/*  }}*/}
-            {/*  placeholder="Last Name"*/}
-            {/*  textContentType="familyName"*/}
-            {/*  autoCapitalize="words"*/}
-            {/*  autoCorrect={false}*/}
-            {/*  errorMessage={errors?.lastname}*/}
-            {/*  ref={lastNameRef}*/}
-            {/*/>*/}
+            <FormInput
+              value={lastName}
+              onChangeText={(value) => {
+                setGuestData({ lastName: value });
+                clearErrorWhenNotEmpty(value, mappingsData.lastName, setErrors);
+              }}
+              placeholder="Last Name"
+              textContentType="familyName"
+              autoCapitalize="words"
+              autoCorrect={false}
+              errorMessage={errors?.lastname}
+              ref={lastNameRef}
+            />
             {/*<FormPicker*/}
             {/*  label="Gender"*/}
             {/*  data={genderList}*/}
             {/*  value={gender}*/}
             {/*  onSelected={(value) => {*/}
             {/*    setGuestData({ gender: value });*/}
-            {/*    clearErrorWhenNotEmpty(value, mappings.gender, setErrors);*/}
+            {/*    clearErrorWhenNotEmpty(value, mappingsData.gender, setErrors);*/}
             {/*  }}*/}
             {/*  errorMessage={errors?.gender}*/}
             {/*/>*/}
@@ -369,14 +351,14 @@ const GuestInfo = ({ navigation }) => {
               autoCapitalize="words"
               autoCorrect={false}
               returnKeyType="next"
-              onSubmitEditing={() => {
-                zipCodeRef.current.focus();
-              }}
+              // onSubmitEditing={() => {
+              //   zipcodeRef.current.focus();
+              // }}
               errorMessage={errors?.[mappingsData.address]}
               ref={addressRef}
             />
             <FormPicker
-              label={isFetchingRegions ? "Loading Regions..." : "Region"}
+              placeholder={isFetchingRegions ? "Loading Regions..." : "Region"}
               data={regionData}
               value={region}
               onSelected={(value) => {
@@ -390,7 +372,7 @@ const GuestInfo = ({ navigation }) => {
               errorMessage={errors?.[mappingsData.region]}
             />
             <FormPicker
-              label={
+              placeholder={
                 isFetchingCities || isFetchingRegions
                   ? "Loading Cities..."
                   : "City"
@@ -409,22 +391,22 @@ const GuestInfo = ({ navigation }) => {
               }}
               errorMessage={errors?.[mappingsData.city]}
             />
-            <FormInput
-              value={zipCode}
-              onChangeText={(value) => {
-                setGuestData({ zipCode: value });
-                clearErrorWhenNotEmpty(value, mappingsData.zipCode, setErrors);
-              }}
-              placeholder="Zip/Post Code"
-              keyboardType="number-pad"
-              textContentType="postalCode"
-              autoCorrect={false}
-              onSubmitEditing={() => {
-                mobileNumberRef.current.focus();
-              }}
-              errorMessage={errors?.[mappingsData.zipCode]}
-              ref={zipCodeRef}
-            />
+            {/*<FormInput*/}
+            {/*  value={zipcode}*/}
+            {/*  onChangeText={(value) => {*/}
+            {/*    setGuestData({ zipcode: value });*/}
+            {/*    clearErrorWhenNotEmpty(value, mappingsData.zipcode, setErrors);*/}
+            {/*  }}*/}
+            {/*  placeholder="Zip/Post Code"*/}
+            {/*  keyboardType="number-pad"*/}
+            {/*  textContentType="postalCode"*/}
+            {/*  autoCorrect={false}*/}
+            {/*  onSubmitEditing={() => {*/}
+            {/*    mobileNumberRef.current.focus();*/}
+            {/*  }}*/}
+            {/*  errorMessage={errors?.[mappingsData.zipcode]}*/}
+            {/*  ref={zipcodeRef}*/}
+            {/*/>*/}
             <FormInput
               value={mobileNumber}
               onChangeText={(value) => {
@@ -438,35 +420,40 @@ const GuestInfo = ({ navigation }) => {
               placeholder="Mobile Number"
               keyboardType="phone-pad"
               textContentType="telephoneNumber"
+              onFocus={() => {
+                // Add phone number prefix if empty
+                if (!mobileNumber) {
+                  setGuestData({ mobileNumber: "+63" });
+                }
+              }}
+              maxLength={13}
               autoCorrect={false}
               errorMessage={errors?.[mappingsData.mobileNumber]}
               ref={mobileNumberRef}
             />
-            {/*<FormInput*/}
-            {/*  type="textarea"*/}
-            {/*  value={message}*/}
-            {/*  onChangeText={(value) => {*/}
-            {/*    setBookingData({ message: value });*/}
-            {/*  }}*/}
-            {/*  maxLength={255}*/}
-            {/*  containerStyle={style.messageContainer}*/}
-            {/*  label="Message (Optional)"*/}
-            {/*  blurOnSubmit*/}
-            {/*  returnKeyType="done"*/}
-            {/*  onFocus={() =>*/}
-            {/*    setTimeout(() => scrollViewRef.current.scrollToEnd(), 300)*/}
-            {/*  }*/}
-            {/*  errorMessage={errors?.message}*/}
-            {/*/>*/}
+            <FormInput
+              type="textarea"
+              value={message}
+              onChangeText={(value) => {
+                setBookingData({ listingId: listing.id, message: value });
+              }}
+              maxLength={255}
+              containerStyle={style.messageContainer}
+              label="Message (Optional)"
+              blurOnSubmit
+              returnKeyType="done"
+              onFocus={() =>
+                setTimeout(() => scrollViewRef.current.scrollToEnd(), 300)
+              }
+              errorMessage={errors?.message}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {isFooterVisible && (
-        <AppFooter>
-          <ButtonLarge onPress={handleUpdateProfile}>Confirm</ButtonLarge>
-        </AppFooter>
-      )}
+      <AppFooter>
+        <ButtonLarge onPress={handleUpdateProfile}>Continue</ButtonLarge>
+      </AppFooter>
 
       <DialogLoading
         visible={isLoading || updateProfileMutation.isPending}

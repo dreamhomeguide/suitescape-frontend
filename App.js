@@ -5,13 +5,16 @@ import Root from "./Root";
 import { AuthProvider } from "./contexts/AuthContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 
+const DEFAULT_OPTIONS = {
+  // retry: false,
+  staleTime: 1000 * 60 * 5,
+  retryDelay: (attemptIndex) => Math.min(5000 * 2 ** attemptIndex, 30000), // 5s, 10s, 20s, 30s
+};
+
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: 1000 * 60 * 5,
-      retryDelay: (attemptIndex) => Math.min(5000 * 2 ** attemptIndex, 30000),
-    },
+    queries: DEFAULT_OPTIONS,
+    mutations: DEFAULT_OPTIONS,
   },
 });
 

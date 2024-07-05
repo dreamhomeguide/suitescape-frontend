@@ -1,37 +1,61 @@
 import { useQuery } from "@tanstack/react-query";
-import React, { useCallback, useEffect, useMemo } from "react";
-import { ScrollView, View } from "react-native";
-import { useToast } from "react-native-toast-notifications";
+import { isWithinInterval } from "date-fns";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, ScrollView, View } from "react-native";
 
+import style from "./RoomDetailsStyles";
+import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
-import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import AppFooterDetails from "../../components/AppFooterDetails/AppFooterDetails";
 import DetailsDescriptionView from "../../components/DetailsDescriptionView/DetailsDescriptionView";
 import DetailsFeaturesView from "../../components/DetailsFeaturesView/DetailsFeaturesView";
 import DetailsObjectView from "../../components/DetailsObjectView/DetailsObjectView";
-import DetailsReviewsView from "../../components/DetailsReviewsView/DetailsReviewsView";
 import DetailsTitleView from "../../components/DetailsTitleView/DetailsTitleView";
 import { FEATURES } from "../../components/ListingFeaturesView/ListingFeaturesView";
-import { useBookingContext } from "../../contexts/BookingContext";
+import Stepper from "../../components/Stepper/Stepper";
+import {
+  useBookingContext,
+  useBookingData,
+} from "../../contexts/BookingContext";
+import { useCartContext, useCartData } from "../../contexts/CartContext";
+import { useListingContext } from "../../contexts/ListingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
+import { useTimerContext } from "../../contexts/TimerContext";
 import { Routes } from "../../navigation/Routes";
 import { fetchRoom } from "../../services/apiService";
 import formatRange from "../../utils/rangeFormatter";
 
 const AMENITIES_IN_VIEW = 6;
-const REVIEWS_IN_VIEW = 6;
 
 const RoomDetails = ({ navigation, route }) => {
   const roomId = route.params.roomId;
 
+  const [showScreen, setShowScreen] = useState(false);
+
+  const { addItem, removeItem, updateQuantity } = useCartContext();
+  const { startTimer } = useTimerContext();
+  const { listing } = useListingContext();
   const { setRoom } = useRoomContext();
-  const { bookingState, setBookingData } = useBookingContext();
-  const toast = useToast();
+  const { setBookingData } = useBookingContext();
+  const bookingData = useBookingData();
+  const cartData = useCartData();
 
   const { data: roomData } = useQuery({
-    queryKey: ["rooms", roomId],
-    queryFn: () => fetchRoom(roomId),
+    queryKey: [
+      "listings",
+      listing.id,
+      "rooms",
+      roomId,
+      bookingData.startDate,
+      bookingData.endDate,
+    ],
+    queryFn: () =>
+      fetchRoom({
+        roomId,
+        startDate: bookingData.startDate,
+        endDate: bookingData.endDate,
+      }),
   });
 
   // Set room to global context
@@ -47,12 +71,38 @@ const RoomDetails = ({ navigation, route }) => {
   }, []);
 
   useEffect(() => {
-    if (bookingState.startDate && bookingState.endDate) {
+    if (bookingData.startDate && bookingData.endDate) {
       setBookingData({
-        highlightedDates: [bookingState.startDate, bookingState.endDate],
+        listingId: listing.id,
+        highlightedDates: [bookingData.startDate, bookingData.endDate],
       });
     }
-  }, [bookingState.startDate, bookingState.endDate]);
+  }, [bookingData.startDate, bookingData.endDate, listing.id]);
+
+  const cartRoom = useMemo(() => {
+    return cartData.cart.find((item) => item.id === roomId);
+  }, [cartData.cart, roomId]);
+
+  const isAvailable = useMemo(() => {
+    // Check if room has stock
+    const hasQuantity = roomData?.category.quantity > 0;
+
+    // Check if room is available today
+    const isAvailableToday = roomData?.unavailable_dates.every(
+      (unavailableDate) =>
+        !isWithinInterval(unavailableDate.date, {
+          start: bookingData.startDate,
+          end: bookingData.endDate,
+        }),
+    );
+
+    return hasQuantity && isAvailableToday;
+  }, [
+    bookingData.startDate,
+    bookingData.endDate,
+    roomData?.category.quantity,
+    roomData?.unavailable_dates,
+  ]);
 
   const footerLinkOnPress = useCallback(() => {
     navigation.navigate({
@@ -61,25 +111,48 @@ const RoomDetails = ({ navigation, route }) => {
     });
   }, [navigation]);
 
-  const handleReserveButton = useCallback(() => {
-    if (bookingState.startDate && bookingState.endDate) {
-      navigation.navigate(Routes.GUEST_INFO);
-    } else {
-      toast.show("No date selected", {
-        placement: "top",
-        style: toastStyles.toastInsetHeader,
-      });
-      footerLinkOnPress();
-
-      // Alert.alert("No date selected", "Please select a date");
+  const handleAddToCart = useCallback(() => {
+    if (!roomData || !listing) {
+      return;
     }
+
+    if (cartRoom) {
+      removeItem({ listingId: listing.id, roomId });
+      return;
+    }
+
+    addItem({
+      listingData: {
+        id: listing.id,
+        name: listing.name,
+        image: listing.images[0].url,
+      },
+      roomData: {
+        id: roomId,
+        name: roomData.category.name,
+        price: roomData.category.price,
+        maxQuantity: roomData.category.quantity,
+      },
+    });
+    startTimer(listing.id);
   }, [
-    bookingState.startDate,
-    bookingState.endDate,
-    footerLinkOnPress,
-    navigation,
-    toast,
+    cartRoom,
+    listing?.id,
+    listing?.name,
+    roomId,
+    roomData?.category.name,
+    roomData?.category.price,
   ]);
+
+  const onStepperChange = useCallback(
+    (value) =>
+      updateQuantity({
+        listingId: listing.id,
+        roomId,
+        newQuantity: value,
+      }),
+    [listing.id, roomId],
+  );
 
   const footerTitle = useMemo(() => {
     if (!roomData?.category.price) {
@@ -89,23 +162,22 @@ const RoomDetails = ({ navigation, route }) => {
   }, [roomData?.category.price]);
 
   const footerLinkLabel = useMemo(() => {
-    if (!bookingState.startDate && !bookingState.endDate) {
+    if (!bookingData.startDate && !bookingData.endDate) {
       return "Select Date";
     }
 
-    return formatRange(bookingState.startDate, bookingState.endDate);
-  }, [bookingState.startDate, bookingState.endDate]);
+    return formatRange(bookingData.startDate, bookingData.endDate);
+  }, [bookingData.startDate, bookingData.endDate]);
 
-  const onSeeAllReviews = useCallback(
-    () =>
-      navigation.push(Routes.RATINGS, {
-        type: "room",
-        id: roomId,
-        averageRating: roomData?.average_rating,
-        reviewsCount: roomData?.reviews_count,
-      }),
-    [navigation, roomId, roomData?.average_rating, roomData?.reviews_count],
-  );
+  if (!showScreen) {
+    return (
+      <ActivityIndicator
+        size="small"
+        style={globalStyles.loadingCircle}
+        onLayout={() => setShowScreen(true)}
+      />
+    );
+  }
 
   return (
     <View style={globalStyles.flexFull}>
@@ -113,15 +185,12 @@ const RoomDetails = ({ navigation, route }) => {
         <DetailsTitleView
           title={roomData?.category.name}
           price={roomData?.category.price}
-          rating={roomData?.average_rating}
-          reviewsCount={roomData?.reviews_count}
-          onSeeAllReviews={onSeeAllReviews}
         />
 
         {/* Room Size */}
         <DetailsDescriptionView
           title="Room Size"
-          description={`${roomData?.category.size} sqm`}
+          description={`${roomData?.category.floor_area} sqm`}
           emptyText="No room size."
         />
 
@@ -134,13 +203,13 @@ const RoomDetails = ({ navigation, route }) => {
         {/* Description */}
         <DetailsDescriptionView
           title="Room Description"
-          description={roomData?.description}
+          description={roomData?.category.description}
         />
 
         {/* Rules */}
         <DetailsDescriptionView
           title="Room Rules"
-          description={roomData?.rules.content}
+          description={roomData?.rule.content}
           emptyText="No room rules."
         />
 
@@ -150,22 +219,31 @@ const RoomDetails = ({ navigation, route }) => {
           data={roomData?.amenities}
           size={AMENITIES_IN_VIEW}
         />
-
-        {/* Reviews */}
-        <DetailsReviewsView
-          reviews={roomData?.reviews}
-          size={REVIEWS_IN_VIEW}
-          onSeeAllReviews={onSeeAllReviews}
-        />
       </ScrollView>
 
       <AppFooter>
+        {cartRoom && (
+          <View style={style.quantityContainer}>
+            <Stepper
+              value={cartRoom.quantity}
+              minValue={1}
+              maxValue={cartRoom.maxQuantity}
+              onValueChange={onStepperChange}
+              containerStyle={style.quantityContentContainer}
+            />
+          </View>
+        )}
+
         <AppFooterDetails
           title={footerTitle}
           buttonLinkLabel={footerLinkLabel}
           buttonLinkOnPress={footerLinkOnPress}
-          buttonLabel="Reserve"
-          buttonOnPress={handleReserveButton}
+          buttonLabel={cartRoom ? "Remove from Cart" : "Add to Cart"}
+          buttonProps={{
+            color: cartRoom ? Colors.red : Colors.blue,
+            disabled: !isAvailable,
+          }}
+          buttonOnPress={handleAddToCart}
         />
       </AppFooter>
     </View>

@@ -13,12 +13,13 @@ import VideoItemProgressBar from "../VideoItemProgressBar/VideoItemProgressBar";
 import VideoListingDetails from "../VideoListingDetails/VideoListingDetails";
 import VideoListingIconsView from "../VideoListingIconsView/VideoListingIconsView";
 
-const SAMPLE_MARKS = [1000, 5000, 10000, 15000, 22000, 30000, 40000, 50000];
+// const SAMPLE_MARKS = [1000, 5000, 10000, 15000, 22000, 30000, 40000, 50000];
 
 const VideoFeedItem = ({
   videoId,
   videoUrl,
   videoFileName,
+  videoSections,
   height,
   listing,
   feedFocused,
@@ -47,7 +48,7 @@ const VideoFeedItem = ({
 
   const {
     id: listingId,
-    host: { id: hostId, picture_url: hostPictureUrl },
+    host: { id: hostId, profile_image_url: hostPictureUrl },
     is_liked: isLiked,
     is_saved: isSaved,
     likes_count: likesCount,
@@ -133,6 +134,7 @@ const VideoFeedItem = ({
       )}
 
       {!previewMode && !clearMode && <VideoListingDetails listing={listing} />}
+
       <Portal>
         <ModalSection
           visible={isSectionShown}
@@ -142,7 +144,7 @@ const VideoFeedItem = ({
           progress={currentProgress}
           isVideoSeeking={isSeeking}
           onItemPress={onItemPress}
-          trackMarks={SAMPLE_MARKS}
+          sections={videoSections}
         />
 
         <VideoItemProgressBar
@@ -160,7 +162,7 @@ const VideoFeedItem = ({
           onSeekEnd={() => {
             setIsSeeking(false);
           }}
-          trackMarks={SAMPLE_MARKS}
+          sections={videoSections}
         />
       </Portal>
 

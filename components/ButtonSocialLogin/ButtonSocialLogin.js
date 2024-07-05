@@ -1,4 +1,3 @@
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import * as Haptics from "expo-haptics";
 import React, { memo, useCallback, useMemo } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
@@ -14,13 +13,13 @@ import {
 const ButtonSocialLogin = ({ type }) => {
   const SocialTypes = useMemo(
     () => ({
-      phone: {
-        label: "Continue with Phone",
-        iconComponent: (
-          <FontAwesome name="mobile-phone" size={40} color="gray" />
-        ),
-        onPress: () => console.log("Phone"),
-      },
+      // phone: {
+      //   label: "Continue with Phone",
+      //   iconComponent: (
+      //     <FontAwesome name="mobile-phone" size={40} color="gray" />
+      //   ),
+      //   onPress: () => console.log("Phone"),
+      // },
       facebook: {
         label: "Continue with Facebook",
         iconComponent: <Facebook width={35} height={35} />,

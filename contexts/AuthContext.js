@@ -2,7 +2,6 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
-import { Image } from "expo-image";
 import * as SecureStore from "expo-secure-store";
 import {
   createContext,
@@ -11,7 +10,7 @@ import {
   useReducer,
   useRef,
 } from "react";
-import { Alert, AppState } from "react-native";
+import { AppState } from "react-native";
 
 import { useSettings } from "./SettingsContext";
 import { Routes } from "../navigation/Routes";
@@ -86,7 +85,7 @@ export const AuthProvider = ({ children }) => {
   const onActiveStatusListener = useRef(null);
   const interceptorId = useRef(null);
 
-  const { settings, modifySetting } = useSettings();
+  const { modifySetting } = useSettings();
   const queryClient = useQueryClient();
 
   // Validate the token and login the user
@@ -113,11 +112,11 @@ export const AuthProvider = ({ children }) => {
       // Remove the expired token from storage
       await SecureStore.deleteItemAsync("userToken");
 
-      Alert.alert(
-        "Session expired",
-        "Please log in again to continue using Suitescape.",
-        [{ text: "OK" }],
-      );
+      // Alert.alert(
+      //   "Session expired",
+      //   "Please log in again to continue using Suitescape.",
+      //   [{ text: "OK" }],
+      // );
     }
   };
 
@@ -223,9 +222,12 @@ export const AuthProvider = ({ children }) => {
     // Clear all recently searched destinations
     await AsyncStorage.removeItem("recentSearches");
 
+    // Disable host mode
+    modifySetting("hostModeEnabled", false);
+
     // Clear the image cache
-    await Image.clearMemoryCache();
-    await Image.clearDiskCache();
+    // await Image.clearMemoryCache();
+    // await Image.clearDiskCache();
 
     dispatch({ type: "FINISH_LOADING" });
     dispatch({ type: "SIGN_OUT" });
@@ -269,6 +271,9 @@ export const AuthProvider = ({ children }) => {
         onSuccess: async (res) => {
           console.log("Login response:", res);
           await handleLogin(res.token, res.user.id);
+
+          // Save the email to the secure store so it can be used in the login screen
+          SecureStore.setItem("lastEmailLoggedIn", data.email);
         },
       });
     } catch (error) {
@@ -317,6 +322,9 @@ export const AuthProvider = ({ children }) => {
         onSuccess: async (res) => {
           console.log("Signup response:", res);
           await handleSignUp(res.token, res.user.id, navigation);
+
+          // Save the email to the secure store so it can be used in the login screen
+          SecureStore.setItem("lastEmailLoggedIn", data.email);
         },
       });
     } catch (error) {
@@ -345,15 +353,15 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: "START_LOADING" });
 
     // If the user is in guest mode, just disable it
-    if (settings.guestModeEnabled) {
-      dispatch({ type: "FINISH_LOADING" });
-
-      await disableGuestMode();
-
-      // Enable onboarding here, so it will be shown again when the user quits the app
-      // await modifySetting("onboardingEnabled", true);
-      return;
-    }
+    // if (settings.guestModeEnabled) {
+    //   dispatch({ type: "FINISH_LOADING" });
+    //
+    //   disableGuestMode();
+    //
+    //   // Enable onboarding here, so it will be shown again when the user quits the app
+    //   // await modifySetting("onboardingEnabled", true);
+    //   return;
+    // }
 
     // Update the active status to false
     try {

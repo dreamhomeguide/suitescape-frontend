@@ -1,13 +1,22 @@
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { FontAwesome6 } from "@expo/vector-icons";
+import { BottomSheetFooter } from "@gorhom/bottom-sheet";
 import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import React, { useCallback, useEffect } from "react";
-import { Platform, Pressable, StatusBar, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  ActivityIndicator,
+  Platform,
+  StatusBar,
+  Text,
+  View,
+} from "react-native";
 
 import style from "./FeedbackStyles";
 import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
+import AppFooter from "../../components/AppFooter/AppFooter";
+import BottomSheet from "../../components/BottomSheet/BottomSheet";
+import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 
 const feedbackType = {
   success: {
@@ -37,8 +46,6 @@ const Feedback = ({ navigation, route }) => {
     popToTop = true,
   } = route.params;
 
-  const insets = useSafeAreaInsets();
-
   useEffect(() => {
     if (Platform.OS === "ios" && feedbackType[type]?.haptic) {
       Haptics.notificationAsync(feedbackType[type].haptic).then(() => {
@@ -47,7 +54,7 @@ const Feedback = ({ navigation, route }) => {
     }
   }, []);
 
-  const handlePress = useCallback(() => {
+  const handleContinue = useCallback(() => {
     if (popToTop) {
       navigation.popToTop();
       screenToNavigate && navigation.navigate(screenToNavigate);
@@ -56,20 +63,41 @@ const Feedback = ({ navigation, route }) => {
     }
   }, [navigation, popToTop, replaceProps, screenToNavigate]);
 
-  return (
-    <Pressable onPress={handlePress} style={globalStyles.flexFull}>
-      <BlurView
-        intensity={80}
-        tint="light"
-        // experimentalBlurMethod="dimezisBlurView" // Will cause white screen on Android
-        style={globalStyles.flexFull}
-      >
-        <StatusBar barStyle="light-content" />
+  const renderFooter = useCallback(
+    ({ animatedFooterPosition }) => (
+      <BottomSheetFooter animatedFooterPosition={animatedFooterPosition}>
+        <AppFooter>
+          <ButtonLarge onPress={handleContinue}>Continue</ButtonLarge>
+        </AppFooter>
+      </BottomSheetFooter>
+    ),
+    [handleContinue],
+  );
 
+  return (
+    <BlurView
+      intensity={80}
+      tint="light"
+      // experimentalBlurMethod="dimezisBlurView" // Will cause white screen on Android
+      style={globalStyles.flexFull}
+    >
+      <StatusBar barStyle="light-content" />
+
+      {/* To make the user wait until it loads the next screen */}
+      <ActivityIndicator size="large" style={globalStyles.flexCenter} />
+
+      <BottomSheet
+        visible
+        enablePanDownToClose
+        onClose={handleContinue}
+        backdropProps={{ onPress: handleContinue }}
+        footerComponent={renderFooter}
+        modal={false}
+      >
         <View style={style.mainContainer}>
           <View style={style.contentContainer}>
             {feedbackType[type] && (
-              <FontAwesome5
+              <FontAwesome6
                 name={feedbackType[type].icon}
                 size={100}
                 color={feedbackType[type].color}
@@ -95,18 +123,8 @@ const Feedback = ({ navigation, route }) => {
             </Text>
           </View>
         </View>
-        <View
-          style={{
-            ...style.continueContainer,
-            marginBottom: insets.bottom + StatusBar.currentHeight + 25,
-          }}
-        >
-          <Text style={{ ...style.text, color: "rgba(255,255,255,0.8)" }}>
-            Tap to continue
-          </Text>
-        </View>
-      </BlurView>
-    </Pressable>
+      </BottomSheet>
+    </BlurView>
   );
 };
 

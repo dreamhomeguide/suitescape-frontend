@@ -2,10 +2,11 @@ import { useNavigation } from "@react-navigation/native";
 import { format } from "date-fns";
 import { Image } from "expo-image";
 import React, { memo, useCallback } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { RectButton } from "react-native-gesture-handler";
 
 import style from "./ReviewItemStyles";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import { Routes } from "../../navigation/Routes";
 import { baseURL } from "../../services/SuitescapeAPI";
 import ProfileImage from "../ProfileImage/ProfileImage";
@@ -22,20 +23,33 @@ const ReviewItem = ({ item }) => {
       images: [coverImage],
       ...listing
     },
-    room,
   } = item;
 
   const navigation = useNavigation();
 
+  const onUserPress = useCallback(() => {
+    navigation.push(Routes.PROFILE_HOST, { hostId: user.id });
+  }, [navigation, user.id]);
+
   const onViewListing = useCallback(() => {
-    navigation.push(Routes.LISTING_DETAILS, { listingId: listing.id });
+    navigation.navigate(Routes.LISTING_DETAILS, { listingId: listing.id });
   }, [navigation, listing.id]);
 
   return (
     <View style={style.mainContainer}>
-      <View style={style.userContainer}>
+      <Pressable
+        onPress={onUserPress}
+        style={({ pressed }) => ({
+          ...style.userContainer,
+          ...pressedOpacity(pressed),
+        })}
+      >
         <ProfileImage
-          source={user.picture_url ? { uri: baseURL + user.picture_url } : null}
+          source={
+            user.profile_image_url
+              ? { uri: baseURL + user.profile_image_url }
+              : null
+          }
           size={40}
           borderWidth={0}
         />
@@ -43,7 +57,8 @@ const ReviewItem = ({ item }) => {
           <Text style={style.userName}>{user.fullname}</Text>
           <StarRatingView rating={rating} starSize={20} />
         </View>
-      </View>
+      </Pressable>
+
       <RectButton style={style.listingButtonContainer} onPress={onViewListing}>
         <Image
           source={{ uri: baseURL + coverImage.url }}
@@ -51,14 +66,15 @@ const ReviewItem = ({ item }) => {
           contentFit="cover"
         />
         <View style={style.listingDetailsContainer}>
-          <Text style={style.listingCategory}>{room.category.name}</Text>
           <Text style={style.listingName}>{listing.name}</Text>
         </View>
       </RectButton>
-      <View style={style.contentContainer}>
-        <ReadMore numberOfLines={4}>{content}</ReadMore>
+
+      <View style={globalStyles.containerGap}>
+        {content && <ReadMore numberOfLines={4}>{content}</ReadMore>}
+
         <Text style={style.timestamp}>
-          {format(new Date(created_at), "MM-dd-yyyy")}
+          {created_at && format(new Date(created_at), "MM-dd-yyyy")}
         </Text>
       </View>
     </View>

@@ -1,6 +1,28 @@
-import { Linking, Platform } from "react-native";
+import { Alert, Platform } from "react-native";
+import * as AppLink from "react-native-app-link";
 
-const openLocationInGmaps = (location) => {
+export const openLocationAuto = (location) => {
+  if (!location) {
+    return;
+  }
+
+  Alert.alert("Open location in:", location, [
+    {
+      text: "Cancel",
+      style: "cancel",
+    },
+    {
+      text: "Google Maps",
+      onPress: () => openLocationInGmaps(location),
+    },
+    {
+      text: "Waze",
+      onPress: () => openLocationInWaze(location),
+    },
+  ]);
+};
+
+export const openLocationInGmaps = (location) => {
   // Default maps app
   // const scheme = Platform.select({
   //   ios: 'maps:',
@@ -18,14 +40,20 @@ const openLocationInGmaps = (location) => {
   // q = query search
   // center = show a map\
 
-  if (!location) {
-    return;
-  }
-  Linking.openURL(
+  return AppLink.maybeOpenURL(
     Platform.OS === "ios"
       ? `googleMaps://app?q=${location}`
       : `google.navigation:q=${location}`,
-  ).catch(() => console.log("Failed to open Google Maps."));
+    {
+      appStoreId: "585027354",
+      playStoreId: "com.google.android.apps.maps",
+    },
+  );
 };
 
-export default openLocationInGmaps;
+export const openLocationInWaze = (location) => {
+  return AppLink.maybeOpenURL(`waze://?q=${location}`, {
+    appStoreId: "323229106",
+    playStoreId: "com.waze",
+  });
+};

@@ -25,6 +25,9 @@ const style = StyleSheet.create({
     alignItems: "center",
     columnGap: 20,
   },
+  chipContainer: {
+    paddingVertical: 5,
+  },
 });
 
 export default style;

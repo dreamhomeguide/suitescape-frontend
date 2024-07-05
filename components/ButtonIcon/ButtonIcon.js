@@ -9,9 +9,10 @@ import { pressedBgColor } from "../../assets/styles/globalStyles";
 const ButtonIcon = ({
   color = Colors.lightblue,
   pressedColor = Colors.blue,
-  renderIcon,
   onPress,
   containerStyle,
+  renderIcon,
+  disabled,
 }) => {
   const handlePress = useCallback(async () => {
     if (Platform.OS === "ios") {
@@ -35,12 +36,13 @@ const ButtonIcon = ({
     <Pressable
       onPress={handlePress}
       style={({ pressed }) => ({
-        ...style.button({ bgColor: color }),
+        ...style.button({ bgColor: color, disabled }),
         ...containerStyle,
         ...pressedBgColor(pressed, pressedColor),
       })}
+      disabled={disabled}
     >
-      {renderIcon && renderIcon()}
+      {({ pressed }) => renderIcon && renderIcon(pressed)}
     </Pressable>
   );
 };

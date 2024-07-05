@@ -4,6 +4,7 @@ import { Text, View } from "react-native";
 import style from "./DetailsTitleViewStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import ButtonLink from "../ButtonLink/ButtonLink";
+import Chip from "../Chip/Chip";
 import CouponBadge from "../CouponBadge/CouponBadge";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
@@ -11,8 +12,9 @@ const DetailsTitleView = ({
   title,
   price,
   rating,
-  reviewsCount,
   discount,
+  reviewsCount,
+  isEntirePlace,
   onSeeAllReviews,
 }) => {
   return (
@@ -22,23 +24,28 @@ const DetailsTitleView = ({
       <Text style={style.titleText}>{title ?? "Loading..."}</Text>
 
       <View style={globalStyles.textGap}>
-        {price && (
+        {price ? (
           <Text style={style.priceText}>
             ₱{price?.toLocaleString()} per night
           </Text>
-        )}
+        ) : null}
 
         {/* Ratings */}
         <View style={style.ratingsContainer}>
-          <StarRatingView rating={rating} textStyle={style.ratingText} />
+          {rating ? (
+            <StarRatingView rating={rating} textStyle={style.ratingText} />
+          ) : null}
 
           {/* Reviews */}
           {reviewsCount ? (
             <ButtonLink onPress={onSeeAllReviews} textStyle={style.ratingText}>
-              {reviewsCount} {reviewsCount > 1 ? "Reviews" : "Review"}
+              {reviewsCount} {reviewsCount === 1 ? "Review" : "Reviews"}
             </ButtonLink>
           ) : null}
         </View>
+
+        {/* Entire Place */}
+        {isEntirePlace ? <Chip>Entire Place</Chip> : null}
       </View>
     </View>
   );

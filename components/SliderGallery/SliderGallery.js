@@ -21,6 +21,7 @@ const SliderGallery = ({ data, mediaType, height }) => {
         <SliderGalleryItemPhoto
           photoId={item.id}
           photoUrl={item.url}
+          privacy={item.privacy}
           height={height}
         />
       ) : (
@@ -28,6 +29,8 @@ const SliderGallery = ({ data, mediaType, height }) => {
           videoId={item.id}
           videoUrl={item.url}
           filename={item.filename}
+          privacy={item.privacy}
+          isTranscoded={item.is_transcoded}
           height={height}
         />
       );

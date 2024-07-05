@@ -15,6 +15,11 @@ const SummaryListView = ({ label, data }) => {
     [],
   );
 
+  // If data is empty, return null
+  if (!data || data.length === 0) {
+    return null;
+  }
+
   return (
     <View style={style.container}>
       <Text style={style.headerText}>{label}</Text>

@@ -1,12 +1,19 @@
-const extractNumber = (input, onSuccess) => {
+const extractNumber = (input, number = true, onSuccess) => {
   if (input === "") {
     onSuccess && onSuccess(null);
     return;
   }
 
-  const formatted = input.replace(/\D/, "");
+  // Allow digits and decimal points
+  const formatted = input.replace(/[^0-9.]/g, "");
 
   if (formatted === "") {
+    return;
+  }
+
+  // If value is not a number, return the formatted string
+  if (!number) {
+    onSuccess && onSuccess(formatted);
     return;
   }
 

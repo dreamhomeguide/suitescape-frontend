@@ -5,6 +5,12 @@ const style = StyleSheet.create({
     flex: 1,
     backgroundColor: "black",
   },
+  floatingIcon: {
+    position: "absolute",
+    top: "12%",
+    left: 0,
+    zIndex: 1,
+  },
 });
 
 export default style;

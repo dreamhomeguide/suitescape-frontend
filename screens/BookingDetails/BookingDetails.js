@@ -1,13 +1,13 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import React, { useCallback, useEffect, useLayoutEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { ScrollView, Text, View } from "react-native";
 
 import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
 import style from "../../assets/styles/summaryStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
-import Button from "../../components/Button/Button";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import DetailsPolicyView from "../../components/DetailsPolicyView/DetailsPolicyView";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
@@ -15,7 +15,8 @@ import SummaryFooter from "../../components/SummaryFooter/SummaryFooter";
 import SummaryListView from "../../components/SummaryListView/SummaryListView";
 import SummaryListingView from "../../components/SummaryListingView/SummaryListingView";
 import SummaryLocationView from "../../components/SummaryLocationView/SummaryLocationView";
-import { useBookingContext } from "../../contexts/BookingContext";
+import { useBookingData } from "../../contexts/BookingContext";
+import { useListingContext } from "../../contexts/ListingContext";
 import { Routes } from "../../navigation/Routes";
 import {
   fetchProfile,
@@ -25,31 +26,45 @@ import {
 } from "../../services/apiService";
 import { handleApiError } from "../../utils/apiHelpers";
 import {
+  getAddOnDetails,
   getBookingDetails,
   getGuestDetails,
+  getOriginalPrice,
   getPaymentDetails,
+  getRoomDetails,
 } from "../../utils/getBookingDetails";
 import selectBookingData from "../../utils/selectBookingData";
 
-const DISCOUNT = 0.1;
+const DISCOUNT = 0.1; // 10% discount
 
 const BookingDetails = ({ navigation, route }) => {
   const { bookingId, isUpdateDates, needsPayment } = route.params || {};
 
-  const { bookingState, clearDates } = useBookingContext();
-
+  const { setListing } = useListingContext();
+  const bookingData = useBookingData();
   const queryClient = useQueryClient();
 
-  // Clear dates on unmount
-  useEffect(() => {
-    return () => clearDates();
-  }, []);
-
-  const { data: bookingData, isFetching: isFetchingBooking } = useQuery({
+  const { data: booking, isFetching: isFetchingBooking } = useQuery({
     queryKey: ["bookings", bookingId],
     queryFn: () => fetchBooking(bookingId),
     select: selectBookingData,
   });
+
+  // Set listing to global context on focus
+  useFocusEffect(
+    useCallback(() => {
+      if (booking?.listing) {
+        setListing(booking.listing);
+      }
+    }, [booking?.listing]),
+  );
+
+  // Clear global listing and dates on unmount
+  useEffect(() => {
+    return () => {
+      setListing(null);
+    };
+  }, []);
 
   const { data: userData, isFetching: isFetchingUser } = useQuery({
     queryKey: ["profile"],
@@ -86,26 +101,54 @@ const BookingDetails = ({ navigation, route }) => {
       }),
   });
 
-  const guestDetails = getGuestDetails(userData);
-  const bookingDetails = getBookingDetails({
-    startDate: bookingData?.startDate,
-    endDate: bookingData?.endDate,
-    listing: bookingData?.listing,
-    room: bookingData?.room,
-  });
-  const paymentDetails = getPaymentDetails({
-    roomPrice: bookingData?.room.category.price,
-    nights: bookingData?.nights,
-    discount: DISCOUNT,
-    suitescapeFee,
-  });
+  /* Data START */
+  const guestDetails = useMemo(() => getGuestDetails(userData), [userData]);
+  const bookingDetails = useMemo(
+    () =>
+      getBookingDetails({
+        startDate: booking?.startDate,
+        endDate: booking?.endDate,
+        listing: booking?.listing,
+      }),
+    [booking?.startDate, booking?.endDate, booking?.listing],
+  );
+  const roomDetails = useMemo(() => {
+    // Get the room details from the bookingRooms
+    const roomsData = booking?.bookingRooms.map((bookingRoom) => ({
+      name: bookingRoom.room.category.name,
+      quantity: bookingRoom.quantity,
+      price: bookingRoom.room.category.price,
+    }));
+    return getRoomDetails(roomsData);
+  }, [booking?.bookingRooms]);
+  const addonDetails = useMemo(() => {
+    // Get the addon details from the bookingAddons
+    const addonsData = booking?.booking_addons.map((bookingAddon) => ({
+      name: bookingAddon.addon.name,
+      quantity: bookingAddon.quantity,
+      price: bookingAddon.price,
+    }));
+    return getAddOnDetails(addonsData);
+  }, [booking?.booking_addons, booking?.listing]);
+  const paymentDetails = useMemo(() => {
+    const originalPrice = getOriginalPrice({
+      grandTotal: booking?.amount,
+      nights: booking?.nights,
+      discountRate: DISCOUNT,
+      suitescapeFee,
+    });
+    return getPaymentDetails({
+      totalPrice: originalPrice,
+      nights: booking?.nights,
+      discount: DISCOUNT,
+      suitescapeFee,
+      isEntirePlace: booking?.listing.is_entire_place,
+    });
+  }, [booking?.amount, booking?.listing, booking?.nights, suitescapeFee]);
+  /* Data END */
 
   const onCancelBooking = useCallback(() => {
     navigation.navigate(Routes.CANCEL_BOOKING, { bookingId });
-  }, [bookingId, navigation]);
-
-  const onChangeDates = useCallback(() => {
-    navigation.navigate(Routes.CHANGE_DATES, { bookingId });
   }, [bookingId, navigation]);
 
   const handleDatesPayment = useCallback(() => {
@@ -119,31 +162,31 @@ const BookingDetails = ({ navigation, route }) => {
     if (!changeDatesMutation.isPending) {
       changeDatesMutation.mutate({
         bookingId,
-        startDate: bookingState.startDate,
-        endDate: bookingState.endDate,
+        startDate: bookingData.startDate,
+        endDate: bookingData.endDate,
       });
     }
   }, [
     bookingId,
-    bookingState.startDate,
-    bookingState.endDate,
+    bookingData.startDate,
+    bookingData.endDate,
     changeDatesMutation.isPending,
   ]);
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title:
-        bookingData?.status === "cancelled"
-          ? "Booking Details"
-          : "Edit Reservation",
-    });
-  }, [bookingData?.status, navigation]);
+  // useLayoutEffect(() => {
+  //   navigation.setOptions({
+  //     title:
+  //       booking?.status === "cancelled"
+  //         ? "Booking Details"
+  //         : "Edit Reservation",
+  //   });
+  // }, [booking?.status, navigation]);
 
   return (
     <View style={globalStyles.flexFull}>
       <ScrollView>
         <View style={globalStyles.rowGapSmall}>
-          {bookingData?.status === "completed" && (
+          {booking?.status === "completed" && (
             <View style={{ ...style.container, ...style.detailsRow }}>
               <Text
                 style={{
@@ -162,17 +205,17 @@ const BookingDetails = ({ navigation, route }) => {
           )}
 
           <SummaryListingView
-            listing={bookingData?.listing}
-            coverImageUrl={bookingData?.coverImage.url}
+            listing={booking?.listing}
+            coverImageUrl={booking?.coverImage.url}
           />
 
           <DetailsPolicyView
-            bookingPolicies={bookingData?.bookingPolicies}
-            cancellationPolicy={bookingData?.cancellationPolicy}
+            bookingPolicies={booking?.bookingPolicies}
+            cancellationPolicy={booking?.cancellationPolicy}
             smallSpacing
           />
 
-          <SummaryLocationView location={bookingData?.listing.location} />
+          <SummaryLocationView location={booking?.listing.location} />
 
           <SummaryListView
             label={bookingDetails.label}
@@ -183,16 +226,23 @@ const BookingDetails = ({ navigation, route }) => {
             label={guestDetails.label}
             data={guestDetails.data}
           />
-          {bookingData?.message?.trim() && (
+          {booking?.message?.trim() && (
             <View style={style.container}>
               <View style={globalStyles.largeContainerGap}>
                 <Text style={style.detailsLabel}>Message (Optional)</Text>
                 <Text style={{ ...style.detailsValue, ...style.message }}>
-                  {bookingData?.message}
+                  {booking?.message}
                 </Text>
               </View>
             </View>
           )}
+
+          <SummaryListView label={roomDetails.label} data={roomDetails.data} />
+
+          <SummaryListView
+            label={addonDetails.label}
+            data={addonDetails.data}
+          />
 
           <SummaryListView
             label={paymentDetails.label}
@@ -204,40 +254,22 @@ const BookingDetails = ({ navigation, route }) => {
           style={{ ...globalStyles.horizontalDivider, ...style.priceDivider }}
         />
 
-        {/* Uncomment only after coupon functionality is done: (uses backend for amount) */}
-        {/*<SummaryFooter label={'Amount Paid'} value={"₱" + bookingData?.amount.toLocaleString()} /> */}
-
         <SummaryFooter
           label="Amount Paid"
-          value={"₱" + paymentDetails.amount.toLocaleString()}
+          value={"₱" + booking?.amount.toLocaleString()}
         />
       </ScrollView>
 
-      {bookingData?.status !== "cancelled" && (
+      {booking?.status !== "cancelled" && (
         <AppFooter>
           {needsPayment ? (
             <ButtonLarge onPress={handleDatesPayment}>Pay now</ButtonLarge>
           ) : isUpdateDates ? (
             <ButtonLarge onPress={handleUpdateDates}>Confirm</ButtonLarge>
           ) : (
-            <View style={globalStyles.buttonRow}>
-              <Button
-                outlined
-                containerStyle={globalStyles.flexFull}
-                color={Colors.lightred}
-                onPress={onCancelBooking}
-              >
-                Cancel Booking
-              </Button>
-
-              <Button
-                containerStyle={globalStyles.flexFull}
-                color={Colors.lightred}
-                onPress={onChangeDates}
-              >
-                Edit Dates
-              </Button>
-            </View>
+            <ButtonLarge color={Colors.lightred} onPress={onCancelBooking}>
+              Cancel Booking
+            </ButtonLarge>
           )}
         </AppFooter>
       )}

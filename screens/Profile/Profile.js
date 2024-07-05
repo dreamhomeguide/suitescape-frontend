@@ -1,4 +1,4 @@
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useScrollToTop, useTheme } from "@react-navigation/native";
 import React, { useCallback, useMemo, useRef } from "react";
 import { Alert, Pressable, ScrollView, SectionList, View } from "react-native";
@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./ProfileStyles";
 import { Colors } from "../../assets/Colors";
+import { pressedOpacity } from "../../assets/styles/globalStyles";
 import Button from "../../components/Button/Button";
 import Chip from "../../components/Chip/Chip";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
@@ -14,14 +15,22 @@ import ProfileImage from "../../components/ProfileImage/ProfileImage";
 import ProfileSettingHeader from "../../components/ProfileSettingHeader/ProfileSettingHeader";
 import ProfileSettingItem from "../../components/ProfileSettingItem/ProfileSettingItem";
 import { useAuth } from "../../contexts/AuthContext";
+import { useBookingContext } from "../../contexts/BookingContext";
+import { useCartContext } from "../../contexts/CartContext";
 import { useSettings } from "../../contexts/SettingsContext";
+import { useTimerContext } from "../../contexts/TimerContext";
+import { useVideoFilters } from "../../contexts/VideoFiltersContext";
 import useProfilePicture from "../../hooks/useProfilePicture";
 import { Routes } from "../../navigation/Routes";
 
 const Profile = ({ navigation }) => {
-  const { authState, signOut } = useAuth();
+  const { authState, disableGuestMode, signOut } = useAuth();
 
+  const { setVideoFilters } = useVideoFilters();
+  const { clearAllBookingInfo } = useBookingContext();
   const { settings, modifySetting } = useSettings();
+  const { clearAllCart } = useCartContext();
+  const { stopAllTimers } = useTimerContext();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const profilePicture = useProfilePicture();
@@ -38,18 +47,32 @@ const Profile = ({ navigation }) => {
           {
             title: "Manage my account",
             onPress: () => navigation.navigate(Routes.MANAGE_ACCOUNT),
+            enableOnGuestMode: false,
           },
           {
             title: "Change password",
             onPress: () => navigation.navigate(Routes.CHANGE_PASSWORD),
+            enableOnGuestMode: false,
           },
           {
             title: "Saved",
             onPress: () => navigation.navigate(Routes.SAVED),
+            enableOnGuestMode: false,
           },
           {
             title: "Liked",
             onPress: () => navigation.navigate(Routes.LIKED),
+            enableOnGuestMode: false,
+          },
+        ],
+      },
+      {
+        title: "Travel Deals",
+        data: [
+          {
+            title: "Packages",
+            onPress: () => navigation.navigate(Routes.PACKAGES),
+            enableOnHostMode: false,
           },
         ],
       },
@@ -57,9 +80,22 @@ const Profile = ({ navigation }) => {
         title: "Hosting",
         data: [
           {
-            title: "Want to be a host?",
-            onPress: () => navigation.navigate(Routes.ONBOARDING_HOST),
-            enableOnGuestMode: true,
+            title: settings.hostModeEnabled
+              ? "Switch to Traveler"
+              : "Switch to Host",
+            onPress: () => {
+              if (settings.hostModeEnabled) {
+                modifySetting("hostModeEnabled", false);
+              } else {
+                navigation.navigate(Routes.ONBOARDING_HOST);
+              }
+            },
+            enableOnGuestMode: false,
+          },
+          {
+            title: "Earnings",
+            onPress: () => navigation.navigate(Routes.EARNINGS),
+            enableOnHostMode: true,
           },
         ],
       },
@@ -69,7 +105,6 @@ const Profile = ({ navigation }) => {
           {
             title: "App Feedback",
             onPress: () => navigation.navigate(Routes.APP_FEEDBACK),
-            enableOnGuestMode: true,
           },
         ],
       },
@@ -79,17 +114,14 @@ const Profile = ({ navigation }) => {
           {
             title: "Terms & Conditions",
             onPress: () => {},
-            enableOnGuestMode: true,
           },
           {
             title: "Privacy Policy",
             onPress: () => {},
-            enableOnGuestMode: true,
           },
           {
             title: "About Us",
             onPress: () => {},
-            enableOnGuestMode: true,
           },
         ],
       },
@@ -99,18 +131,36 @@ const Profile = ({ navigation }) => {
           {
             title: "Help Centre",
             onPress: () => {},
-            enableOnGuestMode: true,
           },
           {
             title: "How Suitescape Works",
             onPress: () => {},
-            enableOnGuestMode: true,
           },
         ],
       },
     ],
-    [navigation],
+    [navigation, settings.hostModeEnabled],
   );
+
+  const handleLogout = useCallback(async () => {
+    // Clear cart to prevent overlapping cart on other accounts
+    stopAllTimers();
+    clearAllCart();
+
+    // Clear global booking info
+    clearAllBookingInfo();
+
+    // Clear the video filters
+    setVideoFilters(null);
+
+    // If the user is in guest mode, just disable it
+    if (settings.guestModeEnabled) {
+      disableGuestMode();
+      return;
+    }
+
+    await signOut();
+  }, [settings.guestModeEnabled]);
 
   const promptLogout = useCallback(() => {
     Alert.alert("Logout", "Are you sure you want to log out?", [
@@ -120,22 +170,27 @@ const Profile = ({ navigation }) => {
       },
       {
         text: "Confirm",
-        onPress: signOut,
+        onPress: handleLogout,
         style: "destructive",
       },
     ]);
-  }, []);
+  }, [handleLogout]);
 
   const filteredProfileSettings = useMemo(
     () =>
-      profileSettings.filter(
-        ({ data }) =>
-          !settings.guestModeEnabled ||
-          data.some(
-            (profileSettingItem) => profileSettingItem.enableOnGuestMode,
-          ),
-      ),
-    [settings.guestModeEnabled],
+      profileSettings
+        .map((section) => ({
+          ...section,
+          data: section.data.filter((item) => {
+            return !(
+              (item.enableOnGuestMode === false && settings.guestModeEnabled) ||
+              (item.enableOnHostMode === false && settings.hostModeEnabled) ||
+              (item.enableOnHostMode === true && !settings.hostModeEnabled)
+            );
+          }),
+        }))
+        .filter((section) => section.data.length > 0),
+    [profileSettings, settings.guestModeEnabled, settings.hostModeEnabled],
   );
 
   const renderSectionHeader = useCallback(
@@ -155,15 +210,30 @@ const Profile = ({ navigation }) => {
     [],
   );
 
+  const onProfilePress = useCallback(
+    () =>
+      navigation.navigate(Routes.PROFILE_HOST, {
+        hostId: authState.userId,
+      }),
+    [navigation, authState.userId],
+  );
+
+  // For testing purposes only
+  const onOnboarding = useCallback(() => {
+    modifySetting("onboardingEnabled", true);
+    Alert.alert("Onboarding enabled");
+  }, []);
+
   return (
     <ScrollView ref={scrollViewRef} contentInset={{ bottom: insets.bottom }}>
       <FocusAwareStatusBar style="dark" animated />
+
       <View style={style.headerContainer}>
         <Pressable
-          onLongPress={() => {
-            modifySetting("onboardingEnabled", true);
-            Alert.alert("Onboarding enabled");
-          }}
+          onPress={onProfilePress}
+          onLongPress={onOnboarding}
+          disabled={settings.guestModeEnabled}
+          style={({ pressed }) => pressedOpacity(pressed)}
         >
           <ProfileImage source={profilePicture} size={100} />
         </Pressable>
@@ -172,7 +242,7 @@ const Profile = ({ navigation }) => {
           <Chip
             inverted
             renderIcon={({ size, color }) => (
-              <FontAwesome5 name="check" size={size} color={color} />
+              <FontAwesome6 name="check" size={size} color={color} />
             )}
           >
             Verified
@@ -201,7 +271,7 @@ const Profile = ({ navigation }) => {
           inverted
           containerStyle={style.bottomButtonContainer}
           textStyle={style.loginButton}
-          onPress={signOut}
+          onPress={handleLogout}
         >
           Login/Signup
         </Button>

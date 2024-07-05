@@ -1,36 +1,69 @@
 // noinspection JSCheckFunctionSignatures
 
-import React, { createContext, useContext, useReducer } from "react";
+import React, { createContext, useContext, useMemo, useReducer } from "react";
+
+import { useListingContext } from "./ListingContext";
+
+const initialState = {
+  listings: {},
+};
 
 // Data for the booking process
-const initialState = {
+const initialBookingState = {
   startDate: "",
   endDate: "",
   message: "",
   highlightedDates: [],
-  disabledDates: [
-    "2024-03-15",
-    "2024-03-25",
-    "2024-04-10",
-    "2024-04-20",
-    "2024-05-05",
-  ],
 };
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "SET_DATA":
-      return {
-        ...state,
-        ...action.payload,
+    case "SET_BOOKING_DATA": {
+      const { listingId, ...rest } = action.payload;
+      const listing = state.listings[listingId] || initialBookingState;
+
+      const newListing = {
+        ...listing,
+        ...rest,
       };
-    case "CLEAR_DATES":
+
       return {
         ...state,
+        listings: {
+          ...state.listings,
+          [listingId]: newListing,
+        },
+      };
+    }
+    case "CLEAR_DATES": {
+      const { listingId } = action.payload;
+
+      const newListing = {
+        ...state.listings[listingId],
         startDate: "",
         endDate: "",
       };
-    case "CLEAR_BOOKING_INFO":
+
+      return {
+        ...state,
+        listings: {
+          ...state.listings,
+          [listingId]: newListing,
+        },
+      };
+    }
+    case "CLEAR_BOOKING_INFO": {
+      const { listingId } = action.payload;
+
+      return {
+        ...state,
+        listings: {
+          ...state.listings,
+          [listingId]: initialBookingState,
+        },
+      };
+    }
+    case "CLEAR_ALL_BOOKING_INFO":
       return initialState;
     default:
       return state;
@@ -40,36 +73,55 @@ const reducer = (state, action) => {
 export const BookingContext = createContext({
   bookingState: initialState,
   setBookingData: (_payload) => {},
-  clearBookingInfo: () => {},
-  clearDates: () => {},
+  clearDates: (_listingId) => {},
+  clearBookingInfo: (_listingId) => {},
+  clearAllBookingInfo: () => {},
 });
 
 export const BookingProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState, undefined);
 
-  const setBookingData = (payload) => {
-    dispatch({ type: "SET_DATA", payload });
-  };
-
-  const clearBookingInfo = () => {
-    dispatch({ type: "CLEAR_BOOKING_INFO" });
-  };
-
-  const clearDates = () => {
-    dispatch({ type: "CLEAR_DATES" });
+  const actions = {
+    setBookingData: (payload) =>
+      dispatch({
+        type: "SET_BOOKING_DATA",
+        payload,
+      }),
+    clearDates: (payload) =>
+      dispatch({
+        type: "CLEAR_DATES",
+        payload,
+      }),
+    clearBookingInfo: (payload) =>
+      dispatch({
+        type: "CLEAR_BOOKING_INFO",
+        payload,
+      }),
+    clearAllBookingInfo: () =>
+      dispatch({
+        type: "CLEAR_ALL_BOOKING_INFO",
+      }),
   };
 
   const bookingContext = {
     bookingState: state,
-    setBookingData,
-    clearBookingInfo,
-    clearDates,
+    ...actions,
   };
 
   return (
     <BookingContext.Provider value={bookingContext}>
       {children}
     </BookingContext.Provider>
+  );
+};
+
+export const useBookingData = () => {
+  const { bookingState } = useBookingContext();
+  const { listing } = useListingContext();
+
+  return useMemo(
+    () => bookingState.listings[listing?.id] || initialBookingState,
+    [bookingState.listings, listing?.id],
   );
 };
 

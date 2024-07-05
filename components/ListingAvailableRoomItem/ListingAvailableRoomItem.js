@@ -7,12 +7,11 @@ import globalStyles from "../../assets/styles/globalStyles";
 import amenitiesData from "../../data/amenitiesData";
 import { Routes } from "../../navigation/Routes";
 import Button from "../Button/Button";
-import StarRatingView from "../StarRatingView/StarRatingView";
 
 const AMENITY_IN_VIEW = 3;
 
 const ListingAvailableRoomItem = ({ item }) => {
-  const { category, average_rating, amenities } = item;
+  const { category, amenities } = item;
 
   const navigation = useNavigation();
 
@@ -46,7 +45,7 @@ const ListingAvailableRoomItem = ({ item }) => {
         </Text>
 
         {/* This is causing virtualized list issues */}
-        <StarRatingView rating={average_rating} textStyle={{ fontSize: 14 }} />
+        {/*<StarRatingView rating={average_rating} textStyle={{ fontSize: 14 }} />*/}
       </View>
 
       <View style={style.detailsContainer}>
@@ -62,13 +61,17 @@ const ListingAvailableRoomItem = ({ item }) => {
             Room Details
           </Text>
           <Text style={style.text}>
-            <Text style={style.tagText}>Room Size:</Text> {category.size} Sqm
+            <Text style={style.tagText}>Room Size:</Text> {category.floor_area}{" "}
+            Sqm
           </Text>
           <Text style={style.text}>
             <Text style={style.tagText}>Good for:</Text> {category.pax}{" "}
             {category.pax > 1 ? "Persons" : "Person"}
           </Text>
-          <Text style={style.tagText}>Others...</Text>
+          <Text style={style.text}>
+            <Text style={style.tagText}>Available Rooms:</Text>{" "}
+            {category.quantity}
+          </Text>
         </View>
 
         <View

@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { memo, useCallback, useEffect, useState } from "react";
 import { FlatList, Text, View } from "react-native";
 
 import style from "./ListingFeaturesViewStyles";
@@ -12,23 +12,35 @@ export const FEATURES = {
   placesNearby: "places nearby",
 };
 
-const featureData = {
+const FEATURE_DATA = {
   [FEATURES.amenities]: amenitiesData,
   [FEATURES.placesNearby]: placesNearbyData,
 };
 
-const ListingFeaturesView = ({ feature, data, size = 5, fullMode = false }) => {
+const ListingFeaturesView = ({ feature, data, size = 6, fullMode = true }) => {
   const [validFeatures, setValidFeatures] = useState([]);
 
-  const getValidFeatures = () => {
-    if (!data) {
-      return [];
-    }
-    const validator = featureData[feature];
-    return data.filter(({ name }) => validator[name]);
-  };
+  const renderItem = useCallback(
+    ({ item }) => (
+      <ListingFeatureItem
+        featureName={item.name}
+        featureData={FEATURE_DATA[feature]}
+        isSelected={item.isSelected}
+        onPress={item.onPress}
+      />
+    ),
+    [],
+  );
 
   useEffect(() => {
+    const getValidFeatures = () => {
+      if (!data) {
+        return [];
+      }
+      const validator = FEATURE_DATA[feature];
+      return data.filter(({ name }) => validator[name]);
+    };
+
     setValidFeatures(getValidFeatures());
   }, [data]);
 
@@ -45,15 +57,10 @@ const ListingFeaturesView = ({ feature, data, size = 5, fullMode = false }) => {
       <FlatList
         scrollEnabled={fullMode}
         data={validFeaturesData}
+        renderItem={renderItem}
         numColumns={3}
         contentContainerStyle={style.contentContainer}
-        renderItem={({ item }) => (
-          <ListingFeatureItem
-            featureName={item.name}
-            featureData={featureData[feature]}
-          />
-        )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.name}
       />
     </View>
   );

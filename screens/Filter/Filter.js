@@ -19,11 +19,10 @@ import {
   Text,
   View,
 } from "react-native";
-import { RectButton } from "react-native-gesture-handler";
 import { useToast } from "react-native-toast-notifications";
 import { Item } from "react-navigation-header-buttons";
 
-import globalStyles from "../../assets/styles/globalStyles";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import style from "../../assets/styles/searchStyles";
 import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
@@ -59,9 +58,9 @@ const initialState = {
 
 const reducer = (state, action) => {
   switch (action.type) {
-    case "CLEAR_DATA":
+    case "CLEAR_FILTER_DATA":
       return initialState;
-    case "SET_DATA":
+    case "SET_FILTER_DATA":
       return {
         ...state,
         ...action.payload,
@@ -92,17 +91,14 @@ const Filter = ({ navigation, route }) => {
   const videoFiltersEmptyOrNull =
     !videoFilters || Object.keys(videoFilters).length === 0;
 
-  const setData = useCallback((payload) => {
-    dispatch({ type: "SET_DATA", payload });
-  }, []);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setShowFilters(true);
-    }, 0);
-
-    return () => clearTimeout(timeout);
-  }, []);
+  const filterActions = useMemo(
+    () => ({
+      setFilterData: (payload) =>
+        dispatch({ type: "SET_FILTER_DATA", payload }),
+      clearFilterData: () => dispatch({ type: "CLEAR_FILTER_DATA" }),
+    }),
+    [],
+  );
 
   // Sync filter context with this screen
   useEffect(() => {
@@ -119,7 +115,8 @@ const Filter = ({ navigation, route }) => {
         return amenitiesObject;
       };
 
-      setData({
+      // Convert to proper format
+      filterActions.setFilterData({
         ...videoFilters,
         amenities: convertToAmenitiesObject(videoFilters.amenities),
         check_in: videoFilters.check_in
@@ -135,12 +132,12 @@ const Filter = ({ navigation, route }) => {
   // Get destination query from search screen
   useEffect(() => {
     if (route.params?.destination !== undefined) {
-      setData({ destination: route.params.destination });
+      filterActions.setFilterData({ destination: route.params.destination });
     }
   }, [route.params?.destination]);
 
   const handleClear = useCallback(() => {
-    dispatch({ type: "CLEAR_DATA" });
+    filterActions.clearFilterData();
 
     toast.show("Filter cleared", {
       style: toastStyles.toastInsetFooter,
@@ -264,22 +261,25 @@ const Filter = ({ navigation, route }) => {
   }, [getAmenityNames, isStateReset, navigation, state, videoFilters]);
 
   const validateCheckIn = useCallback((checkIn, checkOut) => {
+    // Checks if check-in date is before today
     if (isBefore(checkIn, subDays(new Date(), 1))) {
-      setData({ check_in: initialState.check_in });
+      filterActions.setFilterData({ check_in: initialState.check_in });
       return;
     }
 
+    // Checks if check-out date is before check-in date
     if (checkIn && checkOut && isBefore(checkOut, checkIn)) {
-      setData({ check_out: initialState.check_in });
+      filterActions.setFilterData({ check_out: initialState.check_in });
     }
   }, []);
 
   const validateCheckOut = useCallback((checkIn, checkOut) => {
+    // Checks if check-out date is before check-in date
     if (
-      isBefore(checkOut, checkIn) ||
+      isBefore(checkOut, subDays(checkIn, 1)) ||
       isBefore(checkOut, subDays(new Date(), 1))
     ) {
-      setData({ check_out: initialState.check_out });
+      filterActions.setFilterData({ check_out: initialState.check_out });
     }
   }, []);
 
@@ -294,13 +294,16 @@ const Filter = ({ navigation, route }) => {
           key={stars}
           onPress={() => {
             if (selected) {
-              setData({
+              filterActions.setFilterData({
                 min_rating: initialState.min_rating,
                 max_rating: initialState.max_rating,
               });
               return;
             }
-            setData({ min_rating: minRating, max_rating: maxRating });
+            filterActions.setFilterData({
+              min_rating: minRating,
+              max_rating: maxRating,
+            });
           }}
           style={{
             flexDirection: "row",
@@ -327,9 +330,11 @@ const Filter = ({ navigation, route }) => {
 
   if (!showFilters) {
     return (
-      <>
-        <ActivityIndicator size="small" style={globalStyles.loadingCircle} />
-      </>
+      <ActivityIndicator
+        size="small"
+        style={globalStyles.loadingCircle}
+        onLayout={() => setShowFilters(true)}
+      />
     );
   }
 
@@ -350,8 +355,12 @@ const Filter = ({ navigation, route }) => {
             <PriceRange
               minimumPrice={state.min_price}
               maximumPrice={state.max_price}
-              onMinPriceChanged={(minPrice) => setData({ min_price: minPrice })}
-              onMaxPriceChanged={(maxPrice) => setData({ max_price: maxPrice })}
+              onMinPriceChanged={(minPrice) =>
+                filterActions.setFilterData({ min_price: minPrice })
+              }
+              onMaxPriceChanged={(maxPrice) =>
+                filterActions.setFilterData({ max_price: maxPrice })
+              }
               // onPriceRangeChanged={(priceRange) => setData({ priceRange })}
             />
           </View>
@@ -359,27 +368,20 @@ const Filter = ({ navigation, route }) => {
           <View style={style.container}>
             <Text style={style.filterHeaderText}>Destination</Text>
 
-            <RectButton
+            <Pressable
+              style={({ pressed }) => pressedOpacity(pressed)}
               onPress={() => {
-                const adults = state.adults <= 0 ? 0 : state.adults;
-                const children = state.children <= 0 ? 0 : state.children;
-
-                navigation.navigate({
-                  name: Routes.SEARCH,
-                  params: {
-                    prevDestination: state.destination,
-                    checkIn: state.check_in,
-                    checkOut: state.check_out,
-                    guests: adults + children,
-                  },
+                navigation.navigate(Routes.SEARCH, {
+                  prevDestination: state.destination,
                 });
               }}
-              style={style.searchButton}
             >
-              <View pointerEvents="none">
-                <FormInput placeholder="Where To?" value={state.destination} />
-              </View>
-            </RectButton>
+              <FormInput
+                placeholder="Where To?"
+                value={state.destination}
+                containerStyle={{ pointerEvents: "none" }}
+              />
+            </Pressable>
           </View>
 
           <View style={style.container}>
@@ -388,9 +390,10 @@ const Filter = ({ navigation, route }) => {
               <FormInput
                 type="date"
                 placeholder="Check-in"
+                inputEnabled={false}
                 value={state.check_in}
                 onChangeText={(value) => {
-                  setData({ check_in: value });
+                  filterActions.setFilterData({ check_in: value });
                 }}
                 onDateConfirm={(checkIn, text) => {
                   // if (isBefore(checkIn, subDays(new Date(), 1))) {
@@ -410,7 +413,7 @@ const Filter = ({ navigation, route }) => {
                     convertDateFormat(state.check_out),
                   );
 
-                  setData({ check_in: text });
+                  filterActions.setFilterData({ check_in: text });
                   validateCheckIn(checkIn, checkOutDate);
                 }}
                 onBlur={() => {
@@ -452,38 +455,20 @@ const Filter = ({ navigation, route }) => {
               <FormInput
                 type="date"
                 placeholder="Check-out"
+                inputEnabled={false}
                 value={state.check_out}
                 onChangeText={(value) => {
-                  setData({ check_out: value });
+                  filterActions.setFilterData({ check_out: value });
                 }}
                 onDateConfirm={(checkOut, text) => {
-                  // if (
-                  //   isBefore(checkOut, convertMMDDYYYY(state.checkIn)) ||
-                  //   isBefore(checkOut, subDays(new Date(), 1))
-                  // ) {
-                  //   setData({ checkOut: "" });
-                  //   return;
-                  // }
                   const checkInDate = new Date(
                     convertDateFormat(state.check_in),
                   );
 
-                  setData({ check_out: text });
+                  filterActions.setFilterData({ check_out: text });
                   validateCheckOut(checkInDate, checkOut);
                 }}
                 onBlur={() => {
-                  // if (
-                  //   isBefore(
-                  //     convertMMDDYYYY(state.checkOut),
-                  //     convertMMDDYYYY(state.checkIn),
-                  //   ) ||
-                  //   isBefore(
-                  //     convertMMDDYYYY(state.checkOut),
-                  //     subDays(new Date(), 1),
-                  //   )
-                  // ) {
-                  //   setData({ checkOut: "" });
-                  // }
                   const checkInDate = new Date(
                     convertDateFormat(state.check_in),
                   );
@@ -508,10 +493,12 @@ const Filter = ({ navigation, route }) => {
             <Text style={style.filterHeaderText}>Type of Facility</Text>
             <View style={style.inputContentContainer}>
               <FormPicker
-                label="Facility"
+                placeholder="Facility"
                 data={facilities}
                 value={state.facilities}
-                onSelected={(selected) => setData({ facilities: selected })}
+                onSelected={(selected) =>
+                  filterActions.setFilterData({ facilities: selected })
+                }
                 multiSelect
               />
             </View>
@@ -542,7 +529,7 @@ const Filter = ({ navigation, route }) => {
               placeholder="Room"
               value={state.rooms}
               onValueChange={(value) => {
-                setData({ rooms: value });
+                filterActions.setFilterData({ rooms: value });
               }}
             />
           </View>
@@ -554,14 +541,14 @@ const Filter = ({ navigation, route }) => {
                 placeholder="Adult"
                 value={state.adults}
                 onValueChange={(value) => {
-                  setData({ adults: value });
+                  filterActions.setFilterData({ adults: value });
                 }}
               />
               <FormStepper
                 placeholder="Children"
                 value={state.children}
                 onValueChange={(value) => {
-                  setData({ children: value });
+                  filterActions.setFilterData({ children: value });
                 }}
               />
             </View>
@@ -575,10 +562,10 @@ const Filter = ({ navigation, route }) => {
           <View style={style.container}>
             <Pressable
               onPress={() =>
-                setData({
+                filterActions.setFilterData({
                   amenities: {
                     ...state.amenities,
-                    pet_friendly: !state.amenities.pet_friendly,
+                    is_pet_allowed: !state.amenities.is_pet_allowed,
                   },
                 })
               }
@@ -589,7 +576,7 @@ const Filter = ({ navigation, route }) => {
                 paddingVertical: 8,
               }}
             >
-              <Text style={style.filterHeaderText}>Pet Friendly</Text>
+              <Text style={style.filterHeaderText}>Is Pet Friendly?</Text>
               {/*<View style={{ right: -7 }}>*/}
               {/*  <Checkbox.Android*/}
               {/*      status={state.petFriendly ? "checked" : "unchecked"}*/}
@@ -597,12 +584,12 @@ const Filter = ({ navigation, route }) => {
               {/*  />*/}
               {/*</View>*/}
 
-              <FormRadio selected={state.amenities.pet_friendly} />
+              <FormRadio selected={state.amenities.is_pet_allowed} />
             </Pressable>
 
             <Pressable
               onPress={() =>
-                setData({
+                filterActions.setFilterData({
                   amenities: {
                     ...state.amenities,
                     parking_lot: !state.amenities.parking_lot,

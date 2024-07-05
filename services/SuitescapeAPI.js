@@ -1,10 +1,11 @@
 import axios from "axios";
+// import * as Linking from "expo-linking";
 
-const serverIpAddress = "0.0.0.0";
-// const serverIpAddress = "192.168.100.151";
+// eslint-disable-next-line no-undef
+// const serverIpAddress = new URL(Linking.createURL("/")).hostname;
 
-export const baseURL = `http://${serverIpAddress}/suitescape-api.test`;
-// export const baseURL = `https://suitescape.dream-homeseller.com`;
+// export const baseURL = `http://${serverIpAddress}/suitescape-api.test`;
+export const baseURL = `https://suitescape.dream-homeseller.com`;
 
 export const baseURLWithAPI = baseURL + "/api";
 

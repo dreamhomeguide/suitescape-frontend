@@ -11,17 +11,12 @@ import Button from "../Button/Button";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
 const BookingItem = ({ item, type }) => {
-  const { id: bookingId, booking_rooms: bookingRooms } = item;
+  const { id: bookingId, listing } = item;
 
-  // Get the first room only on the booking
+  // Get the first image as cover image
   const {
-    room: {
-      listing: {
-        images: [coverImage],
-        ...listing
-      },
-    },
-  } = bookingRooms[0] || {};
+    images: [coverImage],
+  } = listing;
 
   // Get first image
   // const { data: images } = useFetchAPI(`/listings/${listingId}/images`);
@@ -42,7 +37,7 @@ const BookingItem = ({ item, type }) => {
   const actionButton = useMemo(
     () => ({
       upcoming: {
-        label: "Edit Reservation",
+        label: "View Details",
         onPress: () =>
           navigation.navigate(Routes.BOOKING_DETAILS, { bookingId }),
       },
@@ -93,7 +88,7 @@ const BookingItem = ({ item, type }) => {
           outlined
           containerStyle={globalStyles.flexFull}
         >
-          View Details
+          View Listing
         </Button>
         <View style={globalStyles.flexFull}>
           {actionButton[type] && (

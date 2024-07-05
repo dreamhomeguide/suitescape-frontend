@@ -5,7 +5,13 @@ import style from "./ListingFeatureItemStyles";
 import { Colors } from "../../assets/Colors";
 import { pressedBorderColor } from "../../assets/styles/globalStyles";
 
-const ListingFeatureItem = ({ featureName, featureData }) => {
+const ListingFeatureItem = ({
+  featureName,
+  featureData,
+  isSelected,
+  onPress,
+  containerStyle,
+}) => {
   if (!featureData[featureName]) {
     return null;
   }
@@ -16,8 +22,11 @@ const ListingFeatureItem = ({ featureName, featureData }) => {
     <Pressable
       style={({ pressed }) => ({
         ...style.container,
+        ...containerStyle,
+        ...(isSelected && { borderColor: Colors.blue }),
         ...pressedBorderColor(pressed, Colors.lightblue),
       })}
+      onPress={onPress}
     >
       <IconLibrary name={icon} size={iconSize} color={Colors.blue} />
       <Text style={style.text}>{label}</Text>

@@ -17,6 +17,7 @@ import {
   updateBookingStatus,
 } from "../../services/apiService";
 import { handleApiError } from "../../utils/apiHelpers";
+import reducerSetter from "../../utils/reducerSetter";
 import selectBookingData from "../../utils/selectBookingData";
 
 const ratingLabels = {
@@ -36,8 +37,8 @@ const initialState = Object.keys(ratingLabels).reduce((acc, state) => {
 }, {});
 
 const RateExperience = ({ navigation, route }) => {
-  const [state, setData] = useReducer(
-    (state, data) => ({ ...state, ...data }),
+  const [state, setRatingData] = useReducer(
+    reducerSetter,
     initialState,
     undefined,
   );
@@ -50,22 +51,21 @@ const RateExperience = ({ navigation, route }) => {
 
   const bookingId = route.params.bookingId;
 
-  const { data: bookingData, isFetching: isFetchingBooking } = useQuery({
+  const { data: booking, isFetching: isFetchingBooking } = useQuery({
     queryKey: ["bookings", bookingId],
     queryFn: () => fetchBooking(bookingId),
     select: selectBookingData,
   });
 
   const rateExperienceMutation = useMutation({
-    mutationFn: async (data) => {
-      await createReview(data);
-
-      // Update booking status to completed
-      await updateBookingStatus({ bookingId, status: "completed" });
+    mutationFn: (data) => {
+      createReview(data).then(() =>
+        updateBookingStatus({ bookingId, status: "completed" }),
+      );
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["bookings"],
+        queryKey: ["bookings", "user"],
         exact: true,
       });
 
@@ -89,15 +89,14 @@ const RateExperience = ({ navigation, route }) => {
   const handleRateExperience = useCallback(() => {
     if (!rateExperienceMutation.isPending) {
       rateExperienceMutation.mutate({
-        listingId: bookingData.listing.id,
-        roomId: bookingData.room.id,
+        listingId: booking.listing.id,
         feedback,
         overallRating,
         serviceRatings: state,
       });
     }
   }, [
-    bookingData,
+    booking?.listing.id,
     feedback,
     overallRating,
     state,
@@ -109,8 +108,8 @@ const RateExperience = ({ navigation, route }) => {
       <ScrollView ref={scrollViewRef}>
         <View style={globalStyles.rowGapSmall}>
           <SummaryListingView
-            listing={bookingData?.listing}
-            coverImageUrl={bookingData?.coverImage.url}
+            listing={booking?.listing}
+            coverImageUrl={booking?.coverImage.url}
           />
 
           <View style={globalStyles.rowGap}>
@@ -123,7 +122,7 @@ const RateExperience = ({ navigation, route }) => {
                   <View style={style.detailsRow}>
                     <StarRating
                       rating={state[key]}
-                      onChange={(rating) => setData({ [key]: rating })}
+                      onChange={(rating) => setRatingData({ [key]: rating })}
                       starSize={30}
                       starStyle={style.starRating}
                     />

@@ -8,6 +8,9 @@ const globalStyles = StyleSheet.create({
   flexFull: {
     flex: 1,
   },
+  flexGrow: {
+    flexGrow: 1,
+  },
   flexCenter: {
     flex: 1,
     alignItems: "center",
@@ -120,6 +123,33 @@ const globalStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     columnGap: 30,
+  },
+  buttonRowSmall: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 10,
+  },
+  swiperActionButton: {
+    height: "100%",
+    width: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  swiperActionText: {
+    color: "white",
+  },
+  swiperContainer: {
+    borderRadius: 10,
+  },
+  swiperBackground: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 15,
+    zIndex: -1,
+  },
+  disabledBackground: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 999,
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
 });
 

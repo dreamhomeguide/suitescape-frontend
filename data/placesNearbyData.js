@@ -32,7 +32,7 @@ export default {
     IconLibrary: Fontello,
   },
   supermarket: {
-    label: "Supermarket",
+    label: "Market",
     icon: "mall-solid",
     iconSize: 25,
     IconLibrary: Fontello,

@@ -2,13 +2,17 @@ import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
   mainContainer: {
-    flex: 1,
     flexDirection: "row",
+    columnGap: 15,
   },
-  stepperContainer: {
+  stepperContainer: (label) => ({
+    justifyContent: "flex-end",
+    marginTop: label ? "10%" : 4,
+    marginBottom: 4,
+    marginRight: 4,
+  }),
+  contentContainer: {
     flex: 1,
-    marginRight: 5,
-    marginVertical: 4,
     flexDirection: "row",
     justifyContent: "flex-end",
   },

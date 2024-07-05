@@ -1,13 +1,5 @@
-import {
-  addDays,
-  addMonths,
-  differenceInDays,
-  eachDayOfInterval,
-  format,
-  isAfter,
-  isBefore,
-  subDays,
-} from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { addMonths, differenceInDays, format, isAfter } from "date-fns";
 import React, {
   useCallback,
   useEffect,
@@ -26,28 +18,53 @@ import toastStyles from "../../assets/styles/toastStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import AppFooterDetails from "../../components/AppFooterDetails/AppFooterDetails";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
-import { useBookingContext } from "../../contexts/BookingContext";
+import {
+  useBookingContext,
+  useBookingData,
+} from "../../contexts/BookingContext";
+import { useCartContext } from "../../contexts/CartContext";
+import { useListingContext } from "../../contexts/ListingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
+import { CALENDAR_THEME } from "../../data/RNCTheme";
+import useDates, { RNC_DATE_FORMAT } from "../../hooks/useDates";
+import { fetchListing } from "../../services/apiService";
 import formatRange from "../../utils/rangeFormatter";
 
-export const RNC_DATE_FORMAT = "yyyy-MM-dd";
-
 const SelectDates = ({ navigation, route }) => {
-  const { bookingState, setBookingData } = useBookingContext();
+  const { screenToNavigate, ...otherParams } = route.params || {};
+
   const { room } = useRoomContext();
+  const {
+    listing: { id: listingId, is_entire_place: isEntirePlace, ...initialData },
+  } = useListingContext();
+  const { setBookingData } = useBookingContext();
+  const { archiveAll } = useCartContext();
+  const bookingData = useBookingData();
   const toast = useToast();
 
-  const [startDate, setStartDate] = useState(bookingState.startDate || "");
-  const [endDate, setEndDate] = useState(bookingState.endDate || "");
+  const [startDate, setStartDate] = useState(`${bookingData.startDate}`);
+  const [endDate, setEndDate] = useState(`${bookingData.endDate}`);
   const [current, setCurrent] = useState(format(new Date(), RNC_DATE_FORMAT));
   const [isLoading, setIsLoading] = useState(true);
 
-  const { screenToNavigate, ...otherParams } = route.params || {};
+  const { data: listing, isFetching } = useQuery({
+    queryKey: ["listings", listingId, startDate, endDate],
+    queryFn: () => fetchListing({ listingId, startDate, endDate }),
+    enabled: Boolean(isEntirePlace && startDate && endDate),
+    staleTime: 0,
+    initialData,
+  });
 
-  const clearDates = useCallback(() => {
-    setStartDate("");
-    setEndDate("");
-  }, []);
+  const { maxDate, markedDates, onDayPress, clearDates } = useDates({
+    startDate,
+    endDate,
+    onStartDateChange: setStartDate,
+    onEndDateChange: setEndDate,
+    unavailableDates: isEntirePlace
+      ? listing?.unavailable_dates
+      : room?.unavailable_dates,
+    highlightedDates: bookingData.highlightedDates,
+  });
 
   const headerRight = useCallback(() => {
     const isStateReset = !startDate && !endDate;
@@ -80,183 +97,6 @@ const SelectDates = ({ navigation, route }) => {
     return () => toast.hideAll();
   }, [toast]);
 
-  // Get night difference
-  const diffInDays = useMemo(() => {
-    if (startDate && endDate) {
-      return differenceInDays(new Date(endDate), new Date(startDate));
-    }
-    return 0;
-  }, [startDate, endDate]);
-
-  const maxDate = useMemo(() => {
-    if (!startDate) {
-      return;
-    }
-
-    // Get the first disabled date after the start date
-    const maxDate = bookingState.disabledDates.find((day) =>
-      isAfter(day, new Date(startDate)),
-    );
-
-    if (maxDate) {
-      return format(maxDate, RNC_DATE_FORMAT);
-    }
-  }, [bookingState.disabledDates, startDate]);
-
-  const disabledDates = useMemo(() => {
-    const disabledDays = {};
-    for (const day of bookingState.disabledDates) {
-      const formattedDate = format(new Date(day), RNC_DATE_FORMAT);
-
-      disabledDays[formattedDate] = {
-        disabled: true,
-      };
-    }
-    return disabledDays;
-  }, [bookingState.disabledDates]);
-
-  const highlightedDates = useMemo(() => {
-    const highlightedDays = {};
-    for (const day of bookingState.highlightedDates) {
-      const formattedDate = format(new Date(day), RNC_DATE_FORMAT);
-
-      highlightedDays[formattedDate] = {
-        marked: true,
-        dotColor: Colors.red,
-      };
-    }
-    return highlightedDays;
-  }, [bookingState.highlightedDates]);
-
-  const markedDates = useMemo(() => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    const markedDays = {};
-    if (startDate && endDate && isBefore(start, end) && diffInDays > 1) {
-      const exclusiveStart = addDays(start, 1);
-      const exclusiveEnd = subDays(end, 1);
-      const daysRange = eachDayOfInterval({
-        start: exclusiveStart,
-        end: exclusiveEnd,
-      });
-
-      for (const day of daysRange) {
-        // if (
-        //   sampleDisabledDays
-        //     .map((d) => format(d, DATE_FORMAT))
-        //     .includes(format(day, DATE_FORMAT))
-        // ) {
-        //   // Style disabled days
-        //   markedDays[format(day, DATE_FORMAT)] = {
-        //     selected: true,
-        //     color: Colors.lightgray,
-        //   };
-        //   continue;
-        // }
-
-        markedDays[format(day, RNC_DATE_FORMAT)] = {
-          selected: true,
-          textColor: "black",
-          color: Colors.lightblue,
-        };
-      }
-    }
-
-    return {
-      ...disabledDates,
-      ...highlightedDates,
-      ...markedDays,
-      [endDate]: {
-        selected: true,
-        endingDay: true,
-        color: Colors.blue,
-      },
-      [startDate]: {
-        selected: true,
-        startingDay: true,
-        endingDay: startDate === endDate,
-        color: Colors.blue,
-      },
-    };
-  }, [diffInDays, disabledDates, highlightedDates, startDate, endDate]);
-
-  const onDayPress = useCallback(
-    (date) => {
-      // Hide all toasts
-      toast.hideAll();
-
-      // If selected is disabled, do nothing
-      if (markedDates[date.dateString]?.disabled) {
-        return;
-      }
-
-      // If selected is a formed circle, reset dates
-      if (date.dateString === startDate && date.dateString === endDate) {
-        clearDates();
-        return;
-      }
-
-      // If selected is also the start date, make it the end date as well, forming a circle
-      if (date.dateString === startDate && !endDate) {
-        setEndDate(date.dateString);
-        return;
-      }
-
-      // If selected is in marked dates, reset dates
-      if (markedDates[date.dateString]?.selected) {
-        clearDates();
-        return;
-      }
-
-      // If there is a start date and no end date, set end date
-      // Checks if the date is also after the start date
-      if (
-        startDate &&
-        !endDate &&
-        isAfter(new Date(date.dateString), new Date(startDate))
-      ) {
-        // Check if the end date passes through a disabled day
-        // for (const day of sampleDisabledDays) {
-        //   if (
-        //     isWithinInterval(day, {
-        //       start: new Date(startDate),
-        //       end: new Date(date.dateString),
-        //     })
-        //   ) {
-        //     // Set end date to the day before the disabled day
-        //     const dayBeforeDisabled = subDays(day, 1);
-        //     setEndDate(format(dayBeforeDisabled, DATE_FORMAT));
-        //     toast.show(
-        //       "Your selected range includes a date that is not available.",
-        //       {
-        //         type: "warning",
-        //         placement: "top",
-        //         style: toastStyles.toastInsetHeader,
-        //         duration: 3000,
-        //       },
-        //     );
-        //     return;
-        //   }
-        // }
-
-        setEndDate(date.dateString);
-        return;
-      }
-
-      toast.show("Select an end date", {
-        placement: "top",
-        style: toastStyles.toastInsetHeader,
-        // textStyle: { padding: 5, fontSize: 16 },
-      });
-
-      // Reset dates and set new start date
-      clearDates();
-      setStartDate(date.dateString);
-    },
-    [startDate, endDate, markedDates, clearDates, toast],
-  );
-
   const navigateNext = useCallback(() => {
     // Replace the current screen with the new screen
     navigation.pop();
@@ -273,15 +113,38 @@ const SelectDates = ({ navigation, route }) => {
   }, [navigation, screenToNavigate, otherParams]);
 
   const footerTitle = useMemo(() => {
-    if (!room?.category.price) {
+    const price = room?.category.price || listing?.entire_place_price;
+
+    if (!price) {
       return "";
     }
+
     if (startDate && endDate) {
-      const total = room?.category.price * (diffInDays || 1);
+      const diffInDays = differenceInDays(
+        new Date(endDate),
+        new Date(startDate),
+      );
+      const total = price * (diffInDays || 1);
       return `Total: ₱${total.toLocaleString()}`;
     }
-    return `₱${room.category.price.toLocaleString()}/night`;
-  }, [diffInDays, room?.category.price]);
+
+    return `₱${price.toLocaleString()}/night`;
+  }, [room?.category.price, listing?.entire_place_price, startDate, endDate]);
+
+  const onConfirmDate = useCallback(() => {
+    // Navigate to the next screen
+    navigateNext();
+
+    // Archive all items in the cart
+    archiveAll({ listingId });
+
+    // Update booking dates
+    setBookingData({
+      listingId,
+      startDate,
+      endDate,
+    });
+  }, [archiveAll, listingId, navigateNext, setBookingData, startDate, endDate]);
 
   const footerButtonOnPress = useCallback(() => {
     if (!startDate || !endDate) {
@@ -296,8 +159,8 @@ const SelectDates = ({ navigation, route }) => {
     }
 
     if (
-      bookingState.startDate === startDate &&
-      bookingState.endDate === endDate
+      bookingData.startDate === startDate &&
+      bookingData.endDate === endDate
     ) {
       navigateNext();
       return;
@@ -310,22 +173,16 @@ const SelectDates = ({ navigation, route }) => {
       },
       {
         text: "Confirm",
-        onPress: () => {
-          setBookingData({
-            startDate,
-            endDate,
-          });
-          navigateNext();
-        },
+        onPress: onConfirmDate,
       },
     ]);
   }, [
-    bookingState.startDate,
-    bookingState.endDate,
+    bookingData.startDate,
+    bookingData.endDate,
     startDate,
     endDate,
     navigateNext,
-    setBookingData,
+    onConfirmDate,
     toast,
   ]);
 
@@ -334,15 +191,7 @@ const SelectDates = ({ navigation, route }) => {
       <View style={globalStyles.flexFull}>
         <CalendarList
           current={current}
-          theme={{
-            dayTextColor: "black",
-            monthTextColor: "black",
-            textMonthFontSize: 20,
-            textMonthFontWeight: "bold",
-            textDayFontWeight: "400",
-            textSectionTitleColor: "black",
-            todayTextColor: Colors.blue,
-          }}
+          theme={CALENDAR_THEME}
           // style={globalStyles.topGap}
           calendarStyle={{
             paddingTop: 5,
@@ -351,16 +200,13 @@ const SelectDates = ({ navigation, route }) => {
           }}
           onLayout={() => {
             // Scroll to last selected date, after loading the CalendarList
-            setCurrent(bookingState.startDate);
+            setCurrent(bookingData.startDate);
 
             // Will only delay if the start date is after a month from now
             // Delay is used to help with scrolling animation
             if (
-              bookingState.startDate &&
-              isAfter(
-                new Date(bookingState.startDate),
-                addMonths(new Date(), 1),
-              )
+              bookingData.startDate &&
+              isAfter(new Date(bookingData.startDate), addMonths(new Date(), 1))
             ) {
               setTimeout(() => setIsLoading(false), 300);
             } else {
@@ -375,7 +221,6 @@ const SelectDates = ({ navigation, route }) => {
           markingType="period"
           markedDates={markedDates}
           animateScroll
-          scrollsToTop
         />
       </View>
 
@@ -391,7 +236,7 @@ const SelectDates = ({ navigation, route }) => {
         </AppFooterDetails>
       </AppFooter>
 
-      <DialogLoading visible={isLoading} />
+      <DialogLoading visible={isLoading || isFetching} />
     </View>
   );
 };

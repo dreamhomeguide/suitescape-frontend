@@ -22,7 +22,6 @@ const SearchRecentItem = ({ item, onPress, onClose }) => {
           </View>
           <View style={style.recentItemContentContainer}>
             <Text numberOfLines={1}>{item.location}</Text>
-            <Text style={{ color: Colors.gray }}>{item.details}</Text>
           </View>
         </View>
       </Pressable>

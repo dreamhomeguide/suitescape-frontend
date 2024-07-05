@@ -25,7 +25,7 @@ const ServiceRating = ({ label, rating }) => {
         minimumTrackStyle={style.minTrack(rating)}
       />
 
-      <Text style={style.ratingText}>{rating.toFixed(1)}</Text>
+      <Text style={style.ratingText}>{rating?.toFixed(1)}</Text>
     </View>
   );
 };

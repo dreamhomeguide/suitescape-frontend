@@ -3,7 +3,7 @@ import { Text, View } from "react-native";
 
 import globalStyles from "../../assets/styles/globalStyles";
 import style from "../../assets/styles/summaryStyles";
-import openLocationInGmaps from "../../utils/locationOpener";
+import { openLocationAuto } from "../../utils/locationOpener";
 import ButtonLink from "../ButtonLink/ButtonLink";
 
 const SummaryLocationView = ({ location }) => {
@@ -15,7 +15,7 @@ const SummaryLocationView = ({ location }) => {
         <Text>{location}</Text>
         <ButtonLink
           textStyle={style.link}
-          onPress={() => openLocationInGmaps(location)}
+          onPress={() => openLocationAuto(location)}
         >
           Get Directions
         </ButtonLink>

@@ -1,14 +1,16 @@
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { useScrollToTop } from "@react-navigation/native";
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Pressable, RefreshControl, View } from "react-native";
 import { useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./HomeStyles";
 import Fontello from "../../assets/fontello/Fontello";
+import Deals from "../../assets/images/svgs/deals.svg";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
+import FloatingIcon from "../../components/FloatingIcon/FloatingIcon";
 import HeaderIconView from "../../components/HeaderIconView/HeaderIconView";
 import VideoFeed from "../../components/VideoFeed/VideoFeed";
 import { useVideoFilters } from "../../contexts/VideoFiltersContext";
@@ -16,9 +18,10 @@ import useFetchVideos from "../../hooks/useFetchVideos";
 import { Routes } from "../../navigation/Routes";
 
 const Home = ({ navigation }) => {
+  const [floatingIconEnabled, setFloatingIconEnabled] = useState(true);
+
   const {
     data: videos,
-    isLoading,
     isFetching,
     isFetchingNextPage,
     isFetched,
@@ -42,13 +45,14 @@ const Home = ({ navigation }) => {
     },
   };
 
-  // Allows the feed to scroll to top when the tab is pressed
-  useScrollToTop(
-    useRef({
-      scrollToTop: () =>
-        videoFeedRef.current?.list.scrollToOffset({ offset: 0 }),
-    }),
+  const scrollToTop = useCallback(
+    (animated) =>
+      videoFeedRef.current?.list.scrollToOffset({ offset: 0, animated }),
+    [],
   );
+
+  // Allows the feed to scroll to top when the tab is pressed
+  useScrollToTop(useRef({ scrollToTop: () => scrollToTop(true) }));
 
   useEffect(() => {
     // Used timeout since previous data is still being used in videos
@@ -65,19 +69,13 @@ const Home = ({ navigation }) => {
     return () => clearTimeout(timeout);
   }, [isFetched, videos]);
 
-  // useEffect(() => {
-  //   if (isFetching && !isFetchingNextPage) {
-  //     videoFeedRef.current?.refresh();
-  //     console.log("Refreshing from start...");
-  //   }
-  // }, [isFetching, isFetchingNextPage]);
-
   useEffect(() => {
-    if (!isLoading && videoFilters) {
+    if (videoFilters !== null) {
+      console.log("Filters changed. Refreshing...");
       videoFeedRef.current?.resetIndex();
-      console.log("Refreshing from videoFilters...");
+      scrollToTop(false);
     }
-  }, [isLoading, videoFilters]);
+  }, [videoFilters]);
 
   return (
     <>
@@ -95,6 +93,16 @@ const Home = ({ navigation }) => {
             />
           </Pressable>
         </HeaderIconView>
+
+        {floatingIconEnabled && (
+          <FloatingIcon
+            onPress={() => navigation.navigate(Routes.PACKAGES)}
+            onClose={() => setFloatingIconEnabled(false)}
+            containerStyle={style.floatingIcon}
+          >
+            <Deals width={100} height={100} />
+          </FloatingIcon>
+        )}
 
         <VideoFeed
           ref={videoFeedRef}

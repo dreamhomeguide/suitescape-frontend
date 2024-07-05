@@ -10,12 +10,15 @@ import style from "./FormPickerStyles";
 import { Colors } from "../../assets/Colors";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import BottomSheet from "../BottomSheet/BottomSheet";
+import BottomSheetHeader from "../BottomSheetHeader/BottomSheetHeader";
 import FormInput from "../FormInput/FormInput";
 import formInputStyles from "../FormInput/FormInputStyles";
 import FormRadio from "../FormRadio/FormRadio";
 
 const FormPicker = ({
+  placeholder,
   label,
+  labelStyle,
   data,
   value,
   onSelected,
@@ -38,6 +41,7 @@ const FormPicker = ({
         }
       } else {
         onSelected(option === value ? null : option);
+        setPickerVisible(false);
       }
     },
     [multiSelect, onSelected, value],
@@ -85,11 +89,22 @@ const FormPicker = ({
   );
 
   return (
-    <>
+    <View style={globalStyles.flexFull}>
+      {label && (
+        <Text
+          style={{
+            ...formInputStyles.label,
+            ...labelStyle,
+          }}
+        >
+          {label}
+        </Text>
+      )}
+
       <Pressable
         onPress={() => {
           if (disabled) {
-            onPressDisabled();
+            onPressDisabled && onPressDisabled();
           } else {
             setPickerVisible(true);
           }
@@ -101,7 +116,7 @@ const FormPicker = ({
       >
         <View pointerEvents="none">
           <FormInput
-            placeholder={label}
+            placeholder={placeholder}
             // value={multiSelect ? value?.join(", ") : value}
             value={inputValue}
             onChangeText={(destination) => onSelected(destination)}
@@ -122,31 +137,21 @@ const FormPicker = ({
           onDismiss={() => setPickerVisible(false)}
           style={style.bottomSheet}
         >
-          <View style={style.header}>
-            <Pressable
-              onPress={() => setPickerVisible(false)}
-              style={({ pressed }) => pressedOpacity(pressed)}
-            >
-              <Ionicons name="chevron-back" size={30} color={Colors.black} />
-            </Pressable>
-            <View>
-              {label && <Text style={style.headerLabel}>{label}</Text>}
-            </View>
-          </View>
+          <BottomSheetHeader
+            label={label || placeholder}
+            onClose={() => setPickerVisible(false)}
+          />
 
           <BottomSheetFlatList
             data={data}
             keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={{
-              ...style.flatList,
-              ...globalStyles.rowGap,
-            }}
+            contentContainerStyle={globalStyles.rowGap}
             contentInset={{ bottom: insets.bottom }}
             renderItem={renderItem}
           />
         </BottomSheet>
       )}
-    </>
+    </View>
   );
 };
 

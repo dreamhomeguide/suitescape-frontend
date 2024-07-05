@@ -2,7 +2,7 @@ import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
   mainContainer: {
-    flex: 1,
+    height: "50%",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -15,16 +15,14 @@ const style = StyleSheet.create({
   },
   text: {
     fontSize: 16,
+    fontWeight: "500",
   },
   headerText: {
     fontSize: 30,
     fontWeight: "bold",
   },
   subHeaderText: {
-    fontSize: 25,
-  },
-  continueContainer: {
-    alignItems: "center",
+    fontSize: 20,
   },
 });
 

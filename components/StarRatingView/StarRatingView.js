@@ -13,7 +13,13 @@ const StarRatingView = ({
 }) => {
   return (
     <View style={{ ...style.ratingContainer, ...containerStyle }}>
-      <View style={style.starRatingContainer} pointerEvents="none">
+      <View
+        style={{
+          left: rating ? -3 : 0,
+          ...style.starRatingContainer,
+        }}
+        pointerEvents="none"
+      >
         <StarRating
           rating={rating}
           onChange={() => {}}

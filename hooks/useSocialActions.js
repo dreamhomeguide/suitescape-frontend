@@ -12,7 +12,7 @@ const useSocialActions = (listingId, useCache) => {
 
   const { data: listing } = useQuery({
     queryKey: ["listings", listingId, "social"], // Uses the data from VideoFeedItem if cached
-    queryFn: () => fetchListing(listingId),
+    queryFn: () => fetchListing({ listingId }),
     initialData: useCache ? {} : undefined,
     enabled: !!listingId,
   });

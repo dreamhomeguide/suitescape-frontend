@@ -6,10 +6,10 @@ import { Colors } from "../../assets/Colors";
 
 const ProfileImage = ({
   source,
-  size,
-  fillColor,
-  borderColor,
-  borderWidth,
+  size = 50,
+  fillColor = Colors.lightgray,
+  borderColor = "gray",
+  borderWidth = 0,
   containerStyle,
   ...props
 }) => {
@@ -24,14 +24,6 @@ const ProfileImage = ({
       {...props}
     />
   );
-};
-
-ProfileImage.defaultProps = {
-  // source: require("../../assets/images/pngs/profile.png"),
-  size: 50,
-  fillColor: Colors.lightgray,
-  borderColor: "gray",
-  borderWidth: 0,
 };
 
 export default memo(ProfileImage);

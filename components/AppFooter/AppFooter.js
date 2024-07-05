@@ -1,6 +1,6 @@
 import { useTheme } from "@react-navigation/native";
-import React, { memo } from "react";
-import { View } from "react-native";
+import React, { memo, useEffect, useState } from "react";
+import { Keyboard, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./AppFooterStyles";
@@ -11,8 +11,31 @@ const AppFooter = ({
   transparent = false,
   enableBottomInset = true,
 }) => {
+  const [isKeyboardVisible, setKeyboardVisible] = useState(
+    Keyboard.isVisible(),
+  );
+
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+
+  useEffect(() => {
+    const didShowSubscription = Keyboard.addListener("keyboardDidShow", () => {
+      setKeyboardVisible(Keyboard.isVisible());
+    });
+
+    const didHideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardVisible(Keyboard.isVisible());
+    });
+
+    return () => {
+      didShowSubscription.remove();
+      didHideSubscription.remove();
+    };
+  }, []);
+
+  if (isKeyboardVisible) {
+    return null;
+  }
 
   return (
     <View

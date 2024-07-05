@@ -1,4 +1,4 @@
-import Icon from "@expo/vector-icons/FontAwesome5";
+import Icon from "@expo/vector-icons/FontAwesome6";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { ResizeMode, Video } from "expo-av";
 import * as Haptics from "expo-haptics";
@@ -31,13 +31,15 @@ const VideoItem = forwardRef(
       videoUri,
       height,
       width = WINDOW_WIDTH,
+      videoStyle,
       iconSize = 55,
       initialIsPaused = false,
       initialIsMuted = false,
+      shouldPlay = true,
       onPlaybackUpdate,
-      shouldPlay,
       onError,
       onClearMode,
+      resizeMode,
       clearModeEnabled = true,
       likeEnabled = true,
       pauseEnabled = true,
@@ -179,7 +181,7 @@ const VideoItem = forwardRef(
               style={{ ...globalStyles.absoluteCenter, ...style.actionButton }}
             >
               <Icon
-                name="volume-mute"
+                name="volume-xmark"
                 size={iconSize}
                 color="white"
                 style={style.iconOpacity}
@@ -215,7 +217,7 @@ const VideoItem = forwardRef(
                 Authorization: "Bearer " + authState.userToken,
               },
             }}
-            progressUpdateIntervalMillis={1000}
+            progressUpdateIntervalMillis={500}
             onPlaybackStatusUpdate={(playbackStatus) => {
               setStatus(() => playbackStatus);
               onPlaybackUpdate && onPlaybackUpdate(playbackStatus);
@@ -227,8 +229,8 @@ const VideoItem = forwardRef(
             shouldPlay={shouldVideoPlay}
             isMuted={isMuted}
             isLooping
-            resizeMode={ResizeMode.COVER}
-            style={{ width, height }}
+            resizeMode={resizeMode || ResizeMode.COVER}
+            style={{ width, height, ...videoStyle }}
           />
 
           <Toast ref={toastRef} />

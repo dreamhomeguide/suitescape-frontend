@@ -36,15 +36,9 @@ const style = StyleSheet.create({
     marginHorizontal: 15,
     rowGap: 1,
   },
-  listingCategory: {
+  listingName: {
     fontSize: 15,
     fontWeight: "500",
-  },
-  listingName: {
-    fontSize: 13,
-  },
-  contentContainer: {
-    rowGap: 5,
   },
   timestamp: {
     color: Colors.gray,

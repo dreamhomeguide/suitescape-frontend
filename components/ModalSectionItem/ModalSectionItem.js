@@ -14,18 +14,19 @@ const ModalSectionItem = ({
   onPress,
   isActive,
   width,
-  imageSize,
+  imageWidth,
+  detailsWidth,
 }) => {
   return (
     <RectButton
       style={style.mainContainer({ isActive, width })}
-      onPress={() => onPress && onPress(time)}
+      onPress={onPress}
     >
-      <View style={style.contentContainer}>
-        <Text style={style.text}>{`${index}. ${label}`}</Text>
+      <View style={style.contentContainer(detailsWidth)}>
+        <Text style={style.text} numberOfLines={3}>{`${index}. ${label}`}</Text>
         <Text>{format(time, "mm:ss")}</Text>
       </View>
-      <Image source={{ uri: thumbnailUri }} style={style.image(imageSize)} />
+      <Image source={{ uri: thumbnailUri }} style={style.image(imageWidth)} />
     </RectButton>
   );
 };

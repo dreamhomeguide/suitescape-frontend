@@ -8,23 +8,22 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Dimensions, FlatList, Text } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import { useTheme, Modal } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./ModalSectionStyles";
+import globalStyles from "../../assets/styles/globalStyles";
 import ModalSectionItem from "../ModalSectionItem/ModalSectionItem";
-
-const { width } = Dimensions.get("window");
 
 const BATCH_SIZE = 1;
 const BATCH_DELAY = 200;
 
-const ITEM_IMAGE_SIZE = width / 6;
-const ITEM_DETAILS_WIDTH = 83;
+const ITEM_IMAGE_WIDTH = 100;
+const ITEM_DETAILS_WIDTH = 80;
 const ITEM_GAP = 10;
 
-const ITEM_SIZE = ITEM_IMAGE_SIZE + ITEM_DETAILS_WIDTH + ITEM_GAP;
+const ITEM_SIZE = ITEM_IMAGE_WIDTH + ITEM_DETAILS_WIDTH + ITEM_GAP;
 
 const ModalSection = ({
   visible,
@@ -32,7 +31,7 @@ const ModalSection = ({
   videoUri,
   duration,
   progress,
-  trackMarks,
+  sections,
   isVideoSeeking,
   onItemPress,
 }) => {
@@ -58,9 +57,13 @@ const ModalSection = ({
     },
   };
 
-  const filteredTrackMarks = useMemo(
-    () => trackMarks.filter((mark) => mark <= duration),
-    [duration, trackMarks],
+  // Sort and filter sections based on duration
+  const trackMarks = useMemo(
+    () =>
+      sections
+        ?.sort((a, b) => a.milliseconds - b.milliseconds)
+        .filter((section) => section.milliseconds <= duration),
+    [duration, sections],
   );
 
   // Reset last batch index when track marks change
@@ -69,7 +72,7 @@ const ModalSection = ({
       console.log("Track marks changed. Resetting last batch index…");
       setLastBatchIndex(0);
     }
-  }, [filteredTrackMarks]);
+  }, [trackMarks]);
 
   const getThumbnails = async () => {
     if (isGettingThumbnails) {
@@ -82,8 +85,8 @@ const ModalSection = ({
     try {
       // Create batches from track marks
       const batches = [];
-      for (let i = 0; i < filteredTrackMarks.length; i += BATCH_SIZE) {
-        batches.push(filteredTrackMarks.slice(i, i + BATCH_SIZE));
+      for (let i = 0; i < trackMarks.length; i += BATCH_SIZE) {
+        batches.push(trackMarks.slice(i, i + BATCH_SIZE));
       }
 
       // Process each batch
@@ -97,9 +100,9 @@ const ModalSection = ({
           return;
         }
 
-        const thumbnailPromises = batch.map((mark) =>
+        const thumbnailPromises = batch.map((section) =>
           VideoThumbnails.getThumbnailAsync(videoUri, {
-            time: mark,
+            time: section.milliseconds,
           }),
         );
         const thumbnails = await Promise.all(thumbnailPromises);
@@ -118,13 +121,13 @@ const ModalSection = ({
       console.log("Error getting thumbnail:", err);
       setDidThumbnailError(true);
     } finally {
-      console.log("Done getting thumbnails…");
+      console.log("Done getting thumbnails!");
       setAreThumbnailsLoaded(true);
       setIsGettingThumbnails(false);
     }
   };
 
-  // Get thumbnails when modal is ready
+  // Get thumbnails when modal and sections are ready
   useEffect(() => {
     let timeout;
 
@@ -132,7 +135,12 @@ const ModalSection = ({
     // If modal is ready but thumbnails are not loaded, get thumbnails
     // If thumbnails are loaded and there was an error, try again (run based on cached uri)
     // If modal was closed and thumbnails were not finished loading, try again (run based on batch index)
-    if (visible && modalReady && (!areThumbnailsLoaded || didThumbnailError)) {
+    if (
+      visible &&
+      modalReady &&
+      sections &&
+      (!areThumbnailsLoaded || didThumbnailError)
+    ) {
       if (didThumbnailError) {
         console.log("There was an error so trying again…");
       }
@@ -143,19 +151,22 @@ const ModalSection = ({
     }
 
     return () => clearTimeout(timeout);
-  }, [modalReady, videoUri, visible]);
+  }, [modalReady, sections, videoUri, visible]);
 
   const scrollToCurrentSection = ({ animated }) => {
     if (
       !isVideoSeeking &&
       !isScrolling &&
       areThumbnailsLoaded &&
+      sections &&
       progress &&
       duration
     ) {
-      const index = trackMarks.findIndex((mark) => mark > progress);
+      const index = sections.findIndex(
+        (section) => section.milliseconds > progress,
+      );
 
-      if (index < 0) {
+      if (index === -1) {
         flatlistRef.current?.scrollToEnd({
           animated,
         });
@@ -171,7 +182,7 @@ const ModalSection = ({
       }
 
       flatlistRef.current?.scrollToIndex({
-        index: index - 1,
+        index: index <= 0 ? 0 : index - 1,
         animated,
         viewPosition: 0.5,
       });
@@ -194,16 +205,16 @@ const ModalSection = ({
     ({ item, index }) => (
       <ModalSectionItem
         index={index + 1}
-        time={item}
-        label="Room"
+        time={item.milliseconds}
+        label={item.label}
         thumbnailUri={thumbnails[index]}
         isActive={
           !isVideoSeeking &&
-          progress >= item &&
-          (!trackMarks[index + 1] || progress < trackMarks[index + 1])
+          progress >= item.milliseconds &&
+          (!sections[index + 1] || progress < sections[index + 1].milliseconds)
         }
-        onPress={(time) => {
-          onItemPress && onItemPress(time);
+        onPress={() => {
+          onItemPress && onItemPress(item.milliseconds);
           flatlistRef.current.scrollToIndex({
             index,
             animated: true,
@@ -211,10 +222,11 @@ const ModalSection = ({
           });
         }}
         width={ITEM_SIZE - ITEM_GAP}
-        imageSize={ITEM_IMAGE_SIZE}
+        imageWidth={ITEM_IMAGE_WIDTH}
+        detailsWidth={ITEM_DETAILS_WIDTH}
       />
     ),
-    [isVideoSeeking, progress, thumbnails, trackMarks],
+    [isVideoSeeking, progress, thumbnails, sections],
   );
 
   const getItemLayout = useCallback(
@@ -254,18 +266,25 @@ const ModalSection = ({
           setModalReady(true);
           scrollToCurrentSection({ animated: false });
         }}
-        data={filteredTrackMarks}
+        data={trackMarks}
         contentContainerStyle={{
           columnGap: ITEM_GAP,
         }}
-        horizontal
+        horizontal={sections?.length > 0}
         showsHorizontalScrollIndicator={false}
         onTouchStart={() => setIsScrolling(true)}
         onTouchEnd={stopScrollingAfterDelay}
         onMomentumScrollEnd={stopScrollingAfterDelay}
-        keyExtractor={(item) => item.toString()}
+        keyExtractor={(item) => item.id.toString()}
         getItemLayout={getItemLayout}
         renderItem={renderItem}
+        ListEmptyComponent={
+          <View style={globalStyles.flexCenter}>
+            <Text style={globalStyles.emptyTextCenter}>
+              No sections available.
+            </Text>
+          </View>
+        }
       />
 
       <Text style={style.progressText}>

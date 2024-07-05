@@ -8,6 +8,7 @@ const DialogPaper = ({ title, visible, children, ...props }) => (
     <Dialog
       visible={visible}
       dismissable={false}
+      dismissableBackButton={false}
       style={style.container}
       {...props}
     >

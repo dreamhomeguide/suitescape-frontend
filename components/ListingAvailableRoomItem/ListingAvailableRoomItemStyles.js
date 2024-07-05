@@ -11,7 +11,7 @@ const style = StyleSheet.create({
   },
   titleContainer: {
     flex: 1,
-    rowGap: 5,
+    // rowGap: 5,
     marginRight: 15,
     marginBottom: 3,
   },
@@ -53,6 +53,7 @@ const style = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
+    alignItems: "center",
     marginTop: 10,
     columnGap: 20,
   },

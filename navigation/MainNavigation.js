@@ -3,20 +3,33 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 import { Platform, useColorScheme } from "react-native";
 
-import BottomTabs from "./BottomTabs/BottomTabs";
+import GuestTabs from "./BottomTabs/GuestTabs";
+import HostTabs from "./BottomTabs/HostTabs";
 import { Routes } from "./Routes";
 import { Colors } from "../assets/Colors";
 import HeaderTitle from "../components/HeaderTitle/HeaderTitle";
 import { useAuth } from "../contexts/AuthContext";
 import { useSettings } from "../contexts/SettingsContext";
+import AddImages from "../screens/AddImages/AddImages";
+import AddNearbyPlaces from "../screens/AddNearbyPlaces/AddNearbyPlaces";
+import AddRooms from "../screens/AddRooms/AddRooms";
+import AddVideos from "../screens/AddVideos/AddVideos";
+import Addons from "../screens/Addons/Addons";
+import Address from "../screens/Address/Address";
 import AvailableRooms from "../screens/AvailableRooms/AvailableRooms";
 import BookingDetails from "../screens/BookingDetails/BookingDetails";
 import BookingSummary from "../screens/BookingSummary/BookingSummary";
+import Calendar from "../screens/Calendar/Calendar";
+import CalendarRooms from "../screens/CalendarRooms/CalendarRooms";
+import CalendarSetting from "../screens/CalendarSetting/CalendarSetting";
 import CancelBooking from "../screens/CancelBooking/CancelBooking";
 import ChangeDates from "../screens/ChangeDates/ChangeDates";
 import ChangePassword from "../screens/ChangePassword/ChangePassword";
 import Chat from "../screens/Chat/Chat";
 import ChatSearch from "../screens/ChatSearch/ChatSearch";
+import CreateListing from "../screens/CreateListing/CreateListing";
+import Earnings from "../screens/Earnings/Earnings";
+import EditListing from "../screens/EditListing/EditListing";
 import EmailVerification from "../screens/EmailVerification/EmailVerification";
 import Feedback from "../screens/Feedback/Feedback";
 import FeedbackApp from "../screens/FeedbackApp/FeedbackApp";
@@ -25,11 +38,15 @@ import Filter from "../screens/Filter/Filter";
 import ForgotPassword from "../screens/ForgotPassword/ForgotPassword";
 import GuestInfo from "../screens/GuestInfo/GuestInfo";
 import Liked from "../screens/Liked/Liked";
+import ListingAddons from "../screens/ListingAddons/ListingAddons";
 import ListingDetails from "../screens/ListingDetails/ListingDetails";
 import Login from "../screens/Login/Login";
 import ManageAccount from "../screens/ManageAccount/ManageAccount";
 import Onboarding from "../screens/Onboarding/Onboarding";
 import OnboardingHost from "../screens/OnboardingHost/OnboardingHost";
+import OnboardingListing from "../screens/OnboardingListing/OnboardingListing";
+import PackageDetails from "../screens/PackageDetails/PackageDetails";
+import Packages from "../screens/Packages/Packages";
 import PaymentMethod from "../screens/PaymentMethod/PaymentMethod";
 import ProfileHost from "../screens/ProfileHost/ProfileHost";
 import RateExperience from "../screens/RateExperience/RateExperience";
@@ -77,6 +94,7 @@ const feedbackScreenOptions = {
 };
 
 const LoggedInStack = () => {
+  const { settings } = useSettings();
   const theme = useTheme();
   const colorScheme = useColorScheme();
 
@@ -95,16 +113,73 @@ const LoggedInStack = () => {
     },
   };
 
+  const transparentHeader = {
+    headerStyle: {
+      backgroundColor: "transparent",
+    },
+    // headerTitle: "",
+    // headerShown: false,
+    headerTransparent: true,
+  };
+
   return (
-    <Stack.Navigator initialRouteName={Routes.HOME}>
+    <Stack.Navigator initialRouteName={Routes.HOME_GUEST}>
       {/* Stack of screens that has header hidden */}
       <Stack.Group screenOptions={{ headerShown: false }}>
-        <Stack.Screen name={Routes.HOME} component={BottomTabs} />
-        <Stack.Screen name={Routes.CHAT} component={Chat} />
+        {settings.hostModeEnabled ? (
+          <>
+            <Stack.Screen
+              name={Routes.HOME_HOST}
+              component={HostTabs}
+              options={{
+                title: "Home",
+              }}
+            />
+            <Stack.Screen
+              name={Routes.ONBOARDING_LISTING}
+              component={OnboardingListing}
+              options={{
+                title: "Get Started with Your Listing",
+              }}
+            />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              name={Routes.HOME_GUEST}
+              component={GuestTabs}
+              options={{
+                title: "Home",
+              }}
+            />
+            <Stack.Screen
+              name={Routes.ONBOARDING_HOST}
+              component={OnboardingHost}
+              options={{
+                title: "Get Started as a Host",
+                animation: "fade",
+              }}
+            />
+          </>
+        )}
+
+        <Stack.Screen
+          name={Routes.CHAT}
+          component={Chat}
+          options={{
+            animation: SLIDE_RIGHT_WITH_INPUT,
+          }}
+        />
       </Stack.Group>
 
       {/* Stack of screens that has header shown */}
       <Stack.Group screenOptions={headerOptions}>
+        {settings.hostModeEnabled && (
+          <>
+            <Stack.Screen name={Routes.EARNINGS} component={Earnings} />
+          </>
+        )}
+
         <Stack.Screen
           name={Routes.FEEDBACK}
           component={Feedback}
@@ -132,14 +207,6 @@ const LoggedInStack = () => {
             gestureEnabled: false,
           }}
         />
-        <Stack.Screen
-          name={Routes.ONBOARDING_HOST}
-          component={OnboardingHost}
-          options={{
-            animation: "fade",
-            headerShown: false,
-          }}
-        />
         <Stack.Screen name={Routes.MANAGE_ACCOUNT} component={ManageAccount} />
         <Stack.Screen
           name={Routes.CHANGE_PASSWORD}
@@ -151,8 +218,10 @@ const LoggedInStack = () => {
 
         {/* Stack of screens that slide from right */}
         <Stack.Group screenOptions={{ animation: "slide_from_right" }}>
+          {/* White background */}
           <Stack.Group screenOptions={whiteBackground}>
             <Stack.Screen name={Routes.FILTER} component={Filter} />
+            <Stack.Screen name={Routes.ADD_ONS} component={Addons} />
             <Stack.Screen name={Routes.GUEST_INFO} component={GuestInfo} />
             <Stack.Screen
               name={Routes.PAYMENT_METHOD}
@@ -160,22 +229,49 @@ const LoggedInStack = () => {
               options={{ title: "Payment" }}
             />
             <Stack.Screen name={Routes.RATINGS} component={Ratings} />
+            <Stack.Screen
+              name={Routes.CREATE_LISTING}
+              component={CreateListing}
+            />
+            <Stack.Screen name={Routes.EDIT_LISTING} component={EditListing} />
+            <Stack.Screen name={Routes.CALENDAR} component={Calendar} />
+            <Stack.Screen
+              name={Routes.CALENDAR_ROOMS}
+              component={CalendarRooms}
+            />
+            <Stack.Screen
+              name={Routes.CALENDAR_SETTING}
+              component={CalendarSetting}
+              options={{ title: "Setting" }}
+            />
+            <Stack.Screen name={Routes.ADD_ROOMS} component={AddRooms} />
+            <Stack.Screen name={Routes.ADD_IMAGES} component={AddImages} />
+            <Stack.Screen name={Routes.ADD_VIDEOS} component={AddVideos} />
+            <Stack.Screen name={Routes.ADDRESS} component={Address} />
+            <Stack.Screen
+              name={Routes.LISTING_ADDONS}
+              component={ListingAddons}
+            />
+            <Stack.Screen
+              name={Routes.ADD_NEARBY_PLACES}
+              component={AddNearbyPlaces}
+            />
           </Stack.Group>
 
+          {/* Dark background */}
           <Stack.Group screenOptions={darkBackground}>
             <Stack.Screen
               name={Routes.LISTING_DETAILS}
               component={ListingDetails}
-              options={{
-                headerStyle: {
-                  backgroundColor: "transparent",
-                },
-                // headerTitle: "",
-                // headerShown: false,
-                headerTransparent: true,
-              }}
+              options={transparentHeader}
             />
             <Stack.Screen name={Routes.ROOM_DETAILS} component={RoomDetails} />
+            <Stack.Screen name={Routes.PACKAGES} component={Packages} />
+            <Stack.Screen
+              name={Routes.PACKAGE_DETAILS}
+              component={PackageDetails}
+              options={transparentHeader}
+            />
             <Stack.Screen
               name={Routes.AVAILABLE_ROOMS}
               component={AvailableRooms}
@@ -216,7 +312,11 @@ const MainNavigation = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {settings.onboardingEnabled && (
-        <Stack.Screen name={Routes.ONBOARDING} component={Onboarding} />
+        <Stack.Screen
+          name={Routes.ONBOARDING}
+          component={Onboarding}
+          options={{ title: "Get Started" }}
+        />
       )}
 
       {authState.userToken || settings.guestModeEnabled ? (

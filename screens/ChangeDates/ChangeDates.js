@@ -10,21 +10,33 @@ import Button from "../../components/Button/Button";
 import DialogLoading from "../../components/DialogLoading/DialogLoading";
 import SummaryFooter from "../../components/SummaryFooter/SummaryFooter";
 import SummaryListView from "../../components/SummaryListView/SummaryListView";
-import { useBookingContext } from "../../contexts/BookingContext";
+import {
+  useBookingContext,
+  useBookingData,
+} from "../../contexts/BookingContext";
+import { useListingContext } from "../../contexts/ListingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
 import { Routes } from "../../navigation/Routes";
 import { fetchBooking, fetchConstant } from "../../services/apiService";
-import { getDateDetails, getPriceDetails } from "../../utils/getBookingDetails";
+import {
+  getDateDetails,
+  getOriginalPrice,
+  getPriceDetails,
+} from "../../utils/getBookingDetails";
 import selectBookingData from "../../utils/selectBookingData";
 import { RNC_DATE_FORMAT } from "../SelectDates/SelectDates";
+
+const DISCOUNT = 0.1; // 10% discount
 
 const ChangeDates = ({ navigation, route }) => {
   const bookingId = route.params.bookingId;
 
-  const { bookingState, setBookingData } = useBookingContext();
+  const { setListing } = useListingContext();
   const { setRoom } = useRoomContext();
+  const { setBookingData } = useBookingContext();
+  const bookingData = useBookingData();
 
-  const { data: bookingData, isFetching: isFetchingBooking } = useQuery({
+  const { data: booking, isFetching: isFetchingBooking } = useQuery({
     queryKey: ["bookings", bookingId],
     queryFn: () => fetchBooking(bookingId),
     select: selectBookingData,
@@ -36,68 +48,86 @@ const ChangeDates = ({ navigation, route }) => {
     select: (data) => parseFloat(data.value),
   });
 
-  // Set room context
+  // Set listing and room context
   useEffect(() => {
-    if (bookingData?.room) {
-      setRoom(bookingData.room);
+    if (booking?.listing) {
+      setListing(booking.listing);
+    }
+
+    if (booking?.room) {
+      setRoom(booking.room);
     }
 
     return () => {
+      setListing(null);
       setRoom(null);
     };
-  }, [bookingData?.room]);
+  }, [booking?.listing, booking?.room]);
 
   // Set booking data for select dates screen
   useEffect(() => {
-    if (bookingData?.startDate && bookingData?.endDate) {
+    if (booking?.startDate && booking?.endDate && booking?.listing.id) {
       setBookingData({
-        startDate: format(bookingData.startDate, RNC_DATE_FORMAT),
-        endDate: format(bookingData.endDate, RNC_DATE_FORMAT),
-        highlightedDates: [bookingData.startDate, bookingData.endDate],
+        listingId: booking.listing.id,
+        startDate: format(booking.startDate, RNC_DATE_FORMAT),
+        endDate: format(booking.endDate, RNC_DATE_FORMAT),
+        highlightedDates: [booking.startDate, booking.endDate],
       });
     }
-  }, [bookingData?.startDate, bookingData?.endDate]);
+  }, [booking?.startDate, booking?.endDate, booking?.listing.id]);
 
   const datesDetails = getDateDetails({
-    startDate: bookingState.startDate
-      ? new Date(bookingState.startDate)
-      : bookingData?.startDate,
-    endDate: bookingState.endDate
-      ? new Date(bookingState.endDate)
-      : bookingData?.endDate,
-    listing: bookingData?.listing,
+    startDate: bookingData.startDate
+      ? new Date(bookingData.startDate)
+      : booking?.startDate,
+    endDate: bookingData.endDate
+      ? new Date(bookingData.endDate)
+      : booking?.endDate,
+    listing: booking?.listing,
   });
 
-  const priceDetails = getPriceDetails({
-    startDate: new Date(bookingState.startDate),
-    endDate: new Date(bookingState.endDate),
-    roomPrice: bookingData?.room.category.price,
-    previousAmount: bookingData?.amount,
+  const priceDetails = useMemo(() => {
+    const originalPrice = getOriginalPrice({
+      grandTotal: booking?.amount,
+      nights: booking?.nights,
+      discountRate: DISCOUNT,
+      suitescapeFee,
+    });
+    return getPriceDetails({
+      startDate: new Date(bookingData.startDate),
+      endDate: new Date(bookingData.endDate),
+      prevAmount: originalPrice,
+      suitescapeFee,
+    });
+  }, [
+    booking?.amount,
+    bookingData.startDate,
+    bookingData.endDate,
     suitescapeFee,
-  });
+  ]);
 
   const areDatesEqual = useMemo(() => {
-    if (!bookingState.startDate || !bookingState.endDate) {
+    if (!bookingData.startDate || !bookingData.endDate) {
       return true;
     }
 
-    const startDate = new Date(bookingState.startDate);
-    const endDate = new Date(bookingState.endDate);
+    const startDate = new Date(bookingData.startDate);
+    const endDate = new Date(bookingData.endDate);
     return (
-      startDate.toDateString() === bookingData.startDate.toDateString() &&
-      endDate.toDateString() === bookingData.endDate.toDateString()
+      startDate.toDateString() === booking.startDate.toDateString() &&
+      endDate.toDateString() === booking.endDate.toDateString()
     );
   }, [
+    booking.startDate,
+    booking.endDate,
     bookingData.startDate,
     bookingData.endDate,
-    bookingState.startDate,
-    bookingState.endDate,
   ]);
 
   const amountToPay = useMemo(() => {
-    const amount = priceDetails.amount - bookingData?.amount;
-    return amount < 0 ? 0 : amount;
-  }, [bookingData?.amount, priceDetails.amount]);
+    const amount = priceDetails.amount - booking?.amount;
+    return amount < 0 ? -1 : amount;
+  }, [booking?.amount, priceDetails.amount]);
 
   const onCheckAvailability = useCallback(() => {
     navigation.navigate(Routes.SELECT_DATES);
@@ -115,11 +145,11 @@ const ChangeDates = ({ navigation, route }) => {
   }, [amountToPay, navigation]);
 
   const onUpdateDates = useCallback(() => {
-    const startDate = new Date(bookingState.startDate);
-    const endDate = new Date(bookingState.endDate);
+    const startDate = new Date(bookingData.startDate);
+    const endDate = new Date(bookingData.endDate);
     const nights = differenceInDays(endDate, startDate);
 
-    if (nights < bookingData.nights) {
+    if (nights < booking.nights) {
       Alert.alert(
         "Invalid Dates",
         "Dates should be at least the same number of nights as the original booking.",
@@ -142,9 +172,9 @@ const ChangeDates = ({ navigation, route }) => {
       },
     ]);
   }, [
-    bookingData.nights,
-    bookingState.startDate,
-    bookingState.endDate,
+    booking.nights,
+    bookingData.startDate,
+    bookingData.endDate,
     handleUpdateDates,
     onCheckAvailability,
   ]);
@@ -166,10 +196,12 @@ const ChangeDates = ({ navigation, route }) => {
               data={priceDetails.data}
             />
 
-            <SummaryFooter
-              label="Amount to Pay"
-              value={"₱" + amountToPay.toLocaleString()}
-            />
+            {amountToPay > 0 && (
+              <SummaryFooter
+                label="Amount to Pay"
+                value={"₱" + amountToPay.toLocaleString()}
+              />
+            )}
           </>
         )}
       </ScrollView>

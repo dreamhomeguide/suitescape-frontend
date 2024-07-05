@@ -1,13 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation } from "@tanstack/react-query";
 import * as Crypto from "expo-crypto";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -27,8 +21,6 @@ import SearchResultItem from "../../components/SearchResultItem/SearchResultItem
 import { Routes } from "../../navigation/Routes";
 import { searchListings } from "../../services/apiService";
 import { handleApiResponse } from "../../utils/apiHelpers";
-import convertDateFormat from "../../utils/dateConverter";
-import formatRange from "../../utils/rangeFormatter";
 
 // const SAMPLE_SEARCHES = [
 //   {
@@ -62,7 +54,7 @@ const Search = ({ navigation, route }) => {
   const abortControllerRef = useRef(new AbortController());
   const insets = useSafeAreaInsets();
 
-  const { prevDestination, checkIn, checkOut, guests } = route.params || {};
+  const { prevDestination } = route.params || {};
 
   // Set search query from previously entered destination
   useEffect(() => {
@@ -96,15 +88,6 @@ const Search = ({ navigation, route }) => {
     };
   }, []);
 
-  const itemDetails = useMemo(() => {
-    const date = formatRange(
-      convertDateFormat(checkIn),
-      convertDateFormat(checkOut),
-    );
-
-    return `${date} (${guests} Guests)`;
-  }, [checkIn, checkOut, guests]);
-
   const fetchResultsMutation = useMutation({
     mutationFn: searchListings,
     onSuccess: (response) =>
@@ -115,15 +98,22 @@ const Search = ({ navigation, route }) => {
           // console.log(showAutoComplete);
 
           if (showAutoComplete) {
-            setAutoCompleteSearches(
-              res.length > 0 ? res.map((item) => item.location) : [searchQuery],
-            );
+            const newAutoCompleteSearches =
+              res.length > 0
+                ? [
+                    ...res.map((item) => item.name),
+                    ...res.map((item) => item.location),
+                  ]
+                : [searchQuery];
+
+            setAutoCompleteSearches(newAutoCompleteSearches);
           }
 
           const results = res.map((item) => ({
             id: item.id,
+            name: item.name,
             location: item.location,
-            details: itemDetails,
+            // details: itemDetails,
           }));
 
           setResults(results);
@@ -320,7 +310,6 @@ const Search = ({ navigation, route }) => {
         <FlatList
           data={results}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={globalStyles.rowGapSmall}
           scrollEnabled={false}
           renderItem={renderItem}
           keyboardShouldPersistTaps="handled"
@@ -349,7 +338,7 @@ const Search = ({ navigation, route }) => {
       const newSearch = {
         id: Crypto.randomUUID(),
         location: query,
-        details: itemDetails,
+        // details: itemDetails,
       };
 
       // Add search to recent searches
@@ -368,7 +357,7 @@ const Search = ({ navigation, route }) => {
         return newSearches;
       });
     },
-    [searchQuery, itemDetails, recentSearches],
+    [searchQuery, recentSearches],
   );
 
   return (
@@ -404,6 +393,7 @@ const Search = ({ navigation, route }) => {
 
           setSearchQuery(value);
         }}
+        autoCorrect={false}
         placeholder="Where To?"
         returnKeyType="search"
         containerStyle={style.searchInputContainer}

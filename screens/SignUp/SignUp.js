@@ -1,4 +1,5 @@
 import { useFocusEffect } from "@react-navigation/native";
+import { isFuture } from "date-fns";
 import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useRef, useState } from "react";
 import {
@@ -74,13 +75,13 @@ const SignUp = ({ navigation }) => {
       return false;
     }
 
-    const today = new Date();
     const birthday = new Date(convertDateFormat(dateFormatResult));
 
     // Check if user is in legal age
     const eighteenthBirthday = new Date(birthday);
     eighteenthBirthday.setFullYear(eighteenthBirthday.getFullYear() + 18);
-    if (eighteenthBirthday > today) {
+
+    if (isFuture(eighteenthBirthday)) {
       Alert.alert("You must be 18 years old or above to register.");
       setBirthday("");
       return false;
@@ -284,7 +285,6 @@ const SignUp = ({ navigation }) => {
           </ButtonLarge>
         </View>
         <LineView>Or</LineView>
-        <ButtonSocialLogin type="phone" />
         <ButtonSocialLogin type="facebook" />
         <ButtonSocialLogin type="google" />
         <AuthSwitchPrompt />

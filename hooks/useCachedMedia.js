@@ -21,7 +21,7 @@ const useCachedMedia = (subDir, fileName, downloadUrl, options) => {
       // Check if cache file already exists
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
 
-      if (!fileInfo.exists) {
+      if (!fileInfo.exists && downloadUrl) {
         // Download and cache media
         const { uri } = await FileSystem.downloadAsync(
           downloadUrl,
@@ -50,7 +50,7 @@ const useCachedMedia = (subDir, fileName, downloadUrl, options) => {
     downloadAndCacheMedia().catch((err) => {
       console.log("Cache download aborted due to an error: ", err);
     });
-  }, []);
+  }, [downloadUrl]);
 
   const clearCache = useCallback(async () => {
     // Get cache file

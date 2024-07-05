@@ -6,8 +6,14 @@ import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import ButtonGalleryMode from "../ButtonGalleryMode/ButtonGalleryMode";
 import SliderGallery from "../SliderGallery/SliderGallery";
 
-const SliderGalleryMode = ({ imageData, videoData, height }) => {
-  const [isPhoto, setIsPhoto] = useState(videoData?.length === 0);
+const SliderGalleryMode = ({
+  imageData,
+  videoData,
+  height,
+  showIndex = true,
+  showMode = true,
+}) => {
+  const [isPhoto, setIsPhoto] = useState(!videoData || videoData.length === 0);
 
   const { index, setIndex, isPhotoGalleryShown, isVideoGalleryShown } =
     useModalGallery();
@@ -21,7 +27,7 @@ const SliderGalleryMode = ({ imageData, videoData, height }) => {
   };
 
   return (
-    <>
+    <View style={{ height }}>
       {!isPhotoGalleryShown && !isVideoGalleryShown && (
         <SliderGallery
           data={galleryData}
@@ -31,7 +37,7 @@ const SliderGalleryMode = ({ imageData, videoData, height }) => {
       )}
 
       {/* Index */}
-      {galleryData?.length > 0 ? (
+      {showIndex && galleryData?.length > 0 ? (
         <View style={style.indexContainer}>
           <Text style={style.text}>
             {index + 1}/{galleryData.length}
@@ -40,21 +46,27 @@ const SliderGalleryMode = ({ imageData, videoData, height }) => {
       ) : null}
 
       {/* Mode Buttons */}
-      {imageData && videoData && (
+
+      {showMode && (
         <View style={style.modeContainer}>
-          <ButtonGalleryMode
-            mode="video"
-            isPhoto={isPhoto}
-            setGalleryMode={changeGalleryMode}
-          />
-          <ButtonGalleryMode
-            mode="image"
-            isPhoto={isPhoto}
-            setGalleryMode={changeGalleryMode}
-          />
+          {videoData?.length > 0 && (
+            <ButtonGalleryMode
+              mode="video"
+              isPhoto={isPhoto}
+              setGalleryMode={changeGalleryMode}
+            />
+          )}
+
+          {imageData?.length > 0 && (
+            <ButtonGalleryMode
+              mode="image"
+              isPhoto={isPhoto}
+              setGalleryMode={changeGalleryMode}
+            />
+          )}
         </View>
       )}
-    </>
+    </View>
   );
 };
 

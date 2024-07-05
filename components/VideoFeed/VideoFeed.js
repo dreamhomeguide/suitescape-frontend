@@ -39,38 +39,30 @@ const VideoFeed = forwardRef(
   ) => {
     const [index, setIndex] = useState(null);
     const [lastPlayedIndex, setLastPlayedIndex] = useState(null);
-    const [flatListKey, setFlatListKey] = useState(Date.now());
 
     const flatListRef = useRef(null);
 
     const insets = useSafeAreaInsets();
     const isFeedFocused = useIsFocused();
 
-    // Adds top inset on android devices with a notch
-    const topInset =
+    // Adds top padding on android devices with a notch
+    const topPadding =
       Platform.OS === "android" && insets.top > 25 ? insets.top : 0;
 
     // Adds bottom inset if the bottom tab bar is not present
     const bottomInset = bottomTabHeight ?? insets.bottom;
 
     // Adjusts the height of the video to fit the screen
-    const videoHeight = height + topInset - bottomInset;
+    const videoHeight = height + topPadding - bottomInset;
 
     const resetIndex = useCallback(() => {
       setLastPlayedIndex(null);
       setIndex(null);
     }, []);
 
-    const resetFlatList = useCallback(() => {
-      // Resets the key of the flatList to force a re-render
-      // Also fixes onEndReached not firing (probably other props too)
-      setFlatListKey(Date.now());
-    }, []);
-
     useImperativeHandle(ref, () => ({
       list: flatListRef.current,
       resetIndex,
-      reset: resetFlatList, // Use with caution
     }));
 
     // Plays the last played video when the feed is focused, and pauses it when it is not
@@ -167,6 +159,7 @@ const VideoFeed = forwardRef(
           videoId={item.id}
           videoUrl={item.url}
           videoFileName={item.filename}
+          videoSections={item.sections}
           height={videoHeight}
           listing={currentListing ?? item.listing}
           previewMode={currentListing}
@@ -217,12 +210,11 @@ const VideoFeed = forwardRef(
         {/*/>*/}
 
         <FlatList
-          key={flatListKey}
           ref={flatListRef}
           data={videos}
           scrollEnabled={scrollEnabled}
           initialNumToRender={5}
-          windowSize={3}
+          windowSize={5}
           maxToRenderPerBatch={3}
           updateCellsBatchingPeriod={30}
           removeClippedSubviews

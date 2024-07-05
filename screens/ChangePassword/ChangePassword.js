@@ -84,11 +84,12 @@ const ChangePassword = ({ navigation }) => {
         <FormInput
           type="password"
           label="Current Password"
+          placeholder="Enter current password"
           value={currentPassword}
           errorMessage={errors?.current_password}
           onChangeText={(value) => {
             setCurrentPassword(value);
-            clearErrorWhenNotEmpty(value, "current_password");
+            clearErrorWhenNotEmpty(value, "current_password", setErrors);
           }}
           onSubmitEditing={() => newPasswordRef.current.focus()}
           blurOnSubmit={false}
@@ -105,6 +106,7 @@ const ChangePassword = ({ navigation }) => {
         <FormInput
           type="password"
           label="New Password"
+          placeholder="Enter new password"
           value={newPassword}
           errorMessage={errors?.new_password}
           onChangeText={(value) => {
@@ -123,6 +125,7 @@ const ChangePassword = ({ navigation }) => {
         <FormInput
           type="password"
           label="Confirm New Password"
+          placeholder="Confirm new password"
           value={confirmNewPassword}
           errorMessage={errors?.new_password && []}
           onChangeText={(value) => {

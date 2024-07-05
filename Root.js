@@ -1,17 +1,21 @@
-import { Entypo } from "@expo/vector-icons";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
-import Foundation from "@expo/vector-icons/Foundation";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import {
+  AntDesign,
+  Entypo,
+  FontAwesome6,
+  Foundation,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import {
   DarkTheme,
   DefaultTheme,
   NavigationContainer,
 } from "@react-navigation/native";
-import { ImageBackground } from "expo-image";
+import { useFonts } from "expo-font";
 import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
+import LottieView from "lottie-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StatusBar, useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -27,7 +31,9 @@ import globalStyles from "./assets/styles/globalStyles";
 import toastStyles from "./assets/styles/toastStyles";
 import { useAuth } from "./contexts/AuthContext";
 import BookingProcessProvider from "./contexts/BookingProcessProvider";
+import { CreateListingProvider } from "./contexts/CreateListingContext";
 import { useSettings } from "./contexts/SettingsContext";
+import { TimerProvider } from "./contexts/TimerContext";
 import { VideoFiltersProvider } from "./contexts/VideoFiltersContext";
 import MainNavigation from "./navigation/MainNavigation";
 import { Routes } from "./navigation/Routes";
@@ -46,7 +52,19 @@ const navigationTheme = {
 const paperTheme = MaterialTheme;
 
 const Root = () => {
-  const [appIsReady, setAppIsReady] = useState(false);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Fontello: require("./assets/fontello/Fontello.ttf"),
+    "Agenor-Bold": require("./assets/fonts/Agenor-Bold.ttf"),
+    "Agenor-Thin": require("./assets/fonts/Agenor-Thin.ttf"),
+    ...AntDesign.font,
+    ...Entypo.font,
+    ...FontAwesome6.font,
+    ...Foundation.font,
+    ...Ionicons.font,
+    ...MaterialCommunityIcons.font,
+  });
+
   const [showSplashAnimation, setShowSplashAnimation] = useState(true);
 
   const splashTimeoutRef = useRef(null);
@@ -59,7 +77,7 @@ const Root = () => {
   const config = {
     screens: {
       [Routes.MAIN]: {
-        initialRouteName: Routes.HOME,
+        initialRouteName: Routes.HOME_GUEST,
         screens: {
           [Routes.LISTING_DETAILS]: {
             path: "listings/:listingId",
@@ -83,21 +101,11 @@ const Root = () => {
 
         await cacheAssetsAsync({
           images: [
-            require("./assets/splash-animation.gif"),
-            require("./assets/images/onboarding/host.png"),
+            require("./assets/images/onboarding/host-page.png"),
+            require("./assets/images/onboarding/page1.png"),
+            require("./assets/images/onboarding/page2.png"),
+            require("./assets/images/onboarding/page3.png"),
             require("./assets/images/pngs/default-profile.png"),
-          ],
-          fonts: [
-            AntDesign.font,
-            Entypo.font,
-            FontAwesome5.font,
-            Foundation.font,
-            MaterialCommunityIcons.font,
-            { Fontello: require("./assets/fontello/Fontello.ttf") },
-            {
-              "Agenor-Bold": require("./assets/fonts/Agenor-Bold.ttf"),
-              "Agenor-Thin": require("./assets/fonts/Agenor-Thin.ttf"),
-            },
           ],
         });
       } catch (e) {
@@ -105,7 +113,7 @@ const Root = () => {
         console.warn(e);
       } finally {
         // Signal that the app has finished loading resources
-        setAppIsReady(true);
+        setAssetsLoaded(true);
 
         // Hide the splash screen to show splash animation
         SplashScreen.hideAsync().catch((err) => console.log(err));
@@ -127,23 +135,28 @@ const Root = () => {
 
   if (showSplashAnimation) {
     return (
-      <ImageBackground
-        onLayout={() => {
-          splashTimeoutRef.current = setTimeout(() => {
-            setShowSplashAnimation(false);
-          }, 4000);
+      <LottieView
+        onAnimationFinish={() => {
+          setShowSplashAnimation(false);
         }}
-        contentFit="contain"
-        source={require("./assets/splash-animation.gif")}
+        duration={1500}
+        source={require("./assets/suitescape-splash.json")}
         style={globalStyles.flexFull}
+        loop={false}
+        autoPlay
       />
     );
   }
 
-  if (!appIsReady || !settings.isLoaded || !authState.isLoaded) {
+  if (
+    !assetsLoaded ||
+    !fontsLoaded ||
+    !settings.isLoaded ||
+    !authState.isLoaded
+  ) {
     return (
       <ActivityIndicator
-        color="black"
+        color={Colors.gray}
         size="large"
         style={globalStyles.flexCenter}
       />
@@ -152,38 +165,42 @@ const Root = () => {
 
   return (
     <GestureHandlerRootView style={globalStyles.flexFull}>
-      <BottomSheetModalProvider>
-        <ToastProvider
-          offsetTop={StatusBar.currentHeight}
-          duration={1400}
-          normalColor={Colors.transparentblue}
-          style={toastStyles.toast}
-        >
-          <PaperProvider theme={paperTheme}>
-            {/*{!isNavigationReady && (*/}
-            {/*  <ActivityIndicator*/}
-            {/*    color="black"*/}
-            {/*    size="large"*/}
-            {/*    style={globalStyles.flexCenter}*/}
-            {/*  />*/}
-            {/*)}*/}
+      <ToastProvider
+        offsetTop={StatusBar.currentHeight}
+        normalColor={Colors.transparentblue}
+        style={toastStyles.toast}
+        duration={1400}
+      >
+        <PaperProvider theme={paperTheme}>
+          {/*{!isNavigationReady && (*/}
+          {/*  <ActivityIndicator*/}
+          {/*    color="black"*/}
+          {/*    size="large"*/}
+          {/*    style={globalStyles.flexCenter}*/}
+          {/*  />*/}
+          {/*)}*/}
 
-            <NavigationContainer
-              linking={linking}
-              theme={colorScheme === "dark" ? DarkTheme : navigationTheme}
-              // onReady={() => setIsNavigationReady(true)}
-            >
-              <HeaderButtonsProvider stackType={stackType}>
-                <BookingProcessProvider>
+          <NavigationContainer
+            linking={linking}
+            theme={colorScheme === "dark" ? DarkTheme : navigationTheme}
+            // onReady={() => setIsNavigationReady(true)}
+          >
+            <HeaderButtonsProvider stackType={stackType}>
+              <BookingProcessProvider>
+                <CreateListingProvider>
                   <VideoFiltersProvider>
-                    <MainNavigation />
+                    <TimerProvider>
+                      <BottomSheetModalProvider>
+                        <MainNavigation />
+                      </BottomSheetModalProvider>
+                    </TimerProvider>
                   </VideoFiltersProvider>
-                </BookingProcessProvider>
-              </HeaderButtonsProvider>
-            </NavigationContainer>
-          </PaperProvider>
-        </ToastProvider>
-      </BottomSheetModalProvider>
+                </CreateListingProvider>
+              </BookingProcessProvider>
+            </HeaderButtonsProvider>
+          </NavigationContainer>
+        </PaperProvider>
+      </ToastProvider>
     </GestureHandlerRootView>
   );
 };

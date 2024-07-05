@@ -5,6 +5,7 @@ import {
   Dimensions,
   Pressable,
   useWindowDimensions,
+  View,
 } from "react-native";
 
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
@@ -17,6 +18,7 @@ const { height: WINDOW_HEIGHT } = Dimensions.get("window");
 const SliderGalleryItemPhoto = ({
   photoId,
   photoUrl,
+  privacy,
   height = WINDOW_HEIGHT,
   modalMode,
   ...props
@@ -43,9 +45,10 @@ const SliderGalleryItemPhoto = ({
         animating={isLoading}
         style={globalStyles.absoluteCenter}
       />
+
       <Image
         source={{
-          uri: baseURL + photoUrl,
+          uri: modalMode ? photoUrl : baseURL + photoUrl,
           headers: {
             Authorization: "Bearer " + authState.userToken,
           },
@@ -57,6 +60,10 @@ const SliderGalleryItemPhoto = ({
         style={globalStyles.flexFull}
         {...props}
       />
+
+      {privacy === "private" && (
+        <View style={globalStyles.disabledBackground} />
+      )}
     </Pressable>
   );
 };

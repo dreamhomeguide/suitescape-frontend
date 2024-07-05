@@ -1,18 +1,16 @@
 import { differenceInDays, format } from "date-fns";
 
-import convertDateFormat from "./dateConverter";
 import facilityData from "../data/facilityData";
 
 const labels = {
   firstname: "First Name",
   lastname: "Last Name",
-  gender: "Gender",
   email: "Email",
   address: "Address",
   region: "Region",
   city: "City",
-  zipCode: "Zip/Postal Code",
-  mobileNumber: "Phone Number",
+  zipcode: "Zip/Postal Code",
+  mobile_number: "Phone Number",
 };
 
 export const getGuestDetails = (userData) => ({
@@ -24,7 +22,7 @@ export const getGuestDetails = (userData) => ({
     : [],
 });
 
-export const getBookingDetails = ({ startDate, endDate, listing, room }) => ({
+export const getBookingDetails = ({ startDate, endDate, listing }) => ({
   label: "Booking Details",
   data: [
     {
@@ -40,9 +38,8 @@ export const getBookingDetails = ({ startDate, endDate, listing, room }) => ({
     },
     {
       label: "Check-in time",
-      value:
-        listing?.check_in_time &&
-        convertDateFormat(listing.check_in_time, "time"),
+      value: listing?.check_in_time,
+      // convertDateFormat(listing.check_in_time, "time"),
     },
     {
       label: "Check Out",
@@ -50,9 +47,8 @@ export const getBookingDetails = ({ startDate, endDate, listing, room }) => ({
     },
     {
       label: "Check-out time",
-      value:
-        listing?.check_out_time &&
-        convertDateFormat(listing.check_out_time, "time"),
+      value: listing?.check_out_time,
+      // convertDateFormat(listing.check_out_time, "time"),
     },
     {
       label: "Adult",
@@ -66,14 +62,14 @@ export const getBookingDetails = ({ startDate, endDate, listing, room }) => ({
       label: "Type of Facility",
       value: facilityData[listing?.facility_type],
     },
-    {
-      label: "Room Type",
-      value: room?.category.name,
-    },
-    {
-      label: "Number of Rooms",
-      value: 2,
-    },
+    // {
+    //   label: "Room Type",
+    //   value: room?.category.name,
+    // },
+    // {
+    //   label: "Number of Rooms",
+    //   value: 2,
+    // },
     {
       label: "Pet Friendly",
       value: listing?.pet_friendly ? "Yes" : "No",
@@ -85,31 +81,63 @@ export const getBookingDetails = ({ startDate, endDate, listing, room }) => ({
   ],
 });
 
+export const getRoomDetails = (roomsData) => {
+  return {
+    label: "Room Details",
+    data: roomsData?.map((room) => ({
+      label: `${room.quantity} ${room.name}`,
+      value: "₱" + (room.price * room.quantity).toLocaleString(),
+    })),
+  };
+};
+
+export const getAddOnDetails = (addonsData) => {
+  return {
+    label: "Add-ons",
+    data: addonsData?.map((addon) => ({
+      label: `${addon.quantity} ${addon.name}`,
+      value: "₱" + (addon.price * addon.quantity).toLocaleString(),
+    })),
+  };
+};
+
 export const getPaymentDetails = ({
-  roomPrice,
+  totalPrice,
   nights,
   discount,
   suitescapeFee,
+  isEntirePlace,
 }) => {
-  const totalRoomPrice = roomPrice * nights;
-  const totalDiscount = totalRoomPrice * discount;
+  const grandTotal = totalPrice * nights;
+  const totalDiscount = grandTotal * discount;
+  const amountToPay = grandTotal + suitescapeFee - totalDiscount;
+
+  const data = [
+    {
+      label: `Subtotal ${isEntirePlace ? "(Entire Place Price + Addons)" : "(Rooms + Addons)"}`,
+      value: "₱" + totalPrice?.toLocaleString(),
+    },
+    {
+      label: `Total (₱${totalPrice?.toLocaleString()} x ${nights} ${nights === 1 ? "night" : "nights"})`,
+      value: "₱" + grandTotal?.toLocaleString(),
+    },
+    {
+      label: "Suitescape Fee",
+      value: "₱" + suitescapeFee,
+    },
+  ];
+
+  if (discount > 0) {
+    data.push({
+      label: `Less ${discount * 100}% Off`,
+      value: "₱-" + totalDiscount?.toLocaleString(),
+    });
+  }
+
   return {
     label: "Payment Details",
-    amount: totalRoomPrice + suitescapeFee - totalDiscount,
-    data: [
-      {
-        label: `₱${roomPrice?.toLocaleString()} x ${nights} night${nights > 1 ? "s" : ""}`,
-        value: "₱" + totalRoomPrice?.toLocaleString(),
-      },
-      {
-        label: "Suitescape Fee",
-        value: "₱" + suitescapeFee,
-      },
-      {
-        label: `Less ${discount * 100}% Off`,
-        value: "₱-" + totalDiscount?.toLocaleString(),
-      },
-    ],
+    amount: amountToPay.toLocaleString(),
+    data,
   };
 };
 
@@ -129,9 +157,8 @@ export const getDateDetails = ({ startDate, endDate, listing }) => ({
     },
     {
       label: "Check-in time",
-      value:
-        listing?.check_in_time &&
-        convertDateFormat(listing.check_in_time, "time"),
+      value: listing?.check_in_time,
+      // convertDateFormat(listing.check_in_time, "time"),
     },
     {
       label: "Check Out",
@@ -139,9 +166,8 @@ export const getDateDetails = ({ startDate, endDate, listing }) => ({
     },
     {
       label: "Check-out time",
-      value:
-        listing?.check_out_time &&
-        convertDateFormat(listing.check_out_time, "time"),
+      value: listing?.check_out_time,
+      // convertDateFormat(listing.check_out_time, "time"),
     },
   ],
 });
@@ -149,12 +175,11 @@ export const getDateDetails = ({ startDate, endDate, listing }) => ({
 export const getPriceDetails = ({
   startDate,
   endDate,
-  roomPrice,
-  previousAmount,
+  prevAmount,
   suitescapeFee,
 }) => {
   const nights = differenceInDays(endDate, startDate) || 1;
-  const newPrice = roomPrice * nights + suitescapeFee;
+  const newPrice = prevAmount * nights + suitescapeFee;
 
   return {
     label: "Price Update",
@@ -162,7 +187,7 @@ export const getPriceDetails = ({
     data: [
       {
         label: "Original Price",
-        value: `₱${previousAmount?.toLocaleString()}`,
+        value: `₱${prevAmount?.toLocaleString()}`,
       },
       {
         label: "New Price",
@@ -170,8 +195,27 @@ export const getPriceDetails = ({
       },
       {
         label: "Amount paid",
-        value: `₱-${previousAmount?.toLocaleString()}`,
+        value: `₱-${prevAmount?.toLocaleString()}`,
       },
     ],
   };
+};
+
+export const getOriginalPrice = ({
+  grandTotal,
+  nights,
+  discountRate,
+  suitescapeFee,
+}) => {
+  // 100% discount means free
+  if (discountRate === 1) {
+    return 0;
+  }
+
+  const withoutFee = grandTotal - suitescapeFee;
+  const withoutDiscount = 1 - discountRate;
+
+  // Calculates the total before discount and suitescape fee
+  const total = withoutFee / withoutDiscount / nights;
+  return Math.round((total + Number.EPSILON) * 100) / 100;
 };

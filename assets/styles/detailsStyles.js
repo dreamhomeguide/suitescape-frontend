@@ -48,6 +48,12 @@ const style = StyleSheet.create({
     marginBottom: 15,
     overflow: "hidden",
   },
+  locationButtonContainer: {
+    position: "absolute",
+    right: 10,
+    bottom: 10,
+    padding: 5,
+  },
   bottomSeeAllContainer: {
     marginBottom: 18,
     alignItems: "center",

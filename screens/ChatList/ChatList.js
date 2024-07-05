@@ -1,6 +1,5 @@
-import { useNavigation, useScrollToTop } from "@react-navigation/native";
+import { useScrollToTop } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,36 +9,30 @@ import {
   Text,
   View,
 } from "react-native";
-import { RectButton } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import style from "./ChatListStyles";
-import globalStyles from "../../assets/styles/globalStyles";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
+import ChatListItem from "../../components/ChatListItem/ChatListItem";
 import FocusAwareStatusBar from "../../components/FocusAwareStatusBar/FocusAwareStatusBar";
 import FormInput from "../../components/FormInput/FormInput";
-import ProfileImage from "../../components/ProfileImage/ProfileImage";
-import { useAuth } from "../../contexts/AuthContext";
 import { useSettings } from "../../contexts/SettingsContext";
 import { Routes } from "../../navigation/Routes";
-import { baseURL } from "../../services/SuitescapeAPI";
 import { fetchAllChats } from "../../services/apiService";
 
-const ChatList = () => {
+const ChatList = ({ navigation }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const navigation = useNavigation();
 
   const flatListRef = useRef(null);
 
   useScrollToTop(flatListRef);
 
-  const { authState } = useAuth();
   const { settings } = useSettings();
   const insets = useSafeAreaInsets();
 
   const {
     data: chats,
-    isFetched,
+    isFetching,
     refetch,
   } = useQuery({
     queryKey: ["chats"],
@@ -47,55 +40,20 @@ const ChatList = () => {
     enabled: !settings.guestModeEnabled,
   });
 
-  const renderItem = useCallback(({ item }) => {
-    const {
-      latest_message: { content, sender_id: senderId, created_at: createdAt },
-      user,
-      unread_messages_count: unreadMessagesCount,
-    } = item;
-
-    return (
-      <Pressable
-        style={({ pressed }) => style.singleChatContainer(pressed)}
-        onPress={() => {
-          navigation.navigate(Routes.CHAT, { id: user.id });
-        }}
-      >
-        <ProfileImage
-          source={user.picture_url ? { uri: baseURL + user.picture_url } : null}
-        />
-        <View style={style.singleChatDetails}>
-          <Text style={style.hostName} numberOfLines={1}>
-            {user.fullname}
-          </Text>
-          <Text numberOfLines={1} style={style.unreadMessage}>
-            {senderId === authState.userId && "You: "}
-            {content}
-          </Text>
-        </View>
-        <View style={style.messageStatusContainer}>
-          <Text style={style.timeFrame}>{format(createdAt, "h:mm aa")}</Text>
-          {unreadMessagesCount > 0 && (
-            <View style={style.unreadMessagesCount}>
-              <Text style={style.newMessageCountText}>
-                {unreadMessagesCount}
-              </Text>
-            </View>
-          )}
-        </View>
-      </Pressable>
-    );
-  }, []);
+  const renderItem = useCallback(
+    ({ item }) => <ChatListItem item={item} />,
+    [],
+  );
 
   const EmptyListComponent = useCallback(() => {
-    return isFetched ? (
-      <View style={globalStyles.flexCenter}>
-        <Text style={globalStyles.emptyTextCenter}>No messages.</Text>
-      </View>
-    ) : (
+    return isFetching ? (
       <ActivityIndicator style={globalStyles.loadingCircle} />
+    ) : (
+      <View style={globalStyles.flexCenter}>
+        <Text style={globalStyles.emptyTextCenter}>No messages yet.</Text>
+      </View>
     );
-  }, [isFetched]);
+  }, [isFetching]);
 
   const onRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -109,18 +67,19 @@ const ChatList = () => {
     }
   }, [refetch]);
 
-  if (settings.guestModeEnabled) {
-    return (
-      <View style={globalStyles.flexCenter}>
-        <FocusAwareStatusBar style="dark" animated />
-        <Text>Not logged in</Text>
-      </View>
-    );
-  }
+  // if (settings.guestModeEnabled) {
+  //   return (
+  //     <View style={globalStyles.flexCenter}>
+  //       <FocusAwareStatusBar style="dark" animated />
+  //       <Text>Not logged in</Text>
+  //     </View>
+  //   );
+  // }
 
   return (
-    <View style={style.messagesContainer}>
+    <View style={globalStyles.flexFull}>
       <FocusAwareStatusBar style="dark" animated />
+
       <FlatList
         ref={flatListRef}
         keyExtractor={(item) => item.id.toString()}
@@ -131,14 +90,19 @@ const ChatList = () => {
         stickyHeaderIndices={[0]}
         ListHeaderComponent={
           <View style={style.headerContainer}>
-            <RectButton
+            <Pressable
               onPress={() => navigation.navigate(Routes.CHAT_SEARCH)}
-              style={style.searchContainer}
+              style={({ pressed }) => ({
+                ...style.searchContainer,
+                ...pressedOpacity(pressed, 0.4),
+              })}
             >
-              <View pointerEvents="none">
-                <FormInput placeholder="Search" />
-              </View>
-            </RectButton>
+              <FormInput
+                type="search"
+                placeholder="Search"
+                containerStyle={{ pointerEvents: "none" }}
+              />
+            </Pressable>
           </View>
         }
         refreshControl={

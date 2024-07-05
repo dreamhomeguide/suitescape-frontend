@@ -7,11 +7,11 @@ const style = StyleSheet.create({
     flexGrow: 1,
     borderRadius: 10,
     padding: 15,
-    margin: 5,
+    marginVertical: 5,
   },
   label: {
     marginTop: 10,
-    margin: 5,
+    marginVertical: 5,
     color: "gray",
   },
   error: {
@@ -22,6 +22,10 @@ const style = StyleSheet.create({
     marginTop: 3,
     marginBottom: 10,
     marginRight: 20,
+  },
+  leadingIcon: {
+    width: "10%",
+    bottom: 1,
   },
   trailingIcon: {
     position: "absolute",

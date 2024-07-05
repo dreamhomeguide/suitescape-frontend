@@ -2,6 +2,7 @@ import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
   toast: {
+    position: "absolute",
     borderRadius: 20,
   },
 });

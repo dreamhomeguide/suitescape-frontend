@@ -29,7 +29,11 @@ const SliderReviewItem = ({ item, itemWidth, itemMargin }) => {
         })}
       >
         <ProfileImage
-          source={user.picture_url ? { uri: baseURL + user.picture_url } : null}
+          source={
+            user.profile_image_url
+              ? { uri: baseURL + user.profile_image_url }
+              : null
+          }
           size={45}
         />
         <View style={style.userNameContainer}>

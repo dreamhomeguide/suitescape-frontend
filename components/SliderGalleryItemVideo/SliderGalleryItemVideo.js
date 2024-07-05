@@ -1,10 +1,17 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { memo, useCallback, useRef } from "react";
-import { Dimensions, Pressable, useWindowDimensions } from "react-native";
+import {
+  ActivityIndicator,
+  Dimensions,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import style from "./SliderGalleryItemVideoStyles";
-import { pressedBgColor } from "../../assets/styles/globalStyles";
+import globalStyles, { pressedBgColor } from "../../assets/styles/globalStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
 import useCachedMedia from "../../hooks/useCachedMedia";
 import { baseURL } from "../../services/SuitescapeAPI";
@@ -16,6 +23,8 @@ const SliderGalleryItemVideo = ({
   videoId,
   videoUrl,
   filename,
+  privacy,
+  isTranscoded,
   height = WINDOW_HEIGHT,
   ...props
 }) => {
@@ -29,7 +38,7 @@ const SliderGalleryItemVideo = ({
   const { cachedUri } = useCachedMedia(
     "videos/",
     videoId + "." + fileExtension,
-    baseURL + videoUrl,
+    isTranscoded && baseURL + videoUrl,
   );
 
   // Pauses the video when the user navigates to the next screen
@@ -48,16 +57,27 @@ const SliderGalleryItemVideo = ({
     <>
       <VideoItem
         ref={videoRef}
-        videoUri={cachedUri}
+        videoUri={isTranscoded && cachedUri}
         height={height}
         width={width}
         iconSize={40}
-        initialIsMuted
+        initialIsMuted={isTranscoded}
         shouldPlay={!isVideoGalleryShown}
         likeEnabled={false}
         clearModeEnabled={false}
         {...props}
       />
+
+      {privacy === "private" && (
+        <View style={globalStyles.disabledBackground} />
+      )}
+
+      {isTranscoded ? null : (
+        <View style={style.transcodingContainer}>
+          <ActivityIndicator size="large" />
+          <Text>Processing...</Text>
+        </View>
+      )}
 
       {/* Fullscreen button for video */}
       <Pressable

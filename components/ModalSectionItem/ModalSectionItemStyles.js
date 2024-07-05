@@ -9,20 +9,21 @@ const style = StyleSheet.create({
     borderRadius: 10,
     padding: 8,
     ...(isActive && {
-      backgroundColor: Colors.lightgray,
+      backgroundColor: Colors.lightblue,
     }),
     width,
   }),
-  contentContainer: {
+  contentContainer: (detailsWidth) => ({
+    width: detailsWidth,
     marginRight: 10,
-  },
+  }),
   text: {
     fontWeight: "500",
   },
-  image: (imageSize) => ({
+  image: (imageWidth) => ({
     flex: 1,
-    height: imageSize,
-    width: imageSize,
+    width: imageWidth,
+    height: imageWidth * 0.75,
     borderRadius: 10,
   }),
 });

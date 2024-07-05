@@ -9,14 +9,15 @@ import style from "./SliderModalPhotoStyles";
 import Fontello from "../../assets/fontello/Fontello";
 import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import { useModalGallery } from "../../contexts/ModalGalleryContext";
+import { baseURL } from "../../services/SuitescapeAPI";
 import SliderGalleryItemPhoto from "../SliderGalleryItemPhoto/SliderGalleryItemPhoto";
 
 const SliderModalPhoto = ({
   imageData, // You only need this to use the useModalGallery hook
   visible,
   onClose,
-  galleryMode,
   showIndex,
+  galleryMode,
 }) => {
   const [isImageLoading, setIsImageLoading] = useState(false);
 
@@ -48,7 +49,7 @@ const SliderModalPhoto = ({
       <SliderGalleryItemPhoto
         modalMode
         photoId={item.id}
-        photoUrl={item.url}
+        photoUrl={item.isLocal ? item.uri : baseURL + item.url}
         enableLiveTextInteraction
         onLoad={(e) => {
           const { width, height } = e.source;
@@ -92,8 +93,8 @@ const SliderModalPhoto = ({
         <Pressable
           onPress={onRequestClose}
           style={({ pressed }) => ({
-            ...pressedOpacity(pressed),
             ...style.closeButton({ topInsets: insets.top }),
+            ...pressedOpacity(pressed),
           })}
         >
           <Fontello name="x-regular" size={20} color="white" />
@@ -103,7 +104,7 @@ const SliderModalPhoto = ({
           <GestureHandlerRootView style={globalStyles.flexFull}>
             <Gallery
               data={imageData}
-              keyExtractor={(item, index) => item.id ?? index.toString()}
+              keyExtractor={(item, index) => item?.id || index.toString()}
               initialIndex={galleryMode ? index : 0}
               onIndexChange={galleryMode ? setIndex : null}
               renderItem={galleryMode ? renderGalleryItem : renderItem}

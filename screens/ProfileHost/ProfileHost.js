@@ -1,26 +1,38 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useQuery } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
-import React, { useCallback, useEffect, useState } from "react";
-import { View } from "react-native";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
+import { ActivityIndicator, Text, View } from "react-native";
 import { Tabs } from "react-native-collapsible-tab-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Item } from "react-navigation-header-buttons";
 
 import globalStyles from "../../assets/styles/globalStyles";
 import HeaderProfileHost from "../../components/HeaderProfileHost/HeaderProfileHost";
 import ListingItem from "../../components/ListingItem/ListingItem";
 import ReviewItem from "../../components/ReviewItem/ReviewItem";
+import { useAuth } from "../../contexts/AuthContext";
+import { Routes } from "../../navigation/Routes";
 import { TabBar } from "../../navigation/TopTabs/TopTabs";
 import { fetchHost } from "../../services/apiService";
 
 const ProfileHost = ({ navigation, route }) => {
   const [showList, setShowList] = useState(false);
 
+  const {
+    authState: { userId },
+  } = useAuth();
   const insets = useSafeAreaInsets();
 
-  const headerHeight = 380;
+  const headerHeight = 400;
   const hostId = route.params.hostId;
 
-  const { data: host } = useQuery({
+  const { data: host, isFetched } = useQuery({
     queryKey: ["hosts", hostId],
     queryFn: () => fetchHost(hostId),
   });
@@ -32,6 +44,7 @@ const ProfileHost = ({ navigation, route }) => {
     listings_count: listingsCount,
     listings_likes_count: likesCount,
     listings_reviews_count: reviewsCount,
+    listings_avg_rating: listingsAvgRating,
     ...hostData
   } = host || {};
 
@@ -46,17 +59,15 @@ const ProfileHost = ({ navigation, route }) => {
       <HeaderProfileHost
         height={headerHeight}
         hostName={hostData.fullname}
-        hostPictureUrl={hostData.picture_url}
-        userName={
-          // Temporary username for host
-          hostData.firstname + hostData.lastname
-        }
+        hostProfileUrl={hostData.profile_image_url}
+        hostCoverUrl={hostData.cover_image_url}
+        listingsAvgRating={listingsAvgRating}
         listingsCount={listingsCount}
         likesCount={likesCount}
         reviewsCount={reviewsCount}
       />
     ),
-    [hostData, listingsCount, likesCount, reviewsCount],
+    [hostData, listingsAvgRating, listingsCount, likesCount, reviewsCount],
   );
 
   const renderTabBar = useCallback(
@@ -73,6 +84,32 @@ const ProfileHost = ({ navigation, route }) => {
     ({ item }) => <ReviewItem item={item} />,
     [],
   );
+
+  const onChatHost = useCallback(() => {
+    navigation.navigate(Routes.CHAT, { id: hostId });
+  }, [navigation, hostId]);
+
+  const headerRight = useCallback(() => {
+    return (
+      <Item
+        title="Chat"
+        onPress={onChatHost}
+        IconComponent={Ionicons}
+        iconName="chatbox-ellipses-outline"
+        color="white"
+        iconSize={25}
+      />
+    );
+  }, [onChatHost]);
+
+  useLayoutEffect(() => {
+    // Only show chat button if the user is not the host
+    if (hostId !== userId) {
+      navigation.setOptions({
+        headerRight,
+      });
+    }
+  }, [headerRight, hostId, navigation, userId]);
 
   return (
     <View style={globalStyles.flexFull}>
@@ -98,6 +135,15 @@ const ProfileHost = ({ navigation, route }) => {
               updateCellsBatchingPeriod={30}
               removeClippedSubviews={false}
               showsVerticalScrollIndicator={listings?.length > 0}
+              ListEmptyComponent={
+                isFetched ? (
+                  <Text style={globalStyles.emptyTextCenter}>
+                    No listings yet.
+                  </Text>
+                ) : (
+                  <ActivityIndicator style={globalStyles.loadingCircle} />
+                )
+              }
             />
           )}
         </Tabs.Tab>
@@ -117,6 +163,15 @@ const ProfileHost = ({ navigation, route }) => {
               updateCellsBatchingPeriod={30}
               removeClippedSubviews={false}
               showsVerticalScrollIndicator={reviews?.length > 0}
+              ListEmptyComponent={
+                isFetched ? (
+                  <Text style={globalStyles.emptyTextCenter}>
+                    No reviews yet.
+                  </Text>
+                ) : (
+                  <ActivityIndicator style={globalStyles.loadingCircle} />
+                )
+              }
             />
           )}
         </Tabs.Tab>

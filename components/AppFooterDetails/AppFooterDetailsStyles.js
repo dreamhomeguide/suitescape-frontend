@@ -6,20 +6,18 @@ const style = StyleSheet.create({
   },
   footer: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    columnGap: 20,
+    columnGap: 30,
+    marginRight: 5,
   },
   footerContentContainer: {
-    flex: 2,
-    paddingRight: 40,
+    height: "100%",
+    width: "40%",
   },
   footerContent: {
-    rowGap: 3,
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-  },
-  footerButton: {
-    flex: 3,
   },
   footerLink: {
     fontWeight: "bold",

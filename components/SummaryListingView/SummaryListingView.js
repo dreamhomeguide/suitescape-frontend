@@ -1,16 +1,26 @@
+import { useNavigation } from "@react-navigation/native";
 import { Image } from "expo-image";
-import React, { memo } from "react";
-import { Text, View } from "react-native";
+import React, { memo, useCallback } from "react";
+import { Pressable, Text, View } from "react-native";
 
 import style from "./SummaryListingViewStyles";
 import summaryStyles from "../../assets/styles/summaryStyles";
+import { Routes } from "../../navigation/Routes";
 import { baseURL } from "../../services/SuitescapeAPI";
 import CouponBadge from "../CouponBadge/CouponBadge";
 import StarRatingView from "../StarRatingView/StarRatingView";
 
 const SummaryListingView = ({ listing, coverImageUrl, discount }) => {
+  const navigation = useNavigation();
+
+  const onListingPress = useCallback(
+    () =>
+      navigation.navigate(Routes.LISTING_DETAILS, { listingId: listing.id }),
+    [listing?.id],
+  );
+
   return (
-    <View style={style.mainContainer}>
+    <Pressable onPress={onListingPress} style={style.mainContainer}>
       <View style={style.titleContainer}>
         {coverImageUrl && (
           <Image
@@ -26,7 +36,7 @@ const SummaryListingView = ({ listing, coverImageUrl, discount }) => {
       </View>
 
       {discount && <CouponBadge>{discount}% Off</CouponBadge>}
-    </View>
+    </Pressable>
   );
 };
 

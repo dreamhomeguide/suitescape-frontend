@@ -39,6 +39,15 @@
       }
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true
+          }
+        }
+      ],
+      "expo-asset",
       "expo-font",
       "expo-secure-store"
     ]

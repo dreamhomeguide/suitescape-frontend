@@ -8,7 +8,6 @@ import style from "./PriceRangeStyles";
 import { Colors } from "../../assets/Colors";
 import globalStyles from "../../assets/styles/globalStyles";
 import toastStyles from "../../assets/styles/toastStyles";
-import extractNumber from "../../utils/numberExtractor";
 import DashView from "../DashView/DashView";
 import FormInput from "../FormInput/FormInput";
 
@@ -18,8 +17,8 @@ const STEP = 50;
 const RESET_VALUE = -1;
 
 const PriceRange = ({
-  minimumPrice = RESET_VALUE,
-  maximumPrice = RESET_VALUE,
+  minimumPrice,
+  maximumPrice,
   onMinPriceChanged,
   onMaxPriceChanged,
 }) => {
@@ -44,9 +43,9 @@ const PriceRange = ({
     return [minPrice, maxPrice];
   }, [minimumPrice, maximumPrice]);
 
-  const nativeGesture = useMemo(() => Gesture.Native(), []);
-  const panGesture = useMemo(() => Gesture.Pan(), []);
-  const composed = useMemo(() => Gesture.Race(nativeGesture, panGesture), []);
+  const composed = useMemo(() => {
+    return Gesture.Race(Gesture.Native(), Gesture.Pan());
+  }, []);
 
   return (
     <>
@@ -78,22 +77,13 @@ const PriceRange = ({
       </GestureDetector>
       <View style={style.inputContainer}>
         <FormInput
-          value={
-            minimumPrice === RESET_VALUE ? "" : "₱" + minimumPrice?.toString()
-          }
+          type="currency"
+          value={minimumPrice}
           placeholder="Min Price"
           keyboardType="number-pad"
-          onChangeText={(value) => {
-            extractNumber(value.replace("₱", ""), (numberValue) => {
-              if (!numberValue && numberValue !== 0) {
-                onMinPriceChanged && onMinPriceChanged(RESET_VALUE);
-              } else {
-                onMinPriceChanged && onMinPriceChanged(numberValue);
-              }
-            });
-          }}
-          disableAnimations
-          useDefaultStyles={false}
+          onChangeText={(value) =>
+            onMinPriceChanged && onMinPriceChanged(value)
+          }
           // onFocus={() => setIsTyping(true)}
           onBlur={() => {
             // setIsTyping(false);
@@ -138,22 +128,13 @@ const PriceRange = ({
         <DashView />
 
         <FormInput
-          value={
-            maximumPrice === RESET_VALUE ? "" : "₱" + maximumPrice?.toString()
-          }
+          type="currency"
+          value={maximumPrice}
           placeholder="Max Price"
           keyboardType="number-pad"
-          onChangeText={(value) => {
-            extractNumber(value.replace("₱", ""), (numberValue) => {
-              if (!numberValue) {
-                onMaxPriceChanged && onMaxPriceChanged(RESET_VALUE);
-              } else {
-                onMaxPriceChanged && onMaxPriceChanged(numberValue);
-              }
-            });
-          }}
-          disableAnimations
-          useDefaultStyles={false}
+          onChangeText={(value) =>
+            onMaxPriceChanged && onMaxPriceChanged(value)
+          }
           // onFocus={() => setIsTyping(true)}
           onBlur={() => {
             // setIsTyping(false);

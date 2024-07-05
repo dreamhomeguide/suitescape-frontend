@@ -9,10 +9,13 @@ import {
   pressedOpacity,
 } from "../../assets/styles/globalStyles";
 
+export const BUTTON_LARGE_HEIGHT = 100;
+
 const ButtonLarge = ({
   children,
   onPress,
   disabled,
+  flexFull = false,
   half = false,
   color = Colors.blue,
   ...props
@@ -30,7 +33,7 @@ const ButtonLarge = ({
       disabled={disabled}
       {...props}
       style={({ pressed }) => ({
-        ...style.button({ half, bgColor: color }),
+        ...style.button({ flexFull, half, bgColor: color }),
         ...pressedOpacity(pressed, 0.7),
         ...disabledOpacity(disabled),
       })}

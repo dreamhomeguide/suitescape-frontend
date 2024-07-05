@@ -10,6 +10,7 @@ const initialState = {
   isLoaded: false,
   onboardingEnabled: true,
   guestModeEnabled: false,
+  hostModeEnabled: false,
 };
 
 const reducer = (prevState, action) => {
@@ -63,6 +64,7 @@ export const SettingsProvider = ({ children }) => {
         settings.deviceId = getSetting("deviceId", Crypto.randomUUID());
         settings.onboardingEnabled = getSetting("onboardingEnabled", true);
         settings.guestModeEnabled = getSetting("guestModeEnabled", false);
+        settings.hostModeEnabled = getSetting("hostModeEnabled", false);
       } catch (err) {
         console.log(err);
       }

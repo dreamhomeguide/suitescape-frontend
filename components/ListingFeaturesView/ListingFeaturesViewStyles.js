@@ -2,10 +2,11 @@ import { StyleSheet } from "react-native";
 
 const style = StyleSheet.create({
   container: {
-    marginVertical: 4,
+    marginVertical: 6,
   },
   contentContainer: {
     paddingHorizontal: 6,
+    rowGap: 6,
   },
 });
 

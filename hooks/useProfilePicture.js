@@ -14,8 +14,8 @@ const useProfilePicture = () => {
   });
 
   let profilePicture;
-  if (userData && userData.picture_url !== null) {
-    profilePicture = { uri: baseURL + userData.picture_url };
+  if (userData && userData.profile_image_url !== null) {
+    profilePicture = { uri: baseURL + userData.profile_image_url };
   } else {
     profilePicture = require("../assets/images/pngs/default-profile.png");
   }

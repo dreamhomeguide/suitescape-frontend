@@ -1,11 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -13,46 +7,21 @@ import style from "./RatingsStyles";
 import globalStyles from "../../assets/styles/globalStyles";
 import ReviewItem from "../../components/ReviewItem/ReviewItem";
 import StarRatingView from "../../components/StarRatingView/StarRatingView";
-import {
-  fetchListingReviews,
-  fetchRoomReviews,
-} from "../../services/apiService";
+import { fetchListingReviews } from "../../services/apiService";
 
 const Ratings = ({ navigation, route }) => {
   const [showReviews, setShowReviews] = useState(false);
 
-  const { type, id, averageRating, reviewsCount } = route.params;
+  const { id, averageRating, reviewsCount } = route.params;
 
   const insets = useSafeAreaInsets();
 
-  const ratingType = useMemo(
-    () => ({
-      room: {
-        title: "Room Ratings",
-        queryKey: ["rooms", id, "reviews"],
-        queryFn: () => fetchRoomReviews(id),
-      },
-      listing: {
-        title: "Listing Ratings",
-        queryKey: ["listings", id, "reviews"],
-        queryFn: () => fetchListingReviews(id),
-      },
-    }),
-    [id, type],
-  );
-
-  const { data: reviews } = useQuery({
+  const { data: reviews, isFetching } = useQuery({
     placeholderData: [],
-    queryKey: ratingType[type].queryKey,
-    queryFn: ratingType[type].queryFn,
+    queryKey: ["listings", id, "reviews"],
+    queryFn: () => fetchListingReviews(id),
     enabled: showReviews,
   });
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: ratingType[type].title,
-    });
-  }, [navigation, type]);
 
   useEffect(() => {
     return navigation.addListener("transitionEnd", () => {
@@ -80,9 +49,9 @@ const Ratings = ({ navigation, route }) => {
         maxToRenderPerBatch={3}
         updateCellsBatchingPeriod={100}
         removeClippedSubviews
-        ListEmptyComponent={() => (
-          <ActivityIndicator style={globalStyles.loadingCircle} />
-        )}
+        ListEmptyComponent={() =>
+          isFetching && <ActivityIndicator style={globalStyles.loadingCircle} />
+        }
       />
     </View>
   );

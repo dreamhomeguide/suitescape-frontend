@@ -1,15 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, FlatList, ScrollView, Text, View } from "react-native";
-import { BorderlessButton } from "react-native-gesture-handler";
+import {
+  Alert,
+  FlatList,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { Checkbox } from "react-native-ui-lib";
 
 import { Colors } from "../../assets/Colors";
-import globalStyles from "../../assets/styles/globalStyles";
+import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
 import style from "../../assets/styles/summaryStyles";
 import AppFooter from "../../components/AppFooter/AppFooter";
 import ButtonLarge from "../../components/ButtonLarge/ButtonLarge";
 import FormInput from "../../components/FormInput/FormInput";
+import { useListingContext } from "../../contexts/ListingContext";
 import { Routes } from "../../navigation/Routes";
 import { updateBookingStatus } from "../../services/apiService";
 import { handleApiError } from "../../utils/apiHelpers";
@@ -37,6 +44,7 @@ const FeedbackCancellation = ({ navigation, route }) => {
   const scrollViewRef = useRef(null);
   const messageInputRef = useRef(null);
 
+  const { listing } = useListingContext();
   const queryClient = useQueryClient();
 
   const cancelBookingMutation = useMutation({
@@ -44,12 +52,16 @@ const FeedbackCancellation = ({ navigation, route }) => {
       updateBookingStatus({ bookingId, status: "cancelled" }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["bookings"],
+        queryKey: ["bookings", "user"],
         exact: true,
       });
 
       await queryClient.invalidateQueries({
         queryKey: ["bookings", bookingId],
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["listings", listing.id],
       });
 
       navigation.navigate(Routes.FEEDBACK, {
@@ -111,6 +123,26 @@ const FeedbackCancellation = ({ navigation, route }) => {
     }
   }, [selected]);
 
+  const renderItem = useCallback(
+    ({ item }) => (
+      <View style={{ padding: 10 }}>
+        <Pressable
+          style={({ pressed }) => pressedOpacity(pressed)}
+          onPress={() => onItemPress(item)}
+        >
+          <View pointerEvents="none">
+            <Checkbox
+              label={item}
+              color={Colors.blue}
+              value={selected === item}
+            />
+          </View>
+        </Pressable>
+      </View>
+    ),
+    [onItemPress, selected],
+  );
+
   return (
     <View style={globalStyles.flexFull}>
       <ScrollView
@@ -131,17 +163,7 @@ const FeedbackCancellation = ({ navigation, route }) => {
           <FlatList
             data={feedbackOptions}
             scrollEnabled={false}
-            renderItem={({ item }) => (
-              <View style={{ padding: 10 }}>
-                <BorderlessButton onPress={() => onItemPress(item)}>
-                  <Checkbox
-                    label={item}
-                    color={Colors.blue}
-                    value={selected === item}
-                  />
-                </BorderlessButton>
-              </View>
-            )}
+            renderItem={renderItem}
           />
 
           <View style={{ padding: 10, marginTop: 10 }}>

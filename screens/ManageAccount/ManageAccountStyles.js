@@ -10,10 +10,38 @@ const style = StyleSheet.create({
   contentContainer: {
     rowGap: 5,
   },
-  profileImageContainer: {
+  imagesContainer: {
     alignItems: "center",
-    paddingTop: 15,
-    paddingBottom: 25,
+    paddingTop: 20,
+    paddingBottom: 35,
+    rowGap: 25,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  labelCenter: {
+    fontSize: 16,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  coverImageContainer: {
+    width: "95%",
+    rowGap: 10,
+  },
+  addCoverImageContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    columnGap: 10,
+  },
+  coverImage: {
+    height: 200,
+    width: "100%",
+    backgroundColor: Colors.lightgray,
+    borderRadius: 10,
+    overflow: "hidden",
   },
   addButtonContainer: {
     position: "absolute",

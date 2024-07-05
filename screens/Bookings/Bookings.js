@@ -15,7 +15,10 @@ import BookingList from "../../components/BookingList/BookingList";
 import FocusAwareStatusBar from "../../components/FocusAwareStatusBar/FocusAwareStatusBar";
 import { useSettings } from "../../contexts/SettingsContext";
 import { TabBar } from "../../navigation/TopTabs/TopTabs";
-import { fetchAllBookings } from "../../services/apiService";
+import {
+  fetchHostBookings,
+  fetchUserBookings,
+} from "../../services/apiService";
 
 const Bookings = ({ navigation, route }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -30,8 +33,8 @@ const Bookings = ({ navigation, route }) => {
     refetch,
     isFetched,
   } = useQuery({
-    queryKey: ["bookings"],
-    queryFn: fetchAllBookings,
+    queryKey: ["bookings", settings.hostModeEnabled ? "host" : "user"],
+    queryFn: settings.hostModeEnabled ? fetchHostBookings : fetchUserBookings,
     enabled: !settings.guestModeEnabled,
   });
 
@@ -136,7 +139,7 @@ const Bookings = ({ navigation, route }) => {
       <Tabs.Container
         ref={tabsRef}
         renderTabBar={renderTabBar}
-        containerStyle={{ backgroundColor: Colors.lightgray }}
+        containerStyle={{ backgroundColor: Colors.backgroundGray }}
         lazy
       >
         <Tabs.Tab name="Upcoming">

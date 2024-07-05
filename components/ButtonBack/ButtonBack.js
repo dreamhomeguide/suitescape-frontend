@@ -1,6 +1,6 @@
 import { useNavigation } from "@react-navigation/native";
 import React, { memo } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable } from "react-native";
 
 import style from "./ButtonBackStyles";
 import Fontello from "../../assets/fontello/Fontello";
@@ -18,17 +18,12 @@ const ButtonBack = ({ onPress, color = "black" }) => {
           navigation.goBack();
         }
       }}
+      style={({ pressed }) => ({
+        ...style.backButton,
+        ...pressedOpacity(pressed, 0.6),
+      })}
     >
-      {({ pressed }) => (
-        <View
-          style={{
-            ...style.backButton,
-            ...pressedOpacity(pressed, 0.6),
-          }}
-        >
-          <Fontello name="chevron-left-regular" size={20} color={color} />
-        </View>
-      )}
+      <Fontello name="chevron-left-regular" size={20} color={color} />
     </Pressable>
   );
 };
