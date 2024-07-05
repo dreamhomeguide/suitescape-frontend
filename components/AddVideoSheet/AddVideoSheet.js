@@ -40,7 +40,7 @@ const AddVideoSheet = ({
   const [currentProgress, setCurrentProgress] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
 
-  const currentVideoRef = useRef(null);
+  const prevVideoRef = useRef(null);
   const videoRef = useRef(null);
 
   const { listingState } = useCreateListingContext();
@@ -48,14 +48,14 @@ const AddVideoSheet = ({
 
   useEffect(() => {
     // Save the current video reference
-    currentVideoRef.current = isVisible ? currentVideo : null;
+    prevVideoRef.current = isVisible ? currentVideo : null;
   }, [isVisible]);
 
   const isNotChanged = useMemo(() => {
-    if (!currentVideo) {
+    if (!currentVideo || !prevVideoRef.current) {
       return true;
     }
-    return _.isEqual(currentVideoRef.current, currentVideo) && !isEditing;
+    return _.isEqual(currentVideo, prevVideoRef.current) && !isEditing;
   }, [currentVideo, isEditing]);
 
   const handleHeaderClose = useCallback(() => {

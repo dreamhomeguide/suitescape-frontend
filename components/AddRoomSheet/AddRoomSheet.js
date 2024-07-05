@@ -1,5 +1,13 @@
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import React, { forwardRef, memo, useCallback, useMemo } from "react";
+import _ from "lodash";
+import React, {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { Alert, Pressable } from "react-native";
 import PagerView from "react-native-pager-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -36,9 +44,31 @@ const AddRoomSheet = forwardRef(
     },
     pagerViewRef,
   ) => {
+    const prevRoomRef = useRef(null);
+
     const { setRoomCategory, setRoomAmenities, setRoomRule } =
       useAddRoomContext();
     const insets = useSafeAreaInsets();
+
+    useEffect(() => {
+      // Save the current room reference
+      prevRoomRef.current = isVisible ? currentRoom : null;
+    }, [isVisible]);
+
+    const isNotChanged = useMemo(() => {
+      if (!currentRoom.category || !prevRoomRef.current) {
+        return true;
+      }
+
+      // Check if the current room is empty or not
+      const roomEmpty =
+        checkEmptyFieldsObj(currentRoom.category, ["type_of_beds"], true) &&
+        checkEmptyFieldsObj(currentRoom.category.type_of_beds, null, true);
+
+      return (
+        index > 0 || roomEmpty || _.isEqual(currentRoom, prevRoomRef.current)
+      );
+    }, [currentRoom.category, index]);
 
     const typeOfBedsValueText = useMemo(
       () => getTypeOfBedsValueText(currentRoom.category.type_of_beds),
@@ -83,19 +113,6 @@ const AddRoomSheet = forwardRef(
       ),
       [currentRoom.category.type_of_beds],
     );
-
-    const isNotChanged = useMemo(() => {
-      if (!currentRoom.category) {
-        return true;
-      }
-
-      // Check if the current room is empty or not
-      const roomEmpty =
-        checkEmptyFieldsObj(currentRoom.category, ["type_of_beds"], true) &&
-        checkEmptyFieldsObj(currentRoom.category.type_of_beds, null, true);
-
-      return index > 0 || roomEmpty;
-    }, [currentRoom.category, index]);
 
     const handleHeaderClose = useCallback(() => {
       if (isNotChanged) {

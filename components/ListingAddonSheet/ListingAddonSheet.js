@@ -1,5 +1,6 @@
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import React, { memo, useCallback, useMemo } from "react";
+import _ from "lodash";
+import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { Alert, Pressable, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Checkbox } from "react-native-ui-lib";
@@ -22,13 +23,23 @@ const ListingAddonSheet = ({
   headerLabel,
   footerComponent,
 }) => {
+  const prevAddonRef = useRef(null);
+
   const insets = useSafeAreaInsets();
 
+  useEffect(() => {
+    // Save the current addon reference
+    prevAddonRef.current = isVisible ? currentAddon : null;
+  }, [isVisible]);
+
   const isNotChanged = useMemo(() => {
-    if (!currentAddon) {
+    if (!currentAddon || !prevAddonRef.current) {
       return true;
     }
-    return checkEmptyFieldsObj(currentAddon, ["id", "is_consumable"], true);
+    return (
+      checkEmptyFieldsObj(currentAddon, ["id", "is_consumable"], true) ||
+      _.isEqual(currentAddon, prevAddonRef.current)
+    );
   }, [currentAddon]);
 
   const handleHeaderClose = useCallback(() => {
@@ -122,7 +133,7 @@ const ListingAddonSheet = ({
           </Text>
         </Pressable>
 
-        {currentAddon.is_consumable && (
+        {currentAddon.is_consumable ? (
           <FormStepper
             label="Quantity"
             placeholder="Quantity"
@@ -130,7 +141,7 @@ const ListingAddonSheet = ({
             onValueChange={(value) => onAddonChange?.({ quantity: value })}
             useFormInputSheet
           />
-        )}
+        ) : null}
 
         <FormInputSheet
           type="textarea"
