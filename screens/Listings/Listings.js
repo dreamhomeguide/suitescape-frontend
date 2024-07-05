@@ -97,7 +97,10 @@ const Listings = ({ navigation }) => {
   }, [isFetched]);
 
   return (
-    <SafeAreaView style={globalStyles.flexFull}>
+    <SafeAreaView
+      style={globalStyles.flexFull}
+      edges={["top", "right", "left"]}
+    >
       <StatusBar style={isFocused ? "dark" : "light"} animated />
 
       <View style={style.headerContainer}>
