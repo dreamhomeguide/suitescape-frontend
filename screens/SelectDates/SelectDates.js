@@ -34,9 +34,8 @@ const SelectDates = ({ navigation, route }) => {
   const { screenToNavigate, ...otherParams } = route.params || {};
 
   const { room } = useRoomContext();
-  const {
-    listing: { id: listingId, is_entire_place: isEntirePlace, ...initialData },
-  } = useListingContext();
+  const { listing: initialData } = useListingContext();
+  const { id: listingId, is_entire_place: isEntirePlace } = initialData;
   const { setBookingData } = useBookingContext();
   const { archiveAll } = useCartContext();
   const bookingData = useBookingData();

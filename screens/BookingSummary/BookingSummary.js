@@ -33,9 +33,8 @@ import {
 const DISCOUNT = 0.1; // 10% discount
 
 const BookingSummary = ({ navigation }) => {
-  const {
-    listing: { id: listingId, ...initialData },
-  } = useListingContext();
+  const { listing: initialData } = useListingContext();
+  const { id: listingId } = initialData;
   const { settings } = useSettings();
   const cartData = useCartData();
   const bookingData = useBookingData();
