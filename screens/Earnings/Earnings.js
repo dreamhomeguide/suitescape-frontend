@@ -101,7 +101,8 @@ const Earnings = () => {
       <Text style={globalStyles.headerText}>Yearly Report</Text>
 
       <FormPicker
-        label="Select Year"
+        label="Selected Year"
+        placeholder="Select Year"
         data={availableYears}
         value={selectedYear}
         onSelected={(value) => {
@@ -112,7 +113,8 @@ const Earnings = () => {
       />
 
       <FormPicker
-        label="Select Listing"
+        label="Selected Listing"
+        placeholder="Select Listing"
         data={listings}
         value={selectedListing}
         onSelected={(value) => {
