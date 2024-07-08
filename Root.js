@@ -32,6 +32,7 @@ import toastStyles from "./assets/styles/toastStyles";
 import { useAuth } from "./contexts/AuthContext";
 import BookingProcessProvider from "./contexts/BookingProcessProvider";
 import { CreateListingProvider } from "./contexts/CreateListingContext";
+import { NotificationsProvider } from "./contexts/NotificationsContext";
 import { useSettings } from "./contexts/SettingsContext";
 import { TimerProvider } from "./contexts/TimerContext";
 import { VideoFiltersProvider } from "./contexts/VideoFiltersContext";
@@ -190,9 +191,11 @@ const Root = () => {
                 <CreateListingProvider>
                   <VideoFiltersProvider>
                     <TimerProvider>
-                      <BottomSheetModalProvider>
-                        <MainNavigation />
-                      </BottomSheetModalProvider>
+                      <NotificationsProvider>
+                        <BottomSheetModalProvider>
+                          <MainNavigation />
+                        </BottomSheetModalProvider>
+                      </NotificationsProvider>
                     </TimerProvider>
                   </VideoFiltersProvider>
                 </CreateListingProvider>
