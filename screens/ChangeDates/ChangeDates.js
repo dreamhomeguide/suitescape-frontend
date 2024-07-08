@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { differenceInDays, format } from "date-fns";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { Alert, ScrollView, Text, View } from "react-native";
@@ -16,15 +16,20 @@ import {
 } from "../../contexts/BookingContext";
 import { useListingContext } from "../../contexts/ListingContext";
 import { useRoomContext } from "../../contexts/RoomContext";
+import { RNC_DATE_FORMAT } from "../../hooks/useDates";
 import { Routes } from "../../navigation/Routes";
-import { fetchBooking, fetchConstant } from "../../services/apiService";
+import {
+  fetchBooking,
+  fetchConstant,
+  updateBookingDates,
+} from "../../services/apiService";
+import { handleApiError } from "../../utils/apiHelpers";
 import {
   getDateDetails,
   getOriginalPrice,
   getPriceDetails,
 } from "../../utils/getBookingDetails";
 import selectBookingData from "../../utils/selectBookingData";
-import { RNC_DATE_FORMAT } from "../SelectDates/SelectDates";
 
 const DISCOUNT = 0.1; // 10% discount
 
@@ -35,6 +40,7 @@ const ChangeDates = ({ navigation, route }) => {
   const { setRoom } = useRoomContext();
   const { setBookingData } = useBookingContext();
   const bookingData = useBookingData();
+  const queryClient = useQueryClient();
 
   const { data: booking, isFetching: isFetchingBooking } = useQuery({
     queryKey: ["bookings", bookingId],
@@ -46,6 +52,30 @@ const ChangeDates = ({ navigation, route }) => {
     queryKey: ["fees", "suitescape"],
     queryFn: () => fetchConstant("suitescape_fee"),
     select: (data) => parseFloat(data.value),
+  });
+
+  const changeDatesMutation = useMutation({
+    mutationFn: updateBookingDates,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["bookings", bookingId],
+      });
+
+      navigation.navigate(Routes.FEEDBACK, {
+        type: "success",
+        title: "Congratulations",
+        subtitle: "Dates updated successfully",
+        screenToNavigate: {
+          name: Routes.BOOKING_DETAILS,
+          params: { bookingId },
+        },
+      });
+    },
+    onError: (err) =>
+      handleApiError({
+        error: err,
+        defaultAlert: true,
+      }),
   });
 
   // Set listing and room context
@@ -96,11 +126,13 @@ const ChangeDates = ({ navigation, route }) => {
     return getPriceDetails({
       startDate: new Date(bookingData.startDate),
       endDate: new Date(bookingData.endDate),
-      prevAmount: originalPrice,
+      pricePerNight: originalPrice,
+      prevAmount: booking?.amount,
       suitescapeFee,
     });
   }, [
     booking?.amount,
+    booking?.nights,
     bookingData.startDate,
     bookingData.endDate,
     suitescapeFee,
@@ -133,16 +165,27 @@ const ChangeDates = ({ navigation, route }) => {
     navigation.navigate(Routes.SELECT_DATES);
   }, [navigation]);
 
-  const handleUpdateDates = useCallback(() => {
-    navigation.navigate({
-      name: Routes.BOOKING_DETAILS,
-      merge: true,
-      params: {
-        isUpdateDates: true,
-        needsPayment: amountToPay > 0,
-      },
+  const handleDatesPayment = useCallback(() => {
+    navigation.navigate(Routes.PAYMENT_METHOD, {
+      bookingId,
+      isUpdateDates: true,
     });
-  }, [amountToPay, navigation]);
+  }, [bookingId, navigation]);
+
+  const handleUpdateDates = useCallback(() => {
+    if (!changeDatesMutation.isPending) {
+      changeDatesMutation.mutate({
+        bookingId,
+        startDate: bookingData.startDate,
+        endDate: bookingData.endDate,
+      });
+    }
+  }, [
+    bookingId,
+    bookingData.startDate,
+    bookingData.endDate,
+    changeDatesMutation.isPending,
+  ]);
 
   const onUpdateDates = useCallback(() => {
     const startDate = new Date(bookingData.startDate);
@@ -155,7 +198,7 @@ const ChangeDates = ({ navigation, route }) => {
         "Dates should be at least the same number of nights as the original booking.",
         [
           { text: "Cancel", style: "cancel" },
-          { text: "Ok", onPress: onCheckAvailability },
+          { text: "Edit Dates", onPress: onCheckAvailability },
         ],
       );
       return;
@@ -213,14 +256,14 @@ const ChangeDates = ({ navigation, route }) => {
             outlined
             containerStyle={globalStyles.flexFull}
           >
-            Change Dates
+            Edit Dates
           </Button>
           <Button
-            onPress={onUpdateDates}
+            onPress={amountToPay > 0 ? handleDatesPayment : onUpdateDates}
             disabled={areDatesEqual}
             containerStyle={globalStyles.flexFull}
           >
-            Confirm
+            {amountToPay > 0 ? "Pay Now" : "Confirm"}
           </Button>
         </View>
       </AppFooter>

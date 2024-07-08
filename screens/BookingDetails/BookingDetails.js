@@ -1,6 +1,6 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFocusEffect } from "@react-navigation/native";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { ScrollView, Text, View } from "react-native";
 
@@ -15,16 +15,13 @@ import SummaryFooter from "../../components/SummaryFooter/SummaryFooter";
 import SummaryListView from "../../components/SummaryListView/SummaryListView";
 import SummaryListingView from "../../components/SummaryListingView/SummaryListingView";
 import SummaryLocationView from "../../components/SummaryLocationView/SummaryLocationView";
-import { useBookingData } from "../../contexts/BookingContext";
 import { useListingContext } from "../../contexts/ListingContext";
 import { Routes } from "../../navigation/Routes";
 import {
   fetchProfile,
   fetchConstant,
   fetchBooking,
-  updateBookingDates,
 } from "../../services/apiService";
-import { handleApiError } from "../../utils/apiHelpers";
 import {
   getAddOnDetails,
   getBookingDetails,
@@ -38,11 +35,9 @@ import selectBookingData from "../../utils/selectBookingData";
 const DISCOUNT = 0.1; // 10% discount
 
 const BookingDetails = ({ navigation, route }) => {
-  const { bookingId, isUpdateDates, needsPayment } = route.params || {};
+  const bookingId = route.params.bookingId;
 
   const { setListing } = useListingContext();
-  const bookingData = useBookingData();
-  const queryClient = useQueryClient();
 
   const { data: booking, isFetching: isFetchingBooking } = useQuery({
     queryKey: ["bookings", bookingId],
@@ -75,30 +70,6 @@ const BookingDetails = ({ navigation, route }) => {
     queryKey: ["fees", "suitescape"],
     queryFn: () => fetchConstant("suitescape_fee"),
     select: (data) => (data ? parseFloat(data.value) : 0),
-  });
-
-  const changeDatesMutation = useMutation({
-    mutationFn: updateBookingDates,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ["bookings", bookingId],
-      });
-
-      navigation.navigate(Routes.FEEDBACK, {
-        type: "success",
-        title: "Congratulations",
-        subtitle: "Dates updated successfully",
-        screenToNavigate: {
-          name: Routes.BOOKING_DETAILS,
-          params: { bookingId },
-        },
-      });
-    },
-    onError: (err) =>
-      handleApiError({
-        error: err,
-        defaultAlert: true,
-      }),
   });
 
   /* Data START */
@@ -147,31 +118,13 @@ const BookingDetails = ({ navigation, route }) => {
   }, [booking?.amount, booking?.listing, booking?.nights, suitescapeFee]);
   /* Data END */
 
+  const onChangeDates = useCallback(() => {
+    navigation.navigate(Routes.CHANGE_DATES, { bookingId });
+  }, [bookingId, navigation]);
+
   const onCancelBooking = useCallback(() => {
     navigation.navigate(Routes.CANCEL_BOOKING, { bookingId });
   }, [bookingId, navigation]);
-
-  const handleDatesPayment = useCallback(() => {
-    navigation.navigate(Routes.PAYMENT_METHOD, {
-      bookingId,
-      isUpdateDates: true,
-    });
-  }, [bookingId, navigation]);
-
-  const handleUpdateDates = useCallback(() => {
-    if (!changeDatesMutation.isPending) {
-      changeDatesMutation.mutate({
-        bookingId,
-        startDate: bookingData.startDate,
-        endDate: bookingData.endDate,
-      });
-    }
-  }, [
-    bookingId,
-    bookingData.startDate,
-    bookingData.endDate,
-    changeDatesMutation.isPending,
-  ]);
 
   // useLayoutEffect(() => {
   //   navigation.setOptions({
@@ -262,15 +215,18 @@ const BookingDetails = ({ navigation, route }) => {
 
       {booking?.status !== "cancelled" && (
         <AppFooter>
-          {needsPayment ? (
-            <ButtonLarge onPress={handleDatesPayment}>Pay now</ButtonLarge>
-          ) : isUpdateDates ? (
-            <ButtonLarge onPress={handleUpdateDates}>Confirm</ButtonLarge>
-          ) : (
-            <ButtonLarge color={Colors.lightred} onPress={onCancelBooking}>
+          <View style={globalStyles.buttonRow}>
+            <ButtonLarge onPress={onChangeDates} flexFull>
+              Change Dates
+            </ButtonLarge>
+            <ButtonLarge
+              color={Colors.lightred}
+              onPress={onCancelBooking}
+              flexFull
+            >
               Cancel Booking
             </ButtonLarge>
-          )}
+          </View>
         </AppFooter>
       )}
 

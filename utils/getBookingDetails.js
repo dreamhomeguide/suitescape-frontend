@@ -175,11 +175,12 @@ export const getDateDetails = ({ startDate, endDate, listing }) => ({
 export const getPriceDetails = ({
   startDate,
   endDate,
+  pricePerNight,
   prevAmount,
   suitescapeFee,
 }) => {
   const nights = differenceInDays(endDate, startDate) || 1;
-  const newPrice = prevAmount * nights + suitescapeFee;
+  const newPrice = pricePerNight * nights + suitescapeFee;
 
   return {
     label: "Price Update",
