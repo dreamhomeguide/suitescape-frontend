@@ -1,8 +1,12 @@
+import { useNavigation } from "@react-navigation/native";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import * as TaskManager from "expo-task-manager";
+import { createContext, useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
+
+import { Routes } from "../navigation/Routes";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -11,6 +15,17 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
+
+TaskManager.defineTask(
+  BACKGROUND_NOTIFICATION_TASK,
+  ({ data, error, executionInfo }) => {
+    console.log("Received a notification in the background!");
+  },
+);
+
+Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
 
 export const NotificationsContext = createContext({
   expoPushToken: "",
@@ -23,8 +38,7 @@ export const NotificationsProvider = ({ children }) => {
   const [channels, setChannels] = useState([]);
   const [notification, setNotification] = useState(undefined);
 
-  const notificationListener = useRef(null);
-  const responseListener = useRef(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(
@@ -36,25 +50,32 @@ export const NotificationsProvider = ({ children }) => {
         setChannels(value ?? []),
       );
     }
-    notificationListener.current =
-      Notifications.addNotificationReceivedListener((notification) => {
-        setNotification(notification);
-      });
+  }, []);
 
-    responseListener.current =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log(response);
-      });
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        setNotification(notification);
+      },
+    );
 
     return () => {
-      notificationListener.current &&
-        Notifications.removeNotificationSubscription(
-          notificationListener.current,
-        );
-      responseListener.current &&
-        Notifications.removeNotificationSubscription(responseListener.current);
+      subscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const senderId = response.notification.request.content.data.senderId;
+        navigation.navigate(Routes.CHAT, { id: senderId });
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
+  }, [navigation]);
 
   return (
     <NotificationsContext.Provider
@@ -99,9 +120,7 @@ export const registerForPushNotificationsAsync = async () => {
       alert("Failed to get push token for push notification!");
       return;
     }
-    // Learn more about projectId:
-    // https://docs.expo.dev/push-notifications/push-notifications-setup/#configure-projectid
-    // EAS projectId is used here.
+
     try {
       const projectId =
         Constants?.expoConfig?.extra?.eas?.projectId ??
