@@ -10,8 +10,8 @@ import {
 } from "./BottomTabs";
 import useProfilePicture from "../../hooks/useProfilePicture";
 import useUnreadCount from "../../hooks/useUnreadCount";
+import useUpdates from "../../hooks/useUpdates";
 import Bookings from "../../screens/Bookings/Bookings";
-import Calendar from "../../screens/Calendar/Calendar";
 import ChatList from "../../screens/ChatList/ChatList";
 import Listings from "../../screens/Listings/Listings";
 import Profile from "../../screens/Profile/Profile";
@@ -23,6 +23,9 @@ const HostTabs = () => {
   const unreadCount = useUnreadCount();
   const profilePicture = useProfilePicture();
   const colorScheme = useColorScheme();
+
+  // Subscribe to various feature updates
+  useUpdates();
 
   const tabIcons = useMemo(
     () => ({
