@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  RefreshControl,
   Text,
   View,
 } from "react-native";
@@ -38,6 +39,7 @@ import { handleApiError, handleApiResponse } from "../../utils/apiHelpers";
 
 const Chat = ({ route, navigation }) => {
   const [userMessage, setUserMessage] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const hostId = route.params.id;
 
@@ -53,7 +55,11 @@ const Chat = ({ route, navigation }) => {
     queryFn: () => fetchHost(hostId),
   });
 
-  const { data: messages, isLoading } = useQuery({
+  const {
+    data: messages,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["chats", hostId],
     queryFn: () => fetchAllMessages(hostId),
     enabled: !settings.guestModeEnabled,
@@ -143,6 +149,18 @@ const Chat = ({ route, navigation }) => {
       });
     }
   }, [hostId, userMessage, sendMessageMutation.isPending, queryClient]);
+
+  const onRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      console.log("Chats refetched");
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch]);
 
   const onLayout = useCallback(() => {
     if (Platform.OS === "ios") {
@@ -243,6 +261,9 @@ const Chat = ({ route, navigation }) => {
           windowSize={3} // Prevents stuttering when scrolling to the bottom on first launch
           style={style.messageList}
           contentContainerStyle={style.messageListContent}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+          }
           ListHeaderComponent={isLoading ? <ActivityIndicator /> : null}
           ListFooterComponent={HostDetailsView}
           inverted={messages?.length > 0}
