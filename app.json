@@ -16,7 +16,12 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.dreamhome.Suitescape"
+      "bundleIdentifier": "com.dreamhome.Suitescape",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
