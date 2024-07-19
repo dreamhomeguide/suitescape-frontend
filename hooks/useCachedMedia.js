@@ -41,6 +41,8 @@ const useCachedMedia = (subDir, fileName, downloadUrl, options) => {
 
         console.log("Finished downloading cache to", uri);
         setCacheState({ cachedUri: uri, isCached: true });
+      } else if (!downloadUrl) {
+        console.log("No download URL provided. Aborting cache...");
       } else {
         console.log(fileName + " is already cached locally");
         setCacheState({ cachedUri: fileUri, isCached: true });
