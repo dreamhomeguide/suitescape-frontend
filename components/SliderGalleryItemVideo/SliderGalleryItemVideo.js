@@ -57,7 +57,7 @@ const SliderGalleryItemVideo = ({
     <>
       <VideoItem
         ref={videoRef}
-        videoUri={isTranscoded && cachedUri}
+        videoUri={cachedUri}
         height={height}
         width={width}
         iconSize={40}
@@ -72,7 +72,7 @@ const SliderGalleryItemVideo = ({
         <View style={globalStyles.disabledBackground} />
       )}
 
-      {isTranscoded ? null : (
+      {!isTranscoded && (
         <View style={style.transcodingContainer}>
           <ActivityIndicator size="large" />
           <Text>Processing...</Text>
