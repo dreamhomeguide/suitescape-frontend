@@ -1,6 +1,8 @@
 import { useNavigation, useNavigationState } from "@react-navigation/native";
 import { useQueryClient } from "@tanstack/react-query";
+import * as Device from "expo-device";
 import * as Haptics from "expo-haptics";
+import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useRef } from "react";
 import { Toast } from "react-native-toast-notifications";
 
@@ -37,19 +39,34 @@ const useChatSubscription = () => {
         // Vibrate when a new message is received
         await Haptics.impactAsync();
 
-        // Show a toast only if the user is not talking currently to the sender
+        // Show a notification only if the user is not talking currently to the sender
         if (
           currentRoute.name !== Routes.CHAT ||
           currentRoute.params?.id !== senderId
         ) {
-          Toast.show(`${senderName}: ${message.content}`, {
-            type: "success",
-            placement: "top",
-            style: toastStyles.toastInsetTop,
-            onPress: () => {
-              navigation.navigate(Routes.CHAT, { id: senderId });
-            },
-          });
+          if (Device.isDevice) {
+            // Present notification immediately after getting message
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title: senderName,
+                subtitle: message.content,
+                data: {
+                  senderId,
+                },
+              },
+              trigger: null,
+            });
+          } else {
+            // Show virtual notification
+            Toast.show(`${senderName}: ${message.content}`, {
+              type: "success",
+              placement: "top",
+              style: toastStyles.toastInsetTop,
+              onPress: () => {
+                navigation.navigate(Routes.CHAT, { id: senderId });
+              },
+            });
+          }
         }
 
         // Invalidate the chat queries
@@ -71,7 +88,7 @@ const useChatSubscription = () => {
       });
 
       chatListener.current.subscribed(() => {
-        console.log("Subscribed to chat updates");
+        console.log("Subscribed to chat updates", userId);
       });
 
       chatListener.current.error((error) => {
