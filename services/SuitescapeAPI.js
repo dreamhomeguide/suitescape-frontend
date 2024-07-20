@@ -1,11 +1,14 @@
 import axios from "axios";
-// import * as Linking from "expo-linking";
+// import Constants from "expo-constants";
 
 // eslint-disable-next-line no-undef
-// const serverIpAddress = new URL(Linking.createURL("/")).hostname;
+// const hostname = new URL(
+//   Constants.linkingUri || `http://${Constants.expoConfig?.hostUri}`,
+// ).hostname;
 
-// export const baseURL = `http://${serverIpAddress}/suitescape-api.test`;
-export const baseURL = `https://suitescape.dream-homeseller.com`;
+// export const baseURL = `http://${hostname}/suitescape-api.test`;
+
+export const baseURL = process.env.EXPO_PUBLIC_BASE_URL;
 
 export const baseURLWithAPI = baseURL + "/api";
 

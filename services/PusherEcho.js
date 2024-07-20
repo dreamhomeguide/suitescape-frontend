@@ -6,7 +6,7 @@ import { baseURLWithAPI } from "./SuitescapeAPI";
 const PusherEcho = new Echo({
   Pusher,
   broadcaster: "pusher",
-  key: "ff3bf8283e530b7f93b9",
+  key: process.env.EXPO_PUBLIC_PUSHER_KEY,
   cluster: "ap1",
   forceTLS: true,
   authEndpoint: baseURLWithAPI + "/broadcasting/auth",
