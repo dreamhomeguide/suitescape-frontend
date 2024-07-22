@@ -37,6 +37,7 @@ export const handleApiError = ({
     console.log(error.request);
     return;
   }
+  console.log(errorResponse);
 
   const responseErrors = errorResponse.data;
   if (defaultAlert) {
