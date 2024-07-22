@@ -16,16 +16,19 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
+// Register background task for Android and builds not on Expo Go
+if (Platform.OS === "android" || Constants.appOwnership === null) {
+  const BACKGROUND_NOTIFICATION_TASK = "BACKGROUND-NOTIFICATION-TASK";
 
-TaskManager.defineTask(
-  BACKGROUND_NOTIFICATION_TASK,
-  ({ data, error, executionInfo }) => {
-    console.log("Received a notification in the background!");
-  },
-);
+  TaskManager.defineTask(
+    BACKGROUND_NOTIFICATION_TASK,
+    ({ data, error, executionInfo }) => {
+      console.log("Received a notification in the background!");
+    },
+  );
 
-Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+  Notifications.registerTaskAsync(BACKGROUND_NOTIFICATION_TASK);
+}
 
 export const NotificationsContext = createContext({
   expoPushToken: "",
