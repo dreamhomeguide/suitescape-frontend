@@ -41,6 +41,7 @@ const VideoFeed = forwardRef(
     const [lastPlayedIndex, setLastPlayedIndex] = useState(null);
 
     const flatListRef = useRef(null);
+    const newIndexRef = useRef(null);
 
     const insets = useSafeAreaInsets();
     const isFeedFocused = useIsFocused();
@@ -179,18 +180,21 @@ const VideoFeed = forwardRef(
         const offsetY = e.nativeEvent.contentOffset.y;
         const newIndex = Math.floor(offsetY / videoHeight + 0.1);
 
-        if (
-          newIndex === index ||
-          newIndex > videos.length - 1 ||
-          newIndex < 0
-        ) {
+        // Prevents the same index from being set multiple times
+        if (newIndexRef.current === newIndex) {
+          return;
+        }
+        newIndexRef.current = newIndex;
+
+        // Prevents the index from being set to an out-of-bounds value
+        if (newIndex > videos.length - 1 || newIndex < 0) {
           return;
         }
 
         setIndex(videos[newIndex].id);
         setLastPlayedIndex(videos[newIndex].id);
       },
-      [index, videoHeight, videos],
+      [videoHeight, videos],
     );
 
     // const statusBarStyle = isFeedFocused ? "light" : "auto";
@@ -213,10 +217,10 @@ const VideoFeed = forwardRef(
           ref={flatListRef}
           data={videos}
           scrollEnabled={scrollEnabled}
-          initialNumToRender={5}
+          initialNumToRender={2}
           windowSize={5}
-          maxToRenderPerBatch={3}
-          updateCellsBatchingPeriod={30}
+          maxToRenderPerBatch={2}
+          updateCellsBatchingPeriod={50}
           removeClippedSubviews
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
