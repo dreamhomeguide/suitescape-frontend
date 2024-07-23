@@ -22,6 +22,7 @@ const style = StyleSheet.create({
     marginTop: 60,
     paddingTop: 110,
     rowGap: 20,
+    zIndex: -1,
   },
   nameContainer: {
     rowGap: 8,

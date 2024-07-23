@@ -1,9 +1,10 @@
 import { Image } from "expo-image";
 import React, { memo, useCallback, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
 
 import style from "./HeaderProfileHostStyles";
-import globalStyles, { pressedOpacity } from "../../assets/styles/globalStyles";
+import globalStyles from "../../assets/styles/globalStyles";
 import { baseURL } from "../../services/SuitescapeAPI";
 import ProfileImage from "../ProfileImage/ProfileImage";
 import SliderModalPhoto from "../SliderModalPhoto/SliderModalPhoto";
@@ -37,11 +38,11 @@ const HeaderProfileHost = ({
   return (
     <>
       <View style={{ height: headerHeight }} pointerEvents="box-none">
-        <Pressable
+        <TouchableOpacity
+          activeOpacity={0.7}
           onPress={onCoverPress}
           disabled={!hostCoverUrl}
-          style={({ pressed }) => pressedOpacity(pressed, 0.7)}
-          pointerEvents="box-none"
+          containerStyle={{ pointerEvents: "none" }}
         >
           <Image
             source={
@@ -52,16 +53,12 @@ const HeaderProfileHost = ({
             transition={100}
             style={{ height: coverHeight, ...style.coverImageContainer }}
           />
-        </Pressable>
+        </TouchableOpacity>
 
         <View style={style.mainContentContainer} pointerEvents="box-none">
-          <Pressable
+          <TouchableOpacity
             onPress={onProfilePress}
-            style={({ pressed }) => ({
-              zIndex: 1,
-              ...pressedOpacity(pressed),
-            })}
-            pointerEvents="box-none"
+            containerStyle={{ pointerEvents: "none" }}
           >
             <ProfileImage
               source={hostProfileUrl ? { uri: baseURL + hostProfileUrl } : null}
@@ -71,7 +68,7 @@ const HeaderProfileHost = ({
               borderWidth={5}
               containerStyle={style.profileImageContainer}
             />
-          </Pressable>
+          </TouchableOpacity>
 
           <View style={style.contentContainer} pointerEvents="none">
             <View style={style.nameContainer}>
