@@ -12,6 +12,7 @@ const useUnreadCount = () => {
     queryKey: ["chats"],
     queryFn: fetchAllChats,
     enabled: !settings.guestModeEnabled,
+    placeholderData: [],
     select: (data) => {
       return data?.filter((chat) => chat.unread_messages_count > 0).length;
     },
