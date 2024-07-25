@@ -37,6 +37,7 @@ import { useSettings } from "./contexts/SettingsContext";
 import { TimerProvider } from "./contexts/TimerContext";
 import { VideoFiltersProvider } from "./contexts/VideoFiltersContext";
 import MainNavigation from "./navigation/MainNavigation";
+import { navigationRef } from "./navigation/RootNavigation";
 import { Routes } from "./navigation/Routes";
 import { cacheAssetsAsync } from "./utils/cacheAssets";
 
@@ -182,6 +183,7 @@ const Root = () => {
           {/*)}*/}
 
           <NavigationContainer
+            ref={navigationRef}
             linking={linking}
             theme={colorScheme === "dark" ? DarkTheme : navigationTheme}
             // onReady={() => setIsNavigationReady(true)}
