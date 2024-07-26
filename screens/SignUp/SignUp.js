@@ -29,7 +29,7 @@ import mappingsData from "../../data/mappingsData";
 import clearErrorWhenNotEmpty from "../../utils/clearEmptyInput";
 import convertDateFormat from "../../utils/dateConverter";
 
-const SignUp = ({ navigation }) => {
+const SignUp = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [birthday, setBirthday] = useState("");
@@ -91,26 +91,15 @@ const SignUp = ({ navigation }) => {
   }, []);
 
   const handleSignUp = useCallback(() => {
-    signUp(
-      {
-        firstName,
-        lastName,
-        birthday,
-        email,
-        password,
-        confirmPassword,
-      },
-      navigation,
-    ).catch((errors) => setErrors(errors));
-  }, [
-    firstName,
-    lastName,
-    birthday,
-    email,
-    password,
-    confirmPassword,
-    navigation,
-  ]);
+    signUp({
+      firstName,
+      lastName,
+      birthday,
+      email,
+      password,
+      confirmPassword,
+    }).catch((errors) => setErrors(errors));
+  }, [firstName, lastName, birthday, email, password, confirmPassword]);
 
   const handleSkipButtonClick = useCallback(() => {
     modifySetting("onboardingEnabled", false);

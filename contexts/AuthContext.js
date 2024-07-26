@@ -10,9 +10,10 @@ import {
   useReducer,
   useRef,
 } from "react";
-import { AppState } from "react-native";
+import { Alert, AppState } from "react-native";
 
 import { useSettings } from "./SettingsContext";
+import * as RootNavigation from "../navigation/RootNavigation";
 import { Routes } from "../navigation/Routes";
 import { removeBearerToken, setBearerToken } from "../services/PusherEcho";
 import SuitescapeAPI, {
@@ -71,7 +72,7 @@ const reducer = (prevState, action) => {
 const AuthContext = createContext({
   authState: initialState,
   signIn: async (_data) => {},
-  signUp: async (_data, _navigation) => {},
+  signUp: async (_data) => {},
   signOut: async () => {},
   enableGuestMode: async () => {},
   disableGuestMode: () => {},
@@ -103,10 +104,10 @@ export const AuthProvider = ({ children }) => {
     }
 
     if (response?.status === 200) {
-      const { id: userId } = response.data;
+      const { id: userId, email_verified_at: emailVerifiedAt } = response.data;
 
       // Login the user
-      await handleLogin(userToken, userId);
+      await handleLogin(userToken, userId, emailVerifiedAt);
       console.log("User is logged in");
     } else if (response?.status === 401) {
       // Remove the expired token from storage
@@ -145,7 +146,21 @@ export const AuthProvider = ({ children }) => {
     restoreToken();
   }, []);
 
-  const handleLogin = async (userToken, userId) => {
+  const handleLogin = async (userToken, userId, emailVerifiedAt) => {
+    if (!emailVerifiedAt) {
+      Alert.alert(
+        "Email not verified",
+        "Please verify your email to continue using Suitescape.",
+        [
+          { text: "OK", style: "cancel" },
+          { text: "Resend email", onPress: () => resendEmail(userToken) },
+        ],
+      );
+
+      dispatch({ type: "FINISH_LOADING" });
+      return;
+    }
+
     // Add the user's id to the state
     dispatch({ type: "SET_USER_ID", userId });
 
@@ -189,19 +204,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const handleSignUp = async (userToken, userId, navigation) => {
-    await handleLogin(userToken, userId);
-
-    // Waits for the login to finish
-    await new Promise((resolve) => setTimeout(resolve, 20));
-
-    // So that feedback screen can be shown after the signup
-    navigation.navigate(Routes.FEEDBACK, {
-      type: "success",
-      title: "Congratulations",
-      subtitle: "Your account has been created.",
-    });
-  };
+  // const handleSignUp = async (userToken, userId, navigation) => {
+  //   await handleLogin(userToken, userId, false);
+  //
+  //   // Waits for the login to finish
+  //   await new Promise((resolve) => setTimeout(resolve, 20));
+  //
+  //   // So that feedback screen can be shown after the signup
+  //   RootNavigation.navigate(Routes.FEEDBACK, {
+  //     type: "success",
+  //     title: "Congratulations",
+  //     subtitle: "Your account has been created.",
+  //   });
+  // };
 
   const handleLogOut = async () => {
     // Remove the token from the SuitescapeAPI instance
@@ -270,9 +285,14 @@ export const AuthProvider = ({ children }) => {
         response,
         onSuccess: async (res) => {
           console.log("Login response:", res);
-          await handleLogin(res.token, res.user.id);
+          const {
+            token: userToken,
+            user: { id: userId, email_verified_at: emailVerifiedAt },
+          } = res;
 
-          // Save the email to the secure store so it can be used in the login screen
+          await handleLogin(userToken, userId, emailVerifiedAt);
+
+          // Save the email to the secure store, so it can be used in the login screen
           SecureStore.setItem("lastEmailLoggedIn", data.email);
         },
       });
@@ -289,7 +309,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signUp = async (data, navigation) => {
+  const signUp = async (data) => {
     if (state.isLoading) {
       return;
     }
@@ -321,9 +341,19 @@ export const AuthProvider = ({ children }) => {
         response,
         onSuccess: async (res) => {
           console.log("Signup response:", res);
-          await handleSignUp(res.token, res.user.id, navigation);
+          // await handleSignUp(res.token, res.user.id, navigation);
+          dispatch({ type: "FINISH_LOADING" });
 
-          // Save the email to the secure store so it can be used in the login screen
+          Alert.alert(
+            "Verify email",
+            "Please check your email to verify your account.",
+            [{ text: "OK" }],
+          );
+
+          // Navigate to the login screen
+          RootNavigation.navigate(Routes.LOGIN);
+
+          // Save the email to the secure store, so it can be used in the login screen
           SecureStore.setItem("lastEmailLoggedIn", data.email);
         },
       });
@@ -382,6 +412,28 @@ export const AuthProvider = ({ children }) => {
     } finally {
       // Logout the user from the app
       await handleLogOut();
+    }
+  };
+
+  const resendEmail = async (userToken) => {
+    let response;
+    try {
+      response = await SuitescapeAPI.post("/email/resend", null, {
+        headers: { Authorization: `Bearer ${userToken}` },
+      });
+    } catch (error) {
+      handleApiError({
+        error,
+        defaultAlert: true,
+      });
+    }
+
+    if (response?.status === 200) {
+      Alert.alert(
+        "Email resent",
+        "Please check your email to verify your account.",
+        [{ text: "OK" }],
+      );
     }
   };
 
