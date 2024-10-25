@@ -28,8 +28,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.dreamhome.Suitescape",
-      "versionCode": 3
+      "package": "com.dreamhome.Suitescape"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -49,7 +48,8 @@
         "expo-build-properties",
         {
           "android": {
-            "enableProguardInReleaseBuilds": true
+            "enableProguardInReleaseBuilds": true,
+            "usesCleartextTraffic": true
           }
         }
       ],
