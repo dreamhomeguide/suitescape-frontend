@@ -53,6 +53,8 @@ const navigationTheme = {
 };
 const paperTheme = MaterialTheme;
 
+SplashScreen.preventAutoHideAsync();
+
 const Root = () => {
   const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [fontsLoaded] = useFonts({
@@ -99,8 +101,6 @@ const Root = () => {
   useEffect(() => {
     async function loadResourcesAndDataAsync() {
       try {
-        SplashScreen.preventAutoHideAsync();
-
         await cacheAssetsAsync({
           images: [
             require("./assets/images/onboarding/host-page.png"),
