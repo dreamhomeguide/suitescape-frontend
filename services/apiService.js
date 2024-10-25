@@ -87,6 +87,33 @@ export const fetchBooking = async (bookingId) => {
   return data;
 };
 
+export const fetchBookingAmount = async ({ bookingId, startDate, endDate }) => {
+  const { amount } = await fetchFromAPI({
+    endpoint: `/bookings/${bookingId}/amount`,
+    config: {
+      params: {
+        start_date: startDate,
+        end_date: endDate,
+      },
+    },
+  });
+  return amount;
+};
+
+export const fetchPaymentMethods = async () => {
+  const { payment_methods: paymentMethods } = await fetchFromAPI({
+    endpoint: "/payments",
+  });
+  return paymentMethods;
+};
+
+export const fetchPayoutMethods = async () => {
+  const { payout_methods: payoutMethods } = await fetchFromAPI({
+    endpoint: "/payouts",
+  });
+  return payoutMethods;
+};
+
 export const fetchLikedListings = async () => {
   const { data } = await fetchFromAPI({
     endpoint: `/profile/liked`,
@@ -378,15 +405,6 @@ export const updateBookingDates = async ({ bookingId, startDate, endDate }) => {
   });
 };
 
-export const updateBookingPaymentStatus = async ({ bookingId, status }) => {
-  return await SuitescapeAPI.post(
-    `/bookings/${bookingId}/update-payment-status`,
-    {
-      payment_status: status,
-    },
-  );
-};
-
 export const createListing = async ({ listingData, config = {} }) => {
   return await SuitescapeAPI.post("/listings", listingData, {
     headers: {
@@ -485,6 +503,21 @@ export const resetPassword = async ({
     token: code,
     new_password: newPassword,
     new_password_confirmation: newPasswordConfirmation,
+  });
+};
+
+export const createPayment = async ({ paymentData }) => {
+  return await SuitescapeAPI.post("/payments", paymentData);
+};
+
+export const addPayoutMethod = async ({ payoutData }) => {
+  return await SuitescapeAPI.post("/payouts", payoutData);
+};
+
+export const createAppFeedback = async ({ rating, comment }) => {
+  return await SuitescapeAPI.post("/app-feedback", {
+    rating,
+    comment,
   });
 };
 
